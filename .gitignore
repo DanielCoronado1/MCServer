@@ -1,0 +1,44 @@
+# Compilacion (Gradle)
+.gradle/
+build/
+out/
+run/
+*.class
+
+# Servidores y clientes de prueba (se regeneran con los scripts)
+test-client/
+test-fabric/
+test-server/
+backups/
+server/
+
+# Servidor real: solo se guardan scripts y configuracion
+server-fabric/*
+!server-fabric/iniciar.bat
+!server-fabric/eula.txt
+!server-fabric/ops.json
+!server-fabric/whitelist.json
+!server-fabric/server.properties.ejemplo
+!server-fabric/config/
+server-fabric/config/**/*.db
+server-fabric/config/**/*.mv.db
+server-fabric/config/**/*.sqlite
+server-fabric/config/**/*.log
+
+# Archivos generados (se crean con scripts/crear_modpack.py)
+*.jar
+*.mrpack
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema / editores
+.idea/
+.vscode/
+*.iml
+Thumbs.db
+desktop.ini
+!**/gradle/wrapper/gradle-wrapper.jar
+server-fabric/config/luckperms/translations/
+server-fabric/config/spark/tmp/

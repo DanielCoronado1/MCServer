@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "dolfincreepers",
+	"version": "${version}",
+	"name": "Dolfin Creepers",
+	"description": "Variantes de creeper con texturas propias: fuego, hielo, saltarin, mini, electrico, multiplicador, gigante, toxico y el jefe Rey Creeper.",
+	"authors": ["Dolfin"],
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.dolfin.creepers.DolfinCreepers"],
+		"client": ["com.dolfin.creepers.client.DolfinCreepersClient"]
+	},
+	"mixins": ["dolfincreepers.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

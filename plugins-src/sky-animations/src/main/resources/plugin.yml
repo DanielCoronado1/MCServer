@@ -1,0 +1,18 @@
+# Ficha del plugin: el servidor la lee para saber que cargar.
+name: DolfinCielo
+version: '${version}'
+main: com.dolfin.cielo.CieloPlugin
+description: Animaciones en el cielo (evento del apocalipsis)
+author: Dolfin
+api-version: '26.3'
+
+commands:
+  apocalipsis:
+    description: Inicia o detiene el evento del cielo rojo
+    usage: /apocalipsis <iniciar [jugador]|detener>
+    permission: dolfin.apocalipsis
+
+permissions:
+  dolfin.apocalipsis:
+    description: Permite usar /apocalipsis
+    default: op

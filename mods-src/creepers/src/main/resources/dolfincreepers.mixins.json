@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "com.dolfin.creepers.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"CaidaMixin",
+		"CreeperAccessor",
+		"CreeperExplosionMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

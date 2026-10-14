@@ -1,0 +1,18 @@
+# Ficha del plugin: el servidor la lee para saber que cargar.
+name: DolfinPack
+version: '${version}'
+main: com.dolfin.pack.PackPlugin
+description: Sirve el resource pack de DolfinServer y lo envia a cada jugador
+author: Dolfin
+api-version: '26.3'
+
+commands:
+  dolfinpack:
+    description: Vuelve a leer pack.zip y lo reenvia a todos
+    usage: /dolfinpack recargar
+    permission: dolfin.pack
+
+permissions:
+  dolfin.pack:
+    description: Permite usar /dolfinpack
+    default: op

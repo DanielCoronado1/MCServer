@@ -1,0 +1,14 @@
+# ============================================================
+#  DolfinCreepers - variantes de creeper
+#  Tras cambiar algo: reinicia el servidor.
+# ============================================================
+
+# Probabilidad (%) de que un creeper que aparece de forma natural sea de
+# cada variante. El resto (aqui 100 - 31 = 69 %) son creepers normales.
+# Pon 0 para desactivar una variante.
+probabilidades:
+  hielo: 8
+  electrico: 6
+  saltarin: 8
+  multiplicador: 6
+  gigante: 3

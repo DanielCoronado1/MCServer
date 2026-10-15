@@ -1,0 +1,81 @@
+hash-format = "sha256"
+
+[[files]]
+file = "mods/automodpack.pw.toml"
+hash = "5cb5ad8462a314ebdbeaaae1dcfcccf14ee8862462da7712c7b44a6f7dc35d36"
+metafile = true
+
+[[files]]
+file = "mods/c2me-fabric.pw.toml"
+hash = "2bf4a1e86d983fff239bfa88ecd60b4a4e68135d7b72f0cc14b7e39fb4065507"
+metafile = true
+
+[[files]]
+file = "mods/chunky.pw.toml"
+hash = "c3e4fe1c4469a4cbad5fc201fe7083166b6bf3cab7edb23398a317b4c29bd727"
+metafile = true
+
+[[files]]
+file = "mods/essential-commands.pw.toml"
+hash = "4e014b9ce702025777a0e980d3936c2933b1489e5df4379020e5fc71b364387f"
+metafile = true
+
+[[files]]
+file = "mods/fabric-api.pw.toml"
+hash = "249b9a3bfcb8a23719e656abb121094e63c6d88eeab08f2fbd8ae569948d5303"
+metafile = true
+
+[[files]]
+file = "mods/fabric-language-kotlin.pw.toml"
+hash = "3e4a5c8ca600e0924c34868fa7d62041c5849f709dad4e238bb4fc31e90d49d4"
+metafile = true
+
+[[files]]
+file = "mods/ferrite-core.pw.toml"
+hash = "069d81cab53c0141459ad4d70bcf3e10f17652f24cc62d3b4a0fc2cd2b700871"
+metafile = true
+
+[[files]]
+file = "mods/forge-config-api-port.pw.toml"
+hash = "677e9275e617e51c121481757f0d3a001027e65df35c436dbc0886d6568047a7"
+metafile = true
+
+[[files]]
+file = "mods/ledger.pw.toml"
+hash = "264b4030e5717d50ebd215bffeb2e5fa138dc255ed57cbd47f99fd0a69595af3"
+metafile = true
+
+[[files]]
+file = "mods/lithium.pw.toml"
+hash = "a39389e4c813b70b984a0c8aed769825b32c321ee0b9aed1151d92cb38f77357"
+metafile = true
+
+[[files]]
+file = "mods/luckperms.pw.toml"
+hash = "abaff630ec5a2f28ada62238b81a05313d5609282fa182ca64ba1bab7953d9ee"
+metafile = true
+
+[[files]]
+file = "mods/open-parties-and-claims.pw.toml"
+hash = "74bdac9fc9cc613e8b1cf5552bde371853c38f0950296393fddd775a6b532fd1"
+metafile = true
+
+[[files]]
+file = "mods/scalablelux.pw.toml"
+hash = "2eaee6b3f8b09717c82b54b1678b57b4934172626e71e3924a16f39e41a72e93"
+metafile = true
+
+[[files]]
+file = "mods/sodium.pw.toml"
+hash = "0bf314c578473659bd89915114cac8e60994988f405218726a48d35b06e9316c"
+metafile = true
+
+[[files]]
+file = "mods/spark.pw.toml"
+hash = "43bdce478a1b421f2fe0718b2b5aea0624833340970c9621ff56ed00b0fc44c0"
+metafile = true
+
+[[files]]
+file = "mods/vmp-fabric.pw.toml"
+hash = "5e4f565b61e14d9db3c9aee3a2bd329b9e9d6dced068e5e079f02077e9fc3670"
+metafile = true

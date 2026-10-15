@@ -1,0 +1,13 @@
+name = "AutoModpack"
+filename = "automodpack-5.0.0-rc.4.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/k68glP2e/versions/taErEWo6/automodpack-5.0.0-rc.4.jar"
+hash-format = "sha512"
+hash = "2d9aef44eb8045c2dfd3bbd300d6695978ff70d97805eb768fc294605964335254f203834a426eacc3a83f11ed843e6c048159baccf7b77915d2dedd1267580b"
+
+[update]
+[update.modrinth]
+mod-id = "k68glP2e"
+version = "taErEWo6"

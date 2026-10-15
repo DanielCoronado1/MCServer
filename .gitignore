@@ -18,12 +18,16 @@ server-fabric/*
 !server-fabric/whitelist.json
 !server-fabric/server.properties.ejemplo
 !server-fabric/config/
+!server-fabric/automodpack/
+server-fabric/automodpack/*
+!server-fabric/automodpack/server.conf
 server-fabric/config/**/*.db
 server-fabric/config/**/*.mv.db
 server-fabric/config/**/*.sqlite
 server-fabric/config/**/*.log
 
-# Archivos generados (se crean con scripts/crear_modpack.py)
+# Archivos generados (se crean con scripts/crear_release.py)
+dist/
 *.jar
 *.mrpack
 

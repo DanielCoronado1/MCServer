@@ -1,0 +1,13 @@
+name = "Essential Commands"
+filename = "essential_commands-0.42.0-mc26.3.jar"
+side = "server"
+
+[download]
+url = "https://cdn.modrinth.com/data/6VdDUivB/versions/KANmt7ie/essential_commands-0.42.0-mc26.3.jar"
+hash-format = "sha512"
+hash = "6edda40084a85446817e1c393f8ea0a386300762c553990ee2bf613a93623f883be752824635f3d7f1d2a89c7b247cc246afd18a1e0d293ff022433b301e180e"
+
+[update]
+[update.modrinth]
+mod-id = "6VdDUivB"
+version = "KANmt7ie"

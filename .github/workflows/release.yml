@@ -1,0 +1,70 @@
+# Compila nuestros mods y crea el zip del servidor y el .mrpack de los jugadores.
+# En pull requests y ejecuciones manuales los deja como artefactos de la ejecucion;
+# al subir una etiqueta vX.Y.Z publica ademas la release de GitHub.
+name: Release
+
+on:
+  push:
+    branches: [main, dev]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  modpack:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Comprobar el pack de packwiz
+        run: |
+          go install github.com/packwiz/packwiz@v0.0.0-20261014010756-170b22d78595
+          cd pack
+          "$(go env GOPATH)/bin/packwiz" refresh
+          git diff --exit-code -- . || { echo "::error::pack/index.toml no esta al dia: ejecuta 'packwiz refresh' en pack/"; exit 1; }
+
+      - name: Compilar nuestros mods
+        # gradle.properties apunta al JDK 25 del servidor Windows; aqui se usa el del runner.
+        run: |
+          for mod in mods-src/*/; do
+            (cd "$mod" && bash ./gradlew build --no-daemon "-Dorg.gradle.java.home=$JAVA_HOME")
+          done
+
+      - name: Version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev.${GITHUB_RUN_NUMBER}+${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Crear modpack y zip del servidor
+        run: python scripts/crear_release.py "${{ steps.version.outputs.version }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DolfinServer-${{ steps.version.outputs.version }}
+          path: dist/
+
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.mrpack
+          --title "DolfinServer ${{ steps.version.outputs.version }}"
+          --notes-file dist/notas.md

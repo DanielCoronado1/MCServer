@@ -8,9 +8,7 @@ run/
 # Servidores y clientes de prueba (se regeneran con los scripts)
 test-client/
 test-fabric/
-test-server/
 backups/
-server/
 
 # Servidor real: solo se guardan scripts y configuracion
 server-fabric/*

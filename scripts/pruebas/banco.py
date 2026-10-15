@@ -1,99 +1,18 @@
 """
-Banco de pruebas visual del evento /apocalipsis.
+Utilidades del cliente de pruebas (Minecraft 26.3 con el jugador offline "Tester"):
+preparar su configuracion, cerrarlo y hacer capturas de su ventana.
 
-  python scripts/pruebas/banco.py servidor   compila, copia plugins y pack, (re)inicia el servidor de pruebas
-  python scripts/pruebas/banco.py cliente    (re)lanza Minecraft 26.3 con el jugador offline "Tester"
-  python scripts/pruebas/banco.py capturar   lanza el evento y guarda capturas de cada fase
-  python scripts/pruebas/banco.py todo       las tres cosas seguidas
-
-Servidor de pruebas: test-server/ (puerto 25566, offline, solo local).
-Cliente de pruebas:  test-client/ (no toca tu .minecraft).
-Capturas:            test-client/capturas/<fecha>/
+Cliente de pruebas: test-client/ (no toca tu .minecraft).
+Capturas:           test-client/capturas/
 """
-import shutil
 import struct
 import subprocess
-import sys
-import time
-from datetime import datetime
 from pathlib import Path
 
 from PIL import ImageGrab
 
-sys.path.insert(0, str(Path(__file__).parent))
-import rcon  # noqa: E402
-
-RAIZ = Path(__file__).resolve().parents[2]
-SERVIDOR_REAL = RAIZ / "server"
-SERVIDOR = RAIZ / "test-server"
-CLIENTE = RAIZ / "test-client"
-JAVA = Path(r"C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot\bin")
-PUERTO = 25566
-JUGADOR = "Tester"
+CLIENTE = Path(__file__).resolve().parents[2] / "test-client"
 SIN_VENTANA = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-
-# (segundo desde el inicio del evento, yaw, pitch, nombre). yaw 180 = mirar al norte.
-GUION = [
-    (2, 180, -35, "01_inicio"),
-    (6, 180, -55, "02_mancha"),
-    (10, 180, -70, "03_extendiendose"),
-    (12.5, 180, -89, "04_remolino_arriba"),
-    (13, 180, -25, "05_horizonte"),
-    (13.5, 180, -32, "06_rayo"),
-    (16, 180, -32, "07_grieta_abriendo"),
-    (19, 180, -32, "08_grieta_abierta"),
-    (22, 180, -32, "09_dragon_saliendo"),
-    (25, 180, -32, "10_dragon_fuera"),
-    (30, 150, -30, "11_dragon_lado"),
-    (45, 180, -32, "12_cierre"),
-    (52, 180, -60, "13_encogiendo"),
-    (60, 180, -40, "14_final"),
-]
-
-
-# ----------------------------------------------------------------------------
-#  Servidor
-# ----------------------------------------------------------------------------
-
-def servidor_vivo():
-    try:
-        rcon.enviar("list")
-        return True
-    except OSError:
-        return False
-
-
-def servidor():
-    print("Compilando plugins...")
-    subprocess.run(["cmd", "/c", str(RAIZ / "plugins-src" / "gradlew.bat"), "deploy", "-q"],
-                   cwd=RAIZ / "plugins-src", check=True)
-
-    if servidor_vivo():
-        print("Deteniendo servidor de pruebas...")
-        rcon.enviar("stop")
-        for _ in range(60):
-            time.sleep(1)
-            if not servidor_vivo():
-                break
-        time.sleep(3)
-
-    plugins = SERVIDOR / "plugins"
-    for jar in (SERVIDOR_REAL / "plugins").glob("*.jar"):
-        shutil.copy2(jar, plugins / jar.name)
-    shutil.copy2(SERVIDOR_REAL / "plugins/DolfinPack/pack.zip", plugins / "DolfinPack/pack.zip")
-    shutil.copy2(RAIZ / "plugins-src/sky-animations/src/main/resources/config.yml", plugins / "DolfinCielo/config.yml")
-
-    print("Iniciando servidor de pruebas...")
-    with open(SERVIDOR / "consola.log", "w", encoding="utf-8") as log:
-        subprocess.Popen([str(JAVA / "java.exe"), "-Xms3G", "-Xmx3G", "-jar", "paper.jar", "--nogui"],
-                         cwd=SERVIDOR, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                         creationflags=SIN_VENTANA)
-    for _ in range(120):
-        time.sleep(1)
-        if servidor_vivo():
-            print("Servidor listo.")
-            return
-    raise TimeoutError("El servidor de pruebas no arranco (mira test-server/consola.log)")
 
 
 # ----------------------------------------------------------------------------
@@ -105,7 +24,7 @@ def _nbt_texto(nombre, valor):
     return b"\x08" + struct.pack(">H", len(nombre)) + nombre.encode() + struct.pack(">H", len(datos)) + datos
 
 
-def preparar_cliente(puerto=PUERTO):
+def preparar_cliente(puerto):
     CLIENTE.mkdir(exist_ok=True)
     opciones = CLIENTE / "options.txt"
     ajustes = {
@@ -142,24 +61,6 @@ def cerrar_cliente():
                     "Get-CimInstance Win32_Process -Filter \"Name='javaw.exe'\" | "
                     "? { $_.CommandLine -like '*test-client*' } | % { Stop-Process -Id $_.ProcessId -Force }"],
                    check=False)
-
-
-def cliente():
-    cerrar_cliente()
-    preparar_cliente()
-    print("Lanzando Minecraft de pruebas...")
-    with open(CLIENTE / "lanzador.log", "w", encoding="utf-8") as log:
-        subprocess.Popen([sys.executable, "-m", "portablemc", "--main-dir", str(CLIENTE), "start", "26.3",
-                          "--jvm", str(JAVA / "javaw.exe"), "-u", JUGADOR, "--resolution", "1280x720",
-                          "-s", "127.0.0.1", "-p", str(PUERTO)],
-                         stdout=log, stderr=subprocess.STDOUT, creationflags=SIN_VENTANA)
-    for _ in range(240):
-        time.sleep(1)
-        if JUGADOR in rcon.enviar("list")[0]:
-            print("Tester conectado. Esperando a que cargue el pack...")
-            time.sleep(20)
-            return
-    raise TimeoutError("El cliente no se conecto (mira test-client/lanzador.log)")
 
 
 # ----------------------------------------------------------------------------
@@ -200,40 +101,3 @@ def foto(ruta):
     imagen = ImageGrab.grab(bbox=zona, all_screens=True) if zona else ImageGrab.grab()
     imagen.thumbnail((1280, 1280))
     imagen.save(ruta, quality=85)
-
-
-def capturar():
-    if JUGADOR not in rcon.enviar("list")[0]:
-        raise RuntimeError("Tester no esta conectado: ejecuta primero 'cliente'")
-    carpeta = CLIENTE / "capturas" / datetime.now().strftime("%Y%m%d-%H%M%S")
-    carpeta.mkdir(parents=True)
-
-    rcon.enviar("apocalipsis detener", "time set 6000", "weather clear",
-                f"gamemode spectator {JUGADOR}", f"tp {JUGADOR} 0 -55 0 180 -35")
-    time.sleep(3)
-    rcon.enviar(f"apocalipsis iniciar {JUGADOR}")
-    inicio = time.time()
-
-    print("Capturando", len(GUION), "fases...")
-    for segundo, yaw, pitch, nombre in GUION:
-        espera = inicio + segundo - time.time()
-        if espera > 0:
-            time.sleep(espera)
-        rcon.enviar(f"tp {JUGADOR} 0 -55 0 {yaw} {pitch}")
-        time.sleep(0.35)
-        foto(carpeta / f"{nombre}.jpg")
-        print(f"  {segundo:>5}s  {nombre}")
-
-    entidades = rcon.enviar("execute if entity @e[type=item_display]", "execute if entity @e[type=ender_dragon]")
-    print("  Al final quedan:", " | ".join(entidades))
-    print("Capturas en", carpeta)
-
-
-if __name__ == "__main__":
-    accion = sys.argv[1] if len(sys.argv) > 1 else "todo"
-    if accion in ("servidor", "todo"):
-        servidor()
-    if accion in ("cliente", "todo"):
-        cliente()
-    if accion in ("capturar", "todo"):
-        capturar()

@@ -39,6 +39,14 @@ class Crafty:
         return payload.get('data')
 
 
+def accepted_eula(text):
+    for line in text.lstrip('\ufeff').splitlines():
+        key, separator, value = line.partition('=')
+        if separator and key.strip() == 'eula':
+            return value.strip().lower() == 'true'
+    return False
+
+
 def configure(root, java, heap_max):
     credentials = root / 'runtime/crafty/config/default-creds.txt'
     deadline = time.monotonic() + 180
@@ -57,7 +65,7 @@ def configure(root, java, heap_max):
         server_id = existing[0]['server_id']
     else:
         source = root / 'runtime/server'
-        if 'eula=true' not in (source / 'eula.txt').read_text():
+        if not accepted_eula((source / 'eula.txt').read_text()):
             raise RuntimeError('The preserved server must already have an accepted EULA')
         archive = root / 'runtime/crafty/import/upload/dolfin.zip'
         archive.parent.mkdir(parents=True, exist_ok=True)
@@ -87,6 +95,12 @@ def configure(root, java, heap_max):
             if time.monotonic() >= deadline:
                 raise TimeoutError('Crafty server import did not finish within five minutes')
             time.sleep(3)
+    eula = root / 'runtime/crafty/servers' / server_id / 'eula.txt'
+    if not accepted_eula(eula.read_text()):
+        raise RuntimeError('The managed server has no accepted EULA; review it before starting')
+    # Crafty 4.11 checks only the first line, without stripping its newline.
+    # Normalize existing acceptance; do not create or infer new consent.
+    eula.write_text('eula=true', encoding='utf-8')
     client.request('PATCH', f'/api/v2/servers/{server_id}', {
         'execution_command': f'{java} -Xms2G -Xmx{heap_max}G -XX:+UseG1GC -jar fabric-server-launch.jar nogui',
         'auto_start': True, 'auto_start_delay': 10, 'crash_detection': True,

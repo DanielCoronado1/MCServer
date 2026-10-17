@@ -31,6 +31,13 @@ class ToolingTests(unittest.TestCase):
         self.release = load_script('release', self.root / 'scripts/build_release.py')
         self.installer.preparar_servidor()
 
+    def test_crafty_eula_parser_requires_explicit_acceptance(self):
+        setup = load_script('crafty_setup', ROOT / 'deploy/crafty/configure_server.py')
+        self.assertTrue(setup.accepted_eula('# existing server\neula=true\n'))
+        self.assertTrue(setup.accepted_eula('\ufeffeula = true\n'))
+        self.assertFalse(setup.accepted_eula('# set eula=true after reading\neula=false\n'))
+        self.assertFalse(setup.accepted_eula('# eula=true\n'))
+
     def test_templates_preserve_live_configuration_and_eula(self):
         runtime = self.installer.SERVIDOR
         self.assertIn('eula=false', (runtime / 'eula.txt').read_text())

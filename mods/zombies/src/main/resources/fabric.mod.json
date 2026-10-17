@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "dolfinzombies",
+  "version": "${version}",
+  "name": "Dolfin Zombies",
+  "description": "Configurable zombies, reloadable JSON and administrator commands.",
+  "authors": [
+    "Dolfin"
+  ],
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.dolfin.zombies.DolfinZombies"
+    ],
+    "client": [
+      "com.dolfin.zombies.client.DolfinZombiesClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "luckperms": "*"
+  }
+}

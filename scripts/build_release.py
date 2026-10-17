@@ -71,7 +71,8 @@ def crear_zip_servidor(version, pack, indice, propios):
             zip_.write(jar, f"{carpeta}/custom-mods/{jar.name}")
         zip_.write(RAIZ / "scripts" / "install_server.py", f"{carpeta}/scripts/install_server.py")
         for ruta in [RAIZ / "README.md", *sorted((RAIZ / "docs").rglob("*.md")),
-                     *sorted((RAIZ / "deploy").rglob("*.yaml"))]:
+                     *sorted(p for p in (RAIZ / "deploy").rglob("*")
+                             if p.suffix in {".yaml", ".py", ".ps1", ".sh"})]:
             zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
     return salida
 

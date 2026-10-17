@@ -1,7 +1,8 @@
 services:
   crafty:
     image: registry.gitlab.com/crafty-controller/crafty-4:4.11.0
-    restart: unless-stopped
+    restart: always
+    stop_grace_period: 120s
     environment:
       TZ: America/Monterrey
     ports:
@@ -12,4 +13,5 @@ services:
       - ../../runtime/crafty/logs:/crafty/logs
       - ../../runtime/crafty/servers:/crafty/servers
       - ../../runtime/crafty/config:/crafty/app/config
+      - ../../runtime/crafty/import:/crafty/import
       - ../../runtime/server:/crafty/import/dolfin:ro

@@ -38,5 +38,6 @@ For a web administration panel, follow [Crafty setup](docs/crafty.md). Crafty ow
 - [Development, Packwiz, and tests](docs/development.md)
 - [Server operation and releases](docs/operations.md)
 - [Crafty Controller](docs/crafty.md)
+- [Unattended Windows host](docs/windows-host.md)
 
 Release archives follow the same `server/`, `pack/`, `scripts/`, `deploy/`, and `runtime/` convention. They contain compiled custom mods in `custom-mods/` instead of source projects. Installer and release tools need no Python dependencies. Asset tools and manual visual checks use `pip install -r requirements-dev.txt`.

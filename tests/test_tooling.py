@@ -89,6 +89,8 @@ class ToolingTests(unittest.TestCase):
             names = zipped.namelist()
             self.assertTrue(any(n.endswith('deploy/crafty/compose.yaml') for n in names))
             self.assertTrue(any(n.endswith('docs/crafty.md') for n in names))
+            self.assertTrue(any(n.endswith('deploy/windows/install-startup.ps1') for n in names))
+            self.assertTrue(any(n.endswith('deploy/crafty/configure_server.py') for n in names))
             self.assertFalse(any('/runtime/' in n or n.endswith(('ops.json', 'whitelist.json', 'eula.txt')) for n in names))
             zipped.extractall(extracted)
         release_root = extracted / 'DolfinServer-servidor-test'

@@ -37,11 +37,13 @@ jobs:
           git diff --exit-code -- . || { echo "::error::pack/index.toml no esta al dia: ejecuta 'packwiz refresh' en pack/"; exit 1; }
 
       - name: Compilar nuestros mods
-        # gradle.properties apunta al JDK 25 del servidor Windows; aqui se usa el del runner.
         run: |
-          for mod in mods-src/*/; do
+          for mod in mods/*/; do
             (cd "$mod" && bash ./gradlew build --no-daemon "-Dorg.gradle.java.home=$JAVA_HOME")
           done
+
+      - name: Test repository tooling
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
 
       - name: Version
         id: version
@@ -53,7 +55,7 @@ jobs:
           fi
 
       - name: Crear modpack y zip del servidor
-        run: python scripts/crear_release.py "${{ steps.version.outputs.version }}"
+        run: python scripts/build_release.py "${{ steps.version.outputs.version }}"
 
       - uses: actions/upload-artifact@v4
         with:

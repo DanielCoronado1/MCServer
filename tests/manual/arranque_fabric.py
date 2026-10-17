@@ -1,17 +1,18 @@
 """
 Arranca el servidor Fabric, espera a que termine de cargar, ejecuta unos comandos
-de comprobacion y lo apaga. Guarda toda la salida en server-fabric/prueba_arranque.log.
+de comprobacion y lo apaga. Guarda toda la salida en runtime/server/prueba_arranque.log.
 
-Uso: python scripts/pruebas/arranque_fabric.py ["comando" ...]
+Uso: python tests/manual/arranque_fabric.py ["comando" ...]
 """
+import os
 import subprocess
 import sys
 import threading
 import time
 from pathlib import Path
 
-SERVIDOR = Path(__file__).resolve().parents[2] / "server-fabric"
-JAVA = r"C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot\bin\java.exe"
+SERVIDOR = Path(__file__).resolve().parents[2] / "runtime" / "server"
+JAVA = str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java")) if "JAVA_HOME" in os.environ else "java"
 
 proceso = subprocess.Popen([JAVA, "-Xms4G", "-Xmx4G", "-jar", "fabric-server-launch.jar", "nogui"],
                            cwd=SERVIDOR, stdin=subprocess.PIPE, stdout=subprocess.PIPE,

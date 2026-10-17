@@ -1,0 +1,3 @@
+# Texture tools and manual visual tests only; setup/release use Python's stdlib.
+Pillow>=11,<13
+portablemc>=4,<5

@@ -1,13 +1,13 @@
 """Junta las capturas de una prueba en una sola imagen (hoja.jpg) para revisarlas de un vistazo.
 
-Uso: python scripts/pruebas/hoja.py [carpeta]   (por defecto, la prueba mas reciente)
+Uso: python tests/manual/hoja.py [carpeta]   (por defecto, la prueba mas reciente)
 """
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-CAPTURAS = Path(__file__).resolve().parents[2] / "test-client" / "capturas"
+CAPTURAS = Path(__file__).resolve().parents[2] / "runtime/test-client" / "capturas"
 
 carpeta = Path(sys.argv[1]) if len(sys.argv) > 1 else max(CAPTURAS.iterdir())
 fotos = sorted(p for p in carpeta.glob("*.jpg") if p.name != "hoja.jpg")

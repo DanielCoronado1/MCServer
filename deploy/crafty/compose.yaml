@@ -1,0 +1,15 @@
+services:
+  crafty:
+    image: registry.gitlab.com/crafty-controller/crafty-4:4.11.0
+    restart: unless-stopped
+    environment:
+      TZ: America/Monterrey
+    ports:
+      - "8443:8443" # Crafty HTTPS dashboard
+      - "25565:25565" # Minecraft Java + AutoModpack HOLEPUNCH
+    volumes:
+      - ../../runtime/crafty/backups:/crafty/backups
+      - ../../runtime/crafty/logs:/crafty/logs
+      - ../../runtime/crafty/servers:/crafty/servers
+      - ../../runtime/crafty/config:/crafty/app/config
+      - ../../runtime/server:/crafty/import/dolfin:ro

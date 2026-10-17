@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PIL import ImageGrab
 
-CLIENTE = Path(__file__).resolve().parents[2] / "test-client"
+CLIENTE = Path(__file__).resolve().parents[2] / "runtime/test-client"
 SIN_VENTANA = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
 
 

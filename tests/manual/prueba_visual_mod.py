@@ -2,10 +2,11 @@
 Prueba visual del mod de creepers: arranca test-fabric (puerto 25570) y un Minecraft
 Fabric de pruebas con el mod, coloca a todas las variantes quietas y hace capturas.
 
-Uso: python scripts/pruebas/prueba_visual_mod.py
+Uso: python tests/manual/prueba_visual_mod.py
 Capturas en test-client/capturas/mod-<fecha>/  (necesita que nadie use el equipo)
 """
 import shutil
+import os
 import subprocess
 import sys
 import threading
@@ -16,10 +17,10 @@ from pathlib import Path
 import banco
 
 RAIZ = Path(__file__).resolve().parents[2]
-SERVIDOR = RAIZ / "test-fabric"
+SERVIDOR = RAIZ / "runtime/test-server"
 CLIENTE = banco.CLIENTE
 PUERTO = 25570
-JAVA = Path(r"C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot\bin")
+JAVA = Path(os.environ["JAVA_HOME"]) / "bin"
 
 # (variante, x, z) en fila delante del jugador; los grandes, mas atras.
 FILA = [("fuego", -9, 10), ("hielo", -6, 10), ("saltarin", -3, 10), ("mini", 0, 10), ("electrico", 3, 10),
@@ -27,7 +28,7 @@ FILA = [("fuego", -9, 10), ("hielo", -6, 10), ("saltarin", -3, 10), ("mini", 0, 
 
 
 def preparar():
-    jar = max((RAIZ / "mods-src/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"), key=lambda j: j.stat().st_mtime)
+    jar = max((RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"), key=lambda j: j.stat().st_mtime)
     # Servidor: mundo nuevo y ultima version del mod.
     shutil.rmtree(SERVIDOR / "world", ignore_errors=True)
     for viejo in (SERVIDOR / "mods").glob("dolfincreepers-*.jar"):
@@ -38,7 +39,7 @@ def preparar():
     shutil.rmtree(mods, ignore_errors=True)
     mods.mkdir()
     shutil.copy2(jar, mods / jar.name)
-    for api in (RAIZ / "server-fabric/mods").glob("fabric-api-*.jar"):
+    for api in (RAIZ / "runtime/server/mods").glob("fabric-api-*.jar"):
         shutil.copy2(api, mods / api.name)
 
 

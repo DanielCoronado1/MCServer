@@ -39,12 +39,4 @@ java {
 	targetCompatibility = JavaVersion.VERSION_25
 }
 
-// "gradlew desplegar": compila y copia el mod al servidor Fabric
-tasks.register('desplegar', Copy) {
-	group = 'dolfin'
-	description = 'Compila el mod y lo copia a server-fabric/mods'
-	from(tasks.named('jar'))
-	into(file('../../server-fabric/mods'))
-	// La carpeta mods tiene archivos que el servidor bloquea mientras esta encendido.
-	doNotTrackState('server-fabric/mods contiene archivos en uso')
-}
+// Deploy through scripts/install_server.py so server and AutoModpack stay in sync.

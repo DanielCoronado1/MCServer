@@ -1,46 +1,26 @@
-# Compilacion (Gradle)
+# Generated server, controller, worlds, credentials, logs, and test instances
+/runtime/
+/dist/
+
+# Gradle / Java (each custom mod is an independent project)
 .gradle/
 build/
 out/
 run/
 *.class
-
-# Servidores y clientes de prueba (se regeneran con los scripts)
-test-client/
-test-fabric/
-backups/
-
-# Servidor real: solo se guardan scripts y configuracion
-server-fabric/*
-!server-fabric/iniciar.bat
-!server-fabric/eula.txt
-!server-fabric/ops.json
-!server-fabric/whitelist.json
-!server-fabric/server.properties.ejemplo
-!server-fabric/config/
-!server-fabric/automodpack/
-server-fabric/automodpack/*
-!server-fabric/automodpack/server.conf
-server-fabric/config/**/*.db
-server-fabric/config/**/*.mv.db
-server-fabric/config/**/*.sqlite
-server-fabric/config/**/*.log
-
-# Archivos generados (se crean con scripts/crear_release.py)
-dist/
 *.jar
+!**/gradle/wrapper/gradle-wrapper.jar
 *.mrpack
 
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
 
-# Sistema / editores
+# Editors and operating systems
 .idea/
 .vscode/
 *.iml
+.DS_Store
 Thumbs.db
 desktop.ini
-!**/gradle/wrapper/gradle-wrapper.jar
-server-fabric/config/luckperms/translations/
-server-fabric/config/spark/tmp/

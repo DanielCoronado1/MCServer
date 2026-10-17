@@ -1,8 +1,8 @@
 """
 Crea los archivos de una release en dist/:
 
-  DolfinServer-servidor-<version>.zip   para el administrador: configuracion del servidor,
-                                        pack/ (packwiz), nuestros mods e instalar.py, que
+  DolfinServer-servidor-<version>.zip   para el administrador: plantillas server/, docs y deploy/,
+                                        pack/ (packwiz), nuestros mods y scripts/install_server.py, que
                                         descarga el resto de mods de Modrinth.
   DolfinServer-<version>.mrpack         para los jugadores: Fabric + AutoModpack. El resto
                                         de mods se lo envia el servidor al conectarse.
@@ -11,10 +11,9 @@ Crea los archivos de una release en dist/:
 No incluye mods de terceros dentro de los archivos (el repositorio es publico): solo sus
 enlaces de descarga y huellas.
 
-Uso:  python scripts/crear_release.py <version>   (antes: gradlew build en cada mods-src/*)
+Uso:  python scripts/build_release.py <version>   (antes: gradlew build en cada mods/*)
 """
 import json
-import subprocess
 import sys
 import tomllib
 import urllib.request
@@ -25,8 +24,6 @@ RAIZ = Path(__file__).resolve().parent.parent
 PACK = RAIZ / "pack"
 DIST = RAIZ / "dist"
 CABECERAS = {"User-Agent": "DolfinServer-setup/1.0"}
-# Archivos de server-fabric/ que no van en la release: cada servidor tiene los suyos.
-PROPIOS_DEL_SERVIDOR = {"eula.txt", "ops.json", "whitelist.json"}
 
 
 def pedir_json(url):
@@ -44,23 +41,20 @@ def leer_pack():
 
 def mods_propios():
     jars = []
-    for proyecto in sorted((RAIZ / "mods-src").iterdir()):
+    for proyecto in sorted((RAIZ / "mods").iterdir()):
+        if not (proyecto / "build.gradle").is_file():
+            continue
         candidatos = [j for j in (proyecto / "build" / "libs").glob("*.jar")
                       if not j.stem.endswith(("-sources", "-dev"))]
         if not candidatos:
-            raise FileNotFoundError(f"Compila primero mods-src/{proyecto.name} (gradlew build)")
+            raise FileNotFoundError(f"Compila primero mods/{proyecto.name} (gradlew build)")
         jars.append(max(candidatos, key=lambda j: j.stat().st_mtime))
     return jars
 
 
 def archivos_del_servidor():
-    """Archivos de server-fabric/ guardados en el repositorio (sin mundos, logs ni jars)."""
-    salida = subprocess.run(["git", "ls-files", "server-fabric"], cwd=RAIZ, check=True,
-                            capture_output=True, text=True).stdout
-    for linea in salida.splitlines():
-        ruta = Path(linea)
-        if ruta.name not in PROPIOS_DEL_SERVIDOR:
-            yield ruta
+    """Only templates are packaged; runtime state is never a release input."""
+    return sorted(p for p in (RAIZ / "server").rglob("*") if p.is_file())
 
 
 def crear_zip_servidor(version, pack, indice, propios):
@@ -68,14 +62,17 @@ def crear_zip_servidor(version, pack, indice, propios):
     salida = DIST / f"{carpeta}.zip"
     with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as zip_:
         for ruta in archivos_del_servidor():
-            zip_.write(RAIZ / ruta, f"{carpeta}/{ruta.relative_to('server-fabric').as_posix()}")
+            zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
         zip_.write(PACK / "pack.toml", f"{carpeta}/pack/pack.toml")
         zip_.write(PACK / pack["index"]["file"], f"{carpeta}/pack/{pack['index']['file']}")
         for archivo in indice["files"]:
             zip_.write(PACK / archivo["file"], f"{carpeta}/pack/{archivo['file']}")
         for jar in propios:
-            zip_.write(jar, f"{carpeta}/mods-propios/{jar.name}")
-        zip_.write(RAIZ / "scripts" / "instalar_servidor.py", f"{carpeta}/instalar.py")
+            zip_.write(jar, f"{carpeta}/custom-mods/{jar.name}")
+        zip_.write(RAIZ / "scripts" / "install_server.py", f"{carpeta}/scripts/install_server.py")
+        for ruta in [RAIZ / "README.md", *sorted((RAIZ / "docs").rglob("*.md")),
+                     *sorted((RAIZ / "deploy").rglob("*.yaml"))]:
+            zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
     return salida
 
 
@@ -120,10 +117,10 @@ def crear_notas(version, pack, mods, propios, automodpack):
 
 Necesita Java 25 y Python 3.11 o mas reciente.
 
-- **Servidor nuevo:** descomprime `DolfinServer-servidor-{version}.zip`, ejecuta `python instalar.py`, copia `server.properties.ejemplo` a `server.properties` y abre `iniciar.bat`.
-- **Actualizar:** apaga el servidor, descomprime el zip encima de la carpeta del servidor (no trae `eula.txt`, `ops.json` ni `whitelist.json`, asi que no se pisan), ejecuta `python instalar.py` y arranca. Si cambio la version de AutoModpack, los jugadores se actualizan solos al conectarse.
+- **Servidor nuevo:** descomprime `DolfinServer-servidor-{version}.zip`, ejecuta `python3 scripts/install_server.py`, acepta la EULA en `runtime/server/eula.txt` y abre `runtime/server/start.bat` (o `start.sh`).
+- **Actualizar:** apaga el servidor, descomprime el zip encima de la carpeta del servidor (no trae `eula.txt`, `ops.json` ni `whitelist.json`, asi que no se pisan), ejecuta `python3 scripts/install_server.py` y arranca. Si cambio la version de AutoModpack, los jugadores se actualizan solos al conectarse.
 
-`instalar.py` descarga cada mod de Modrinth y verifica su huella. Los mods que van a los jugadores quedan en `automodpack/host-modpack/main/mods/`, y AutoModpack se los envia al conectarse.
+`scripts/install_server.py` descarga cada mod de Modrinth y verifica su huella. Los mods que van a los jugadores quedan en `automodpack/host-modpack/main/mods/`, y AutoModpack se los envia al conectarse.
 
 ## Mods ({pack['name']} {version}, Minecraft {minecraft}, Fabric {cargador})
 

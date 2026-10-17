@@ -1,9 +1,9 @@
 """
 Diseña las texturas de las variantes de creeper (pixel art 64x32, misma plantilla que el creeper).
 
-Uso:  python scripts/texturas_creepers.py
-Salida: mods-src/creepers/src/client/resources/assets/dolfincreepers/textures/entity/*.png
-        y una vista previa en mods-src/creepers/vista_previa_texturas.png
+Uso:  python tools/generate_creeper_textures.py
+Salida: mods/creepers/src/client/resources/assets/dolfincreepers/textures/entity/*.png
+        y una vista previa en mods/creepers/vista_previa_texturas.png
 
 Plantilla de la textura (x, y en pixeles):
   Cabeza 8x8x8 en (0,0):   arriba (8,0)  abajo (16,0)  | fila y=8..16: der (0) frente (8) izq (16) atras (24)
@@ -16,7 +16,7 @@ from pathlib import Path
 from PIL import Image
 
 RAIZ = Path(__file__).resolve().parent.parent
-MOD = RAIZ / "mods-src" / "creepers"
+MOD = RAIZ / "mods" / "creepers"
 SALIDA = MOD / "src" / "client" / "resources" / "assets" / "dolfincreepers" / "textures" / "entity"
 
 # Zonas de la textura que usa el modelo (x0, y0, x1, y1)

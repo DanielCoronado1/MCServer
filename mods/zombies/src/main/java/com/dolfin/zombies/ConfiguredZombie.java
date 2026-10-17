@@ -38,14 +38,17 @@ public class ConfiguredZombie extends Zombie {
         setHealth(getMaxHealth());
     }
     @Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor level,net.minecraft.world.DifficultyInstance difficulty,EntitySpawnReason reason,SpawnGroupData group){
+        if(BloodMoon.active(level.getLevel())){double bonus=settings.getAsJsonObject("lunaDeSangre").get("bonusStats").getAsDouble();for(var key:new String[]{"vida","danio"})settings.addProperty(key,settings.get(key).getAsDouble()*bonus);}
         var result=super.finalizeSpawn(level,difficulty,reason,group);setBaby(false);applyStats();
         DolfinZombies.LOGGER.debug("event=zombie_spawn id={} uuid={} reason={} dimension={} pos={} generation={} health={} damage={} speed={} loot={}",kind.id(),getUUID(),reason,level.getLevel().dimension().identifier(),blockPosition(),configGeneration,getMaxHealth(),getAttributeValue(Attributes.ATTACK_DAMAGE),getAttributeValue(Attributes.MOVEMENT_SPEED),settings.get("loot").getAsString());
-        return result;
+        SpawnRules.spawned(this,reason);return result;
     }
+    @Override public boolean checkSpawnRules(LevelAccessor level,EntitySpawnReason reason){return reason!=EntitySpawnReason.NATURAL||level instanceof ServerLevel l&&SpawnRules.rejection(l,blockPosition(),kind,true)==null;}
+    @Override public boolean checkSpawnObstruction(LevelReader level){return kind==ZombieKind.ABISMO?level.isUnobstructed(this):super.checkSpawnObstruction(level);}
     // Preserve special identity instead of silently converting into a vanilla drowned.
     @Override protected boolean convertsInWater(){return false;}
     @Override protected boolean isSunSensitive(){return settings==null?super.isSunSensitive():settings.get("quemaConSol").getAsBoolean();}
-    @Override protected int getBaseExperienceReward(ServerLevel level){return settings==null?5:settings.get("xp").getAsInt();}
+    @Override protected int getBaseExperienceReward(ServerLevel level){return (int)Math.round((settings==null?5:settings.get("xp").getAsInt())*(BloodMoon.active(level)?BloodMoon.options().get("recompensaXpExtra").getAsDouble():1));}
     @Override protected void dropFromLootTable(ServerLevel level,DamageSource source,boolean recentlyHit){
         dropFromLootTable(level,source,recentlyHit,ResourceKey.create(Registries.LOOT_TABLE,net.minecraft.resources.Identifier.parse(settings.get("loot").getAsString())));
     }

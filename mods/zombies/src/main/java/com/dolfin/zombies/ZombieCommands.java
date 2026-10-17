@@ -22,8 +22,10 @@ public final class ZombieCommands {
         for(boolean active:new boolean[]{true,false})root.then(Commands.literal(active?"activar":"desactivar").requires(s->allowed(s,"admin.config",false)).then(kindArgument().executes(c->toggle(c,active))));
         root.then(Commands.literal("info").requires(s->allowed(s,"info",true)).then(kindArgument().executes(c->info(c))));
         root.then(Commands.literal("lunadesangre").requires(s->allowed(s,"admin.luna",false))
-            .then(Commands.literal("iniciar").executes(c->deferred(c.getSource(),3)))
-            .then(Commands.literal("detener").executes(c->deferred(c.getSource(),3))));
+            .then(Commands.literal("iniciar").executes(c->moon(c.getSource(),true)))
+            .then(Commands.literal("detener").executes(c->moon(c.getSource(),false))));
+        root.then(Commands.literal("inspeccionar").requires(s->allowed(s,"admin.luna",false)).then(kindArgument().executes(c->{try{var result=SpawnRules.inspect(c.getSource().getLevel(),net.minecraft.core.BlockPos.containing(c.getSource().getPosition()),kind(c));c.getSource().sendSuccess(()->Component.literal(result),false);return 1;}catch(IllegalArgumentException e){c.getSource().sendFailure(Component.literal(e.getMessage()));return 0;}})));
+        root.then(Commands.literal("diagnostico").requires(s->allowed(s,"admin.luna",false)).executes(c->{BloodMoon.report();c.getSource().sendSuccess(()->Component.literal(BloodMoon.status()+" counters="+SpawnRules.counters()+" report=config/dolfinzombies/diagnostics/runtime.json"),false);return 1;}));
         root.then(Commands.literal("dondeesta").requires(s->allowed(s,"dondeesta",true)).executes(c->deferred(c.getSource(),7)));
         var node=dispatcher.register(root);dispatcher.register(Commands.literal("zb").redirect(node));
     }
@@ -75,5 +77,6 @@ public final class ZombieCommands {
         case EXPLORADOR -> "iluminar el área";
         default -> "distancia, escudo y zona iluminada";
     };}
+    private static int moon(CommandSourceStack s,boolean start){boolean ok=BloodMoon.change(start,"command:"+s.getTextName(),start);s.sendSuccess(()->Component.literal(BloodMoon.status()),true);return ok?1:0;}
     private static int deferred(CommandSourceStack s,int issue){s.sendFailure(Component.literal("Función pendiente del issue #"+issue+"; todavía no está implementada."));return 0;}
 }

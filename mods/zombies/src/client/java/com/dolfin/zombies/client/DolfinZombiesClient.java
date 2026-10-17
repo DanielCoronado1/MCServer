@@ -5,5 +5,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.renderer.entity.ZombieRenderer;
 /** Vanilla presentation until issue #8 supplies individual skins and sounds. */
 public final class DolfinZombiesClient implements ClientModInitializer {
-    @Override public void onInitializeClient(){for(var kind:ZombieKind.values())EntityRendererRegistry.register(DolfinZombies.type(kind),ZombieRenderer::new);}
+    public static boolean red;
+    @Override public void onInitializeClient(){net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.registerGlobalReceiver(BloodMoonPayload.TYPE,(payload,context)->context.client().execute(()->red=payload.red()));net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((h,c)->red=false);for(var kind:ZombieKind.values())EntityRendererRegistry.register(DolfinZombies.type(kind),ZombieRenderer::new);}
 }

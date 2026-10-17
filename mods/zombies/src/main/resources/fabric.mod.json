@@ -25,5 +25,8 @@
   },
   "suggests": {
     "luckperms": "*"
-  }
+  },
+  "mixins": [
+    "dolfinzombies.mixins.json"
+  ]
 }

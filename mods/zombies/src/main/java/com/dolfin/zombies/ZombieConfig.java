@@ -46,7 +46,7 @@ public final class ZombieConfig {
     }
     public static JsonObject generalDefaults(){return JsonParser.parseString("""
         {"activo":true,"maxZombiesEspecialesPorJugador":12,"respetarClaims":true,
-        "mundosPermitidos":["minecraft:overworld"],"mensajesChat":true,"lunaDeSangre":{}}
+        "mundosPermitidos":["minecraft:overworld"],"mensajesChat":true,"lunaDeSangre":{"activo":true,"probabilidadPorNoche":0.10,"cadaNNoches":0,"multiplicadorSpawns":2.5,"soloEspeciales":false,"aviso":true,"cieloRojo":true,"dormirBloqueado":true,"recompensaXpExtra":1.5}}
         """).getAsJsonObject();}
     public Report reload(){
         long start=System.nanoTime();List<Problem> errors=new ArrayList<>();int[] created={0};
@@ -102,9 +102,9 @@ public final class ZombieConfig {
     private static void validateNumber(String key,JsonElement value){
         if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isNumber())throw new IllegalArgumentException("expected number");
         double n=value.getAsDouble();double min=switch(key){case "vida","velocidad","escala","bonusStats"->.01;default->0;};
-        double max=switch(key){case "vida"->1024;case "danio"->2048;case "armadura"->30;case "velocidad"->10;case "escala"->16;case "luzMax"->15;case "peso"->1000000;case "maxZombiesEspecialesPorJugador"->1000;case "xp"->100000;case "duracionInfeccion"->1200000;case "probabilidadRobo","probabilidadPorPaso","probabilidadSoltarEscudo","probabilidadInfeccion","probabilidadAparecer","resistenciaEmpuje"->1;default->1000;};
+        double max=switch(key){case "multiplicadorSpawns"->16;case "vida"->1024;case "danio"->2048;case "armadura"->30;case "velocidad"->10;case "escala"->16;case "luzMax"->15;case "peso"->1000000;case "maxZombiesEspecialesPorJugador"->1000;case "xp"->100000;case "duracionInfeccion"->1200000;case "probabilidadPorNoche","probabilidadRobo","probabilidadPorPaso","probabilidadSoltarEscudo","probabilidadInfeccion","probabilidadAparecer","resistenciaEmpuje"->1;default->1000;};
         if(!Double.isFinite(n)||n<min||n>max)throw new IllegalArgumentException("expected finite number in ["+min+","+max+"]");
-        if(Set.of("peso","xp","luzMax","maxZombiesEspecialesPorJugador").contains(key)&&n!=Math.rint(n))throw new IllegalArgumentException("expected integer");
+        if(Set.of("cadaNNoches","peso","xp","luzMax","maxZombiesEspecialesPorJugador").contains(key)&&n!=Math.rint(n))throw new IllegalArgumentException("expected integer");
     }
     private static void validateArray(String key,JsonElement value){
         if(!value.isJsonArray())throw new IllegalArgumentException("expected array");JsonArray a=value.getAsJsonArray();

@@ -2,6 +2,7 @@ package com.dolfin.zombies.kinds;
 
 import com.dolfin.zombies.ConfiguredZombie;
 import com.dolfin.zombies.ZombieKind;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
@@ -15,7 +16,9 @@ public class BiliosoZombie extends ConfiguredZombie {
     private CombatParams.Bilioso params;
     private boolean clouded;
 
-    public BiliosoZombie(EntityType<? extends Zombie> type, Level level) { super(type, level, ZombieKind.BILIOSO); }
+    public BiliosoZombie(EntityType<? extends Zombie> type, Level level) {
+        super(type, level, ZombieKind.BILIOSO);
+    }
 
     private CombatParams.Bilioso params() {
         var p = params;
@@ -23,22 +26,38 @@ public class BiliosoZombie extends ConfiguredZombie {
         return p;
     }
 
-    @Override protected void readAdditionalSaveData(ValueInput in) { super.readAdditionalSaveData(in); params = null; }
-
-    /** Called from the super constructor and on spawn: must not touch subclass fields. */
-    @Override public void applyStats() {
-        super.applyStats();
-        var knockback = getAttribute(Attributes.KNOCKBACK_RESISTANCE);
-        if (knockback != null) knockback.setBaseValue(CombatParams.Bilioso.from(settings()).resistenciaEmpuje());
+    @Override
+    protected void readAdditionalSaveData(ValueInput in) {
+        super.readAdditionalSaveData(in);
+        params = null;
     }
 
-    @Override public void die(DamageSource source) {
+    /** Called from the super constructor and on spawn: must not touch subclass fields. */
+    @Override
+    public void applyStats() {
+        super.applyStats();
+        var knockback = getAttribute(Attributes.KNOCKBACK_RESISTANCE);
+        if (knockback != null)
+            knockback.setBaseValue(CombatParams.Bilioso.from(settings()).resistenciaEmpuje());
+    }
+
+    @Override
+    public void die(DamageSource source) {
         super.die(source);
-        if (level() instanceof ServerLevel server && !clouded && abilityEnabled(CombatParams.Bilioso.ABILITY)) {
+        if (level() instanceof ServerLevel server
+                && !clouded
+                && abilityEnabled(CombatParams.Bilioso.ABILITY)) {
             clouded = true;
-            com.dolfin.zombies.ZombieSounds.play(this,com.dolfin.zombies.ZombieSounds.BILIOSO_BURST);
+            com.dolfin.zombies.ZombieSounds.play(
+                    this, com.dolfin.zombies.ZombieSounds.BILIOSO_BURST);
             BiliousClouds.spawn(server, getX(), getY(), getZ(), params(), getUUID());
-            Abilities.debug(this, "bilioso_death", "cause={} radius={} ticks={}", source.getMsgId(), params().radioNube(), params().duracionNube());
+            Abilities.debug(
+                    this,
+                    "bilioso_death",
+                    "cause={} radius={} ticks={}",
+                    source.getMsgId(),
+                    params().radioNube(),
+                    params().duracionNube());
         }
     }
 }

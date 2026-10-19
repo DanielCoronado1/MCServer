@@ -10,10 +10,10 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  */
 public record SpaceHandshakePayload(String version) implements CustomPacketPayload {
     public static final Type<SpaceHandshakePayload> TYPE = new Type<>(DolfinSpace.id("handshake"));
-    public static final StreamCodec<FriendlyByteBuf, SpaceHandshakePayload> CODEC = StreamCodec.of(
-            (buf, payload) -> buf.writeUtf(payload.version()),
-            buf -> new SpaceHandshakePayload(buf.readUtf(64))
-    );
+    public static final StreamCodec<FriendlyByteBuf, SpaceHandshakePayload> CODEC =
+            StreamCodec.of(
+                    (buf, payload) -> buf.writeUtf(payload.version()),
+                    buf -> new SpaceHandshakePayload(buf.readUtf(64)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

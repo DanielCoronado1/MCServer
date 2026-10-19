@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +28,10 @@ public final class DolfinSpace implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        config = new SpaceConfig(
-                FabricLoader.getInstance().getConfigDir().resolve(SpaceConfig.FILE_NAME),
-                LOGGER::warn
-        );
+        config =
+                new SpaceConfig(
+                        FabricLoader.getInstance().getConfigDir().resolve(SpaceConfig.FILE_NAME),
+                        LOGGER::warn);
         SpaceContent.init();
         com.dolfin.space.assets.SpaceSounds.init();
         com.dolfin.space.planet.PlanetModule.init();
@@ -42,18 +43,18 @@ public final class DolfinSpace implements ModInitializer {
         com.dolfin.space.compat.SpaceCompat.init();
         SpaceModpackCheck.init();
         KeplerDimension.init();
-        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->
-                SpaceCommands.register(dispatcher));
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, access, environment) -> SpaceCommands.register(dispatcher));
 
         SpaceConfig.Snapshot current = config.current();
         LOGGER.info(
-                "event=startup modId={} configFile={} generation={} dimension={} gravityMultiplier={} permissionProvider={}",
+                "event=startup modId={} configFile={} generation={} dimension={}"
+                        + " gravityMultiplier={} permissionProvider={}",
                 MOD_ID,
                 config.file().toAbsolutePath(),
                 current.generation(),
                 current.dimension().idDimension(),
                 current.dimension().multiplicadorGravedad(),
-                SpacePermissions.provider()
-        );
+                SpacePermissions.provider());
     }
 }

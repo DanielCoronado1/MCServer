@@ -13,6 +13,7 @@ enlaces de descarga y huellas.
 
 Uso:  python scripts/build_release.py <version>   (antes: gradlew build en cada mods/*)
 """
+
 import json
 import sys
 import tomllib
@@ -27,15 +28,20 @@ CABECERAS = {"User-Agent": "DolfinServer-setup/1.0"}
 
 
 def pedir_json(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=CABECERAS), timeout=120) as respuesta:
+    with urllib.request.urlopen(
+        urllib.request.Request(url, headers=CABECERAS), timeout=120
+    ) as respuesta:
         return json.loads(respuesta.read())
 
 
 def leer_pack():
     pack = tomllib.loads((PACK / "pack.toml").read_text(encoding="utf-8"))
     indice = tomllib.loads((PACK / pack["index"]["file"]).read_text(encoding="utf-8"))
-    mods = [tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
-            for f in indice["files"] if f.get("metafile")]
+    mods = [
+        tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
+        for f in indice["files"]
+        if f.get("metafile")
+    ]
     return pack, indice, mods
 
 
@@ -44,8 +50,11 @@ def mods_propios():
     for proyecto in sorted((RAIZ / "mods").iterdir()):
         if not (proyecto / "build.gradle").is_file():
             continue
-        candidatos = [j for j in (proyecto / "build" / "libs").glob("*.jar")
-                      if not j.stem.endswith(("-sources", "-dev"))]
+        candidatos = [
+            j
+            for j in (proyecto / "build" / "libs").glob("*.jar")
+            if not j.stem.endswith(("-sources", "-dev"))
+        ]
         if not candidatos:
             raise FileNotFoundError(f"Compila primero mods/{proyecto.name} (gradlew build)")
         jars.append(max(candidatos, key=lambda j: j.stat().st_mtime))
@@ -72,9 +81,15 @@ def crear_zip_servidor(version, pack, indice, propios):
         for jar in propios:
             zip_.write(jar, f"{carpeta}/custom-mods/{jar.name}")
         zip_.write(RAIZ / "scripts" / "install_server.py", f"{carpeta}/scripts/install_server.py")
-        for ruta in [RAIZ / "README.md", *sorted((RAIZ / "docs").rglob("*.md")),
-                     *sorted(p for p in (RAIZ / "deploy").rglob("*")
-                             if p.suffix in {".yaml", ".py", ".ps1", ".sh"})]:
+        for ruta in [
+            RAIZ / "README.md",
+            *sorted((RAIZ / "docs").rglob("*.md")),
+            *sorted(
+                p
+                for p in (RAIZ / "deploy").rglob("*")
+                if p.suffix in {".yaml", ".py", ".ps1", ".sh"}
+            ),
+        ]:
             zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
     return salida
 
@@ -87,14 +102,22 @@ def crear_mrpack(version, pack, automodpack):
         "versionId": version,
         "name": pack["name"],
         "summary": f"Fabric {pack['versions']['minecraft']} + AutoModpack: el servidor te envia el resto de mods",
-        "files": [{
-            "path": f"mods/{archivo['filename']}",
-            "hashes": {"sha1": archivo["hashes"]["sha1"], "sha512": archivo["hashes"]["sha512"]},
-            "env": {"client": "required", "server": "unsupported"},
-            "downloads": [archivo["url"]],
-            "fileSize": archivo["size"],
-        }],
-        "dependencies": {"minecraft": pack["versions"]["minecraft"], "fabric-loader": pack["versions"]["fabric"]},
+        "files": [
+            {
+                "path": f"mods/{archivo['filename']}",
+                "hashes": {
+                    "sha1": archivo["hashes"]["sha1"],
+                    "sha512": archivo["hashes"]["sha512"],
+                },
+                "env": {"client": "required", "server": "unsupported"},
+                "downloads": [archivo["url"]],
+                "fileSize": archivo["size"],
+            }
+        ],
+        "dependencies": {
+            "minecraft": pack["versions"]["minecraft"],
+            "fabric-loader": pack["versions"]["fabric"],
+        },
     }
     salida = DIST / f"{pack['name']}-{version}.mrpack"
     with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as mrpack:
@@ -106,12 +129,16 @@ def crear_notas(version, pack, mods, propios, automodpack):
     minecraft, cargador = pack["versions"]["minecraft"], pack["versions"]["fabric"]
     enlace_amp = f"https://modrinth.com/mod/automodpack/version/{automodpack['id']}"
     lado = {"server": "solo servidor", "client": "solo jugadores", "both": "servidor y jugadores"}
-    filas = [f"| {m['name']} | `{m['filename']}` | {lado[m['side']]} |" for m in sorted(mods, key=lambda m: m["name"].lower())]
+    filas = [
+        f"| {m['name']} | `{m['filename']}` | {lado[m['side']]} |"
+        for m in sorted(mods, key=lambda m: m["name"].lower())
+    ]
     filas += [f"| (nuestro) | `{jar.name}` | servidor y jugadores |" for jar in propios]
-    texto = f"""## Jugadores
+    texto = (
+        f"""## Jugadores
 
-1. Descarga `{pack['name']}-{version}.mrpack` e importalo en **Prism Launcher** o **Modrinth App** (Importar > archivo). Instala Minecraft {minecraft}, Fabric {cargador} y AutoModpack.
-   - Con otro launcher: instala Fabric {cargador} para Minecraft {minecraft} y pon [AutoModpack {automodpack['version_number']}]({enlace_amp}) en la carpeta `mods`.
+1. Descarga `{pack["name"]}-{version}.mrpack` e importalo en **Prism Launcher** o **Modrinth App** (Importar > archivo). Instala Minecraft {minecraft}, Fabric {cargador} y AutoModpack.
+   - Con otro launcher: instala Fabric {cargador} para Minecraft {minecraft} y pon [AutoModpack {automodpack["version_number"]}]({enlace_amp}) en la carpeta `mods`.
 2. Abre el juego y conectate al servidor. AutoModpack te muestra la huella del certificado del servidor: comprueba que coincide con la que publica el administrador.
 3. Acepta la descarga. Nuestros mods no estan en Modrinth, asi que te pide confirmar ese riesgo aparte.
 4. Reinicia el juego cuando te lo pida y vuelve a conectarte. Las proximas actualizaciones se descargan solas al abrir el juego.
@@ -125,11 +152,14 @@ Necesita Java 25 y Python 3.11 o mas reciente.
 
 `scripts/install_server.py` descarga cada mod de Modrinth y verifica su huella. Los mods que van a los jugadores quedan en `automodpack/host-modpack/main/mods/`, y AutoModpack se los envia al conectarse.
 
-## Mods ({pack['name']} {version}, Minecraft {minecraft}, Fabric {cargador})
+## Mods ({pack["name"]} {version}, Minecraft {minecraft}, Fabric {cargador})
 
 | Mod | Archivo | Lado |
 |---|---|---|
-""" + "\n".join(filas) + "\n"
+"""
+        + "\n".join(filas)
+        + "\n"
+    )
     salida = DIST / "notas.md"
     salida.write_text(texto, encoding="utf-8")
     return salida
@@ -142,12 +172,16 @@ def main():
     pack, indice, mods = leer_pack()
     propios = mods_propios()
     amp = next(m for m in mods if m["filename"].startswith("automodpack-"))
-    automodpack = pedir_json(f"https://api.modrinth.com/v2/version/{amp['update']['modrinth']['version']}")
+    automodpack = pedir_json(
+        f"https://api.modrinth.com/v2/version/{amp['update']['modrinth']['version']}"
+    )
 
     DIST.mkdir(exist_ok=True)
-    for salida in (crear_zip_servidor(version, pack, indice, propios),
-                   crear_mrpack(version, pack, automodpack),
-                   crear_notas(version, pack, mods, propios, automodpack)):
+    for salida in (
+        crear_zip_servidor(version, pack, indice, propios),
+        crear_mrpack(version, pack, automodpack),
+        crear_notas(version, pack, mods, propios, automodpack),
+    ):
         print(salida.relative_to(RAIZ))
 
 

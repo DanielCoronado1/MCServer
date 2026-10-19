@@ -5,13 +5,18 @@ import com.dolfin.zombies.DolfinZombies;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-/** Defensive readers for an ability's JSON block plus the shared structured-debug helper of issue #5. */
+/**
+ * Defensive readers for an ability's JSON block plus the shared structured-debug helper of issue
+ * #5.
+ */
 public final class Abilities {
     private Abilities() {}
 
     /** The ability object inside {@code habilidades}, or an empty object when absent. */
     public static JsonObject of(JsonObject settings, String ability) {
-        if (settings != null && settings.has("habilidades") && settings.get("habilidades").isJsonObject()) {
+        if (settings != null
+                && settings.has("habilidades")
+                && settings.get("habilidades").isJsonObject()) {
             JsonElement e = settings.getAsJsonObject("habilidades").get(ability);
             if (e != null && e.isJsonObject()) return e.getAsJsonObject();
         }
@@ -21,7 +26,8 @@ public final class Abilities {
     public static double num(JsonObject o, String key, double def, double min, double max) {
         double v = def;
         JsonElement e = o == null ? null : o.get(key);
-        if (e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) v = e.getAsDouble();
+        if (e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber())
+            v = e.getAsDouble();
         if (Double.isNaN(v) || Double.isInfinite(v)) v = def;
         return Math.max(min, Math.min(max, v));
     }
@@ -32,12 +38,16 @@ public final class Abilities {
 
     public static boolean bool(JsonObject o, String key, boolean def) {
         JsonElement e = o == null ? null : o.get(key);
-        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean() ? e.getAsBoolean() : def;
+        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean()
+                ? e.getAsBoolean()
+                : def;
     }
 
     public static String str(JsonObject o, String key, String def) {
         JsonElement e = o == null ? null : o.get(key);
-        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() ? e.getAsString() : def;
+        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
+                ? e.getAsString()
+                : def;
     }
 
     /** DEBUG event with kind/uuid prefilled: {@code event=<name> id=<kind> uuid=<uuid> <fmt>}. */

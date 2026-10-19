@@ -2,6 +2,7 @@ package com.dolfin.space.mixin;
 
 import com.dolfin.space.DolfinSpace;
 import com.dolfin.space.KeplerDimension;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,8 +29,7 @@ public abstract class NaturalSpawnerMixin {
             MobSpawnSettings.SpawnerData data,
             BlockPos.MutableBlockPos pos,
             double distance,
-            CallbackInfoReturnable<Boolean> cir
-    ) {
+            CallbackInfoReturnable<Boolean> cir) {
         if (!DolfinSpace.config().current().general().activo()) {
             return;
         }
@@ -41,8 +42,7 @@ public abstract class NaturalSpawnerMixin {
             DolfinSpace.LOGGER.debug(
                     "event=kepler_vanilla_spawn_blocked entityType={} pos={} reason=non_space_mob",
                     typeId,
-                    pos
-            );
+                    pos);
             cir.setReturnValue(false);
         }
     }

@@ -10,6 +10,7 @@ Plantilla de la textura (x, y en pixeles):
   Cuerpo 8x12x4 en (16,16): arriba (20,16) abajo (28,16) | fila y=20..32: der (16) frente (20) izq (28) atras (32)
   Patas 4x6x4 en (0,16):   arriba (4,16) abajo (8,16)   | fila y=20..26: der (0) frente (4) izq (8) atras (12)
 """
+
 import random
 from pathlib import Path
 
@@ -93,13 +94,50 @@ class Lienzo:
     def cara(self, ojos, boca, estilo="normal", brillo=None):
         """La cara del creeper en el frente de la cabeza (8x8). 'brillo' = centro mas claro."""
         cx, cy = CARA
-        if estilo == "grande":       # ojos grandes (Mini)
-            puntos_ojos = [(1, 1), (2, 1), (1, 2), (2, 2), (1, 3), (2, 3), (5, 1), (6, 1), (5, 2), (6, 2), (5, 3), (6, 3)]
-        elif estilo == "enfadado":   # cejas inclinadas (Rey)
-            puntos_ojos = [(1, 1), (2, 2), (1, 2), (2, 3), (1, 3), (6, 1), (5, 2), (6, 2), (5, 3), (6, 3)]
+        if estilo == "grande":  # ojos grandes (Mini)
+            puntos_ojos = [
+                (1, 1),
+                (2, 1),
+                (1, 2),
+                (2, 2),
+                (1, 3),
+                (2, 3),
+                (5, 1),
+                (6, 1),
+                (5, 2),
+                (6, 2),
+                (5, 3),
+                (6, 3),
+            ]
+        elif estilo == "enfadado":  # cejas inclinadas (Rey)
+            puntos_ojos = [
+                (1, 1),
+                (2, 2),
+                (1, 2),
+                (2, 3),
+                (1, 3),
+                (6, 1),
+                (5, 2),
+                (6, 2),
+                (5, 3),
+                (6, 3),
+            ]
         else:
             puntos_ojos = [(1, 2), (2, 2), (1, 3), (2, 3), (5, 2), (6, 2), (5, 3), (6, 3)]
-        puntos_boca = [(3, 4), (4, 4), (2, 5), (3, 5), (4, 5), (5, 5), (2, 6), (3, 6), (4, 6), (5, 6), (2, 7), (5, 7)]
+        puntos_boca = [
+            (3, 4),
+            (4, 4),
+            (2, 5),
+            (3, 5),
+            (4, 5),
+            (5, 5),
+            (2, 6),
+            (3, 6),
+            (4, 6),
+            (5, 6),
+            (2, 7),
+            (5, 7),
+        ]
         for x, y in puntos_ojos:
             self.pintar(cx + x, cy + y, ojos)
         for x, y in puntos_boca:
@@ -115,7 +153,7 @@ TODO = CABEZA + CUERPO + PATAS
 def fuego():
     l = Lienzo(1)
     l.base(TODO, [(46, 10, 6), (70, 16, 8), (96, 24, 10), (58, 12, 6), (30, 6, 4)], [3, 3, 2, 3, 1])
-    l.grietas(TODO, [(255, 120, 20), (255, 210, 60)], 26, 6)        # grietas de lava
+    l.grietas(TODO, [(255, 120, 20), (255, 210, 60)], 26, 6)  # grietas de lava
     l.motas(TODO, (255, 90, 20), 0.05)
     l.limpiar_cara([(46, 10, 6), (58, 12, 6), (30, 6, 4)])
     l.cara((255, 200, 40), (255, 150, 20), brillo=(255, 250, 170))
@@ -125,9 +163,9 @@ def fuego():
 def hielo():
     l = Lienzo(2)
     l.base(TODO, [(176, 218, 240), (150, 198, 232), (206, 234, 250), (122, 170, 214)], [3, 3, 2, 1])
-    l.grietas(TODO, [(96, 140, 200), (230, 245, 255)], 14, 5)      # vetas de hielo
-    l.motas(TODO, (255, 255, 255), 0.07)                            # escarcha
-    for x in range(0, 32, 2):                                       # carambanos bajo la cabeza
+    l.grietas(TODO, [(96, 140, 200), (230, 245, 255)], 14, 5)  # vetas de hielo
+    l.motas(TODO, (255, 255, 255), 0.07)  # escarcha
+    for x in range(0, 32, 2):  # carambanos bajo la cabeza
         if l.img.getpixel((x, 15))[3]:
             l.pintar(x, 15, (240, 250, 255))
     l.cara((24, 44, 96), (34, 60, 120))
@@ -137,7 +175,7 @@ def hielo():
 def saltarin():
     l = Lienzo(3)
     l.base(TODO, [(140, 222, 60), (112, 192, 40), (172, 240, 92), (90, 160, 30)], [3, 3, 2, 2])
-    for x, y in pixeles(PATAS):                                     # muelles en las patas
+    for x, y in pixeles(PATAS):  # muelles en las patas
         if y >= 20 and y % 2 == 0:
             l.pintar(x, y, (225, 225, 225) if x % 2 else (160, 160, 160))
     l.cara((16, 40, 8), (16, 40, 8))
@@ -157,21 +195,23 @@ def mini():
 def electrico():
     l = Lienzo(5)
     l.base(TODO, [(242, 212, 40), (222, 182, 20), (252, 232, 96), (200, 160, 16)], [3, 3, 2, 1])
-    l.zigzag(TODO, (34, 30, 24), 16, 8)                             # rayos negros en zigzag
+    l.zigzag(TODO, (34, 30, 24), 16, 8)  # rayos negros en zigzag
     l.motas(TODO, (255, 255, 230), 0.04)
     l.limpiar_cara([(242, 212, 40), (222, 182, 20), (252, 232, 96)])
     l.cara((20, 20, 20), (20, 20, 20))
-    l.pintar(CARA[0] + 1, CARA[1] + 2, (120, 220, 255))             # chispas en los ojos
+    l.pintar(CARA[0] + 1, CARA[1] + 2, (120, 220, 255))  # chispas en los ojos
     l.pintar(CARA[0] + 6, CARA[1] + 2, (120, 220, 255))
     return l
 
 
 def multiplicador():
     l = Lienzo(6)
-    l.base(TODO, [(80, 196, 150), (60, 170, 128), (110, 216, 172)], [3, 3, 2])  # verde azulado, como slime
+    l.base(
+        TODO, [(80, 196, 150), (60, 170, 128), (110, 216, 172)], [3, 3, 2]
+    )  # verde azulado, como slime
     todos = list(pixeles(TODO))
     validos = set(todos)
-    for _ in range(22):                                             # celulas dividiendose
+    for _ in range(22):  # celulas dividiendose
         x, y = l.azar.choice(todos)
         for dx, dy in [(0, 0), (1, 0), (0, 1), (1, 1)]:
             if (x + dx, y + dy) in validos:
@@ -184,9 +224,9 @@ def multiplicador():
 def gigante():
     l = Lienzo(7)
     l.base(TODO, [(92, 112, 80), (72, 92, 62), (112, 126, 96), (60, 76, 50)], [3, 3, 2, 2])
-    l.grietas(TODO, [(42, 48, 36), (30, 34, 26)], 20, 6)            # piedra agrietada
+    l.grietas(TODO, [(42, 48, 36), (30, 34, 26)], 20, 6)  # piedra agrietada
     todos = list(pixeles(TODO))
-    for _ in range(14):                                             # manchas de musgo
+    for _ in range(14):  # manchas de musgo
         x, y = l.azar.choice(todos)
         for dx in range(-1, 2):
             for dy in range(-1, 2):
@@ -201,7 +241,7 @@ def toxico():
     l = Lienzo(8)
     l.base(TODO, [(72, 42, 92), (52, 30, 72), (92, 56, 112), (60, 80, 50)], [3, 3, 2, 1])
     todos = list(pixeles(TODO))
-    for _ in range(30):                                             # burbujas toxicas
+    for _ in range(30):  # burbujas toxicas
         x, y = l.azar.choice(todos)
         l.pintar(x, y, (130, 255, 80))
         if (x + 1, y) in set(todos):
@@ -220,7 +260,7 @@ def rey():
         l.pintar(x, 9, oro_oscuro if x % 4 == 0 else oro)
     for x in range(0, 32, 4):
         l.pintar(x + 1, 9, rubi)
-    for x in range(8, 16):                                          # aro de la corona arriba
+    for x in range(8, 16):  # aro de la corona arriba
         l.pintar(x, 0, oro)
         l.pintar(x, 7, oro)
     for y in range(8):
@@ -239,9 +279,15 @@ def rey():
 
 
 VARIANTES = {
-    "fuego_creeper": fuego, "hielo_creeper": hielo, "saltarin_creeper": saltarin, "mini_creeper": mini,
-    "electrico_creeper": electrico, "multiplicador_creeper": multiplicador, "gigante_creeper": gigante,
-    "toxico_creeper": toxico, "rey_creeper": rey,
+    "fuego_creeper": fuego,
+    "hielo_creeper": hielo,
+    "saltarin_creeper": saltarin,
+    "mini_creeper": mini,
+    "electrico_creeper": electrico,
+    "multiplicador_creeper": multiplicador,
+    "gigante_creeper": gigante,
+    "toxico_creeper": toxico,
+    "rey_creeper": rey,
 }
 
 
@@ -251,15 +297,17 @@ def vista_previa(texturas):
     hoja = Image.new("RGBA", (ancho * escala * len(texturas), 30 * escala), (40, 44, 52, 255))
     for i, img in enumerate(texturas.values()):
         frente = Image.new("RGBA", (ancho, 30), (0, 0, 0, 0))
-        frente.paste(img.crop((8, 8, 16, 16)), (1, 0))      # cabeza frente
-        frente.paste(img.crop((20, 20, 28, 32)), (1, 8))    # cuerpo frente
-        frente.paste(img.crop((4, 20, 8, 26)), (1, 20))     # patas frente
+        frente.paste(img.crop((8, 8, 16, 16)), (1, 0))  # cabeza frente
+        frente.paste(img.crop((20, 20, 28, 32)), (1, 8))  # cuerpo frente
+        frente.paste(img.crop((4, 20, 8, 26)), (1, 20))  # patas frente
         frente.paste(img.crop((4, 20, 8, 26)), (5, 20))
-        frente.paste(img.crop((24, 8, 32, 16)), (11, 0))    # cabeza atras
-        frente.paste(img.crop((32, 20, 40, 32)), (11, 8))   # cuerpo atras
+        frente.paste(img.crop((24, 8, 32, 16)), (11, 0))  # cabeza atras
+        frente.paste(img.crop((32, 20, 40, 32)), (11, 8))  # cuerpo atras
         frente.paste(img.crop((12, 20, 16, 26)), (11, 20))
         frente.paste(img.crop((12, 20, 16, 26)), (15, 20))
-        hoja.alpha_composite(frente.resize((ancho * escala, 30 * escala), Image.NEAREST), (i * ancho * escala, 0))
+        hoja.alpha_composite(
+            frente.resize((ancho * escala, 30 * escala), Image.NEAREST), (i * ancho * escala, 0)
+        )
     hoja.save(MOD / "vista_previa_texturas.png")
 
 

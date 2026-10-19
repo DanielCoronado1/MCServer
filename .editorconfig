@@ -11,7 +11,7 @@ indent_size = 4
 [*.{json,yml,yaml,toml}]
 indent_size = 2
 
-[*.{java,gradle}]
+[*.gradle]
 indent_style = tab
 
 [*.bat]

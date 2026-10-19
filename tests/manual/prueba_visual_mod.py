@@ -5,8 +5,9 @@ Fabric de pruebas con el mod, coloca a todas las variantes quietas y hace captur
 Uso: python tests/manual/prueba_visual_mod.py
 Capturas en test-client/capturas/mod-<fecha>/  (necesita que nadie use el equipo)
 """
-import shutil
+
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -23,12 +24,24 @@ PUERTO = 25570
 JAVA = Path(os.environ["JAVA_HOME"]) / "bin"
 
 # (variante, x, z) en fila delante del jugador; los grandes, mas atras.
-FILA = [("fuego", -9, 10), ("hielo", -6, 10), ("saltarin", -3, 10), ("mini", 0, 10), ("electrico", 3, 10),
-        ("multiplicador", 6, 10), ("toxico", 9, 10), ("gigante", -6, 20), ("rey", 6, 24)]
+FILA = [
+    ("fuego", -9, 10),
+    ("hielo", -6, 10),
+    ("saltarin", -3, 10),
+    ("mini", 0, 10),
+    ("electrico", 3, 10),
+    ("multiplicador", 6, 10),
+    ("toxico", 9, 10),
+    ("gigante", -6, 20),
+    ("rey", 6, 24),
+]
 
 
 def preparar():
-    jar = max((RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"), key=lambda j: j.stat().st_mtime)
+    jar = max(
+        (RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"),
+        key=lambda j: j.stat().st_mtime,
+    )
     # Servidor: mundo nuevo y ultima version del mod.
     shutil.rmtree(SERVIDOR / "world", ignore_errors=True)
     for viejo in (SERVIDOR / "mods").glob("dolfincreepers-*.jar"):
@@ -46,10 +59,24 @@ def preparar():
 class Servidor:
     def __init__(self):
         self.lineas = []
-        self.proceso = subprocess.Popen([str(JAVA / "java.exe"), "-Xms2G", "-Xmx2G", "-jar", "fabric-server-launch.jar", "nogui"],
-                                        cwd=SERVIDOR, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
-                                        creationflags=subprocess.CREATE_NO_WINDOW)
+        self.proceso = subprocess.Popen(
+            [
+                str(JAVA / "java.exe"),
+                "-Xms2G",
+                "-Xmx2G",
+                "-jar",
+                "fabric-server-launch.jar",
+                "nogui",
+            ],
+            cwd=SERVIDOR,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
         threading.Thread(target=self._leer, daemon=True).start()
 
     def _leer(self):
@@ -79,10 +106,30 @@ def lanzar_cliente():
     banco.cerrar_cliente()
     banco.preparar_cliente(PUERTO)
     with open(CLIENTE / "lanzador.log", "w", encoding="utf-8") as log:
-        subprocess.Popen([sys.executable, "-m", "portablemc", "--main-dir", str(CLIENTE), "start", "fabric:26.3",
-                          "--jvm", str(JAVA / "javaw.exe"), "-u", "Tester", "--resolution", "1280x720",
-                          "-s", "127.0.0.1", "-p", str(PUERTO)],
-                         stdout=log, stderr=subprocess.STDOUT, creationflags=banco.SIN_VENTANA)
+        subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "portablemc",
+                "--main-dir",
+                str(CLIENTE),
+                "start",
+                "fabric:26.3",
+                "--jvm",
+                str(JAVA / "javaw.exe"),
+                "-u",
+                "Tester",
+                "--resolution",
+                "1280x720",
+                "-s",
+                "127.0.0.1",
+                "-p",
+                str(PUERTO),
+            ],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            creationflags=banco.SIN_VENTANA,
+        )
 
 
 if __name__ == "__main__":
@@ -111,7 +158,9 @@ if __name__ == "__main__":
     servidor("fill -16 -61 -6 16 -61 30 minecraft:smooth_stone", 1)
     for variante, x, z in FILA:
         # NoAI: se quedan quietos mirando al jugador (al norte).
-        servidor(f"summon dolfincreepers:{variante}_creeper {x} -60 {z} {{NoAI:1b,Rotation:[180f,0f],PersistenceRequired:1b}}")
+        servidor(
+            f"summon dolfincreepers:{variante}_creeper {x} -60 {z} {{NoAI:1b,Rotation:[180f,0f],PersistenceRequired:1b}}"
+        )
     time.sleep(2)
 
     vistas = [("01_todos", "0 -57 -4 0 12")]

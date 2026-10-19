@@ -2,6 +2,7 @@ package com.dolfin.zombies.kinds;
 
 import com.dolfin.zombies.ConfiguredZombie;
 import com.dolfin.zombies.ZombieKind;
+
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,10 +22,14 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Grabs a player in deep water and drags them toward the bottom. The grab always ends through
- * {@link #release(String)}: duration, victim hit/damage, death or disconnect, leaving the water, distance or removal.
+ * {@link #release(String)}: duration, victim hit/damage, death or disconnect, leaving the water,
+ * distance or removal.
  */
 public class AbismoZombie extends ConfiguredZombie {
-    private static final int FATIGUE_TICKS = 40, LOG_PERIOD = 20, SCAN_PERIOD = 5, RETRY_AFTER_REJECT = 20;
+    private static final int FATIGUE_TICKS = 40,
+            LOG_PERIOD = 20,
+            SCAN_PERIOD = 5,
+            RETRY_AFTER_REJECT = 20;
     private static final double MAX_COMPONENT = 0.6, RELEASE_DISTANCE = 3.5;
 
     private CombatParams.Abismo params;
@@ -44,18 +49,30 @@ public class AbismoZombie extends ConfiguredZombie {
         return p;
     }
 
-    @Override protected void readAdditionalSaveData(ValueInput in) { super.readAdditionalSaveData(in); params = null; }
+    @Override
+    protected void readAdditionalSaveData(ValueInput in) {
+        super.readAdditionalSaveData(in);
+        params = null;
+    }
 
-    public boolean isGrabbing() { return grabbed != null; }
+    public boolean isGrabbing() {
+        return grabbed != null;
+    }
 
-    @Override public void tick() {
+    @Override
+    public void tick() {
         super.tick();
         if (level() instanceof ServerLevel server) serverTick(server);
     }
 
     private void serverTick(ServerLevel level) {
-        if (grabbed != null) { hold(level); return; }
-        if (!isAlive() || !com.dolfin.zombies.ZombieTickPolicy.scanDue(kind(),tickCount,getId()) || !abilityEnabled(CombatParams.Abismo.ABILITY)) return;
+        if (grabbed != null) {
+            hold(level);
+            return;
+        }
+        if (!isAlive()
+                || !com.dolfin.zombies.ZombieTickPolicy.scanDue(kind(), tickCount, getId())
+                || !abilityEnabled(CombatParams.Abismo.ABILITY)) return;
         if (getTarget() instanceof ServerPlayer player) tryGrab(level, player, "proximity");
     }
 
@@ -64,12 +81,16 @@ public class AbismoZombie extends ConfiguredZombie {
         if (now < nextAttempt || !cooldown.ready(now)) return;
         var p = params();
         String reject = null;
-        double dx = player.getX() - getX(), dz = player.getZ() - getZ(), dy = Math.abs(player.getY() - getY());
+        double dx = player.getX() - getX(),
+                dz = player.getZ() - getZ(),
+                dy = Math.abs(player.getY() - getY());
         if (!player.isAlive() || player.hasDisconnected()) reject = "target_invalid";
-        else if (player.isCreative() || player.isSpectator()) reject = "target_creative_or_spectator";
+        else if (player.isCreative() || player.isSpectator())
+            reject = "target_creative_or_spectator";
         else if (!isInWater()) reject = "zombie_not_in_water";
         else if (!player.isInWater()) reject = "target_not_in_water";
-        else if (dx * dx + dz * dz > p.alcanceAgarre() * p.alcanceAgarre() || dy > 2.5) return; // not in reach yet: silent
+        else if (dx * dx + dz * dz > p.alcanceAgarre() * p.alcanceAgarre() || dy > 2.5)
+            return; // not in reach yet: silent
         int depth = 0;
         if (reject == null) {
             depth = waterDepth(level, player);
@@ -77,44 +98,105 @@ public class AbismoZombie extends ConfiguredZombie {
         }
         if (reject != null) {
             nextAttempt = now + RETRY_AFTER_REJECT;
-            Abilities.debug(this, "abismo_grab_rejected", "reason={} trigger={} target={} depth={} minDepth={}", reject, trigger, player.getName().getString(), depth, p.profundidadMinima());
+            Abilities.debug(
+                    this,
+                    "abismo_grab_rejected",
+                    "reason={} trigger={} target={} depth={} minDepth={}",
+                    reject,
+                    trigger,
+                    player.getName().getString(),
+                    depth,
+                    p.profundidadMinima());
             return;
         }
         grabbed = player;
         ticksLeft = p.duracionAgarre();
         heldTicks = 0;
         playGrabSound();
-        Abilities.debug(this, "abismo_grab_start", "trigger={} target={} depth={} ticks={} strength={} releaseDamage={}", trigger, player.getName().getString(), depth, ticksLeft, p.fuerzaArrastre(), p.danioParaSoltar());
+        Abilities.debug(
+                this,
+                "abismo_grab_start",
+                "trigger={} target={} depth={} ticks={} strength={} releaseDamage={}",
+                trigger,
+                player.getName().getString(),
+                depth,
+                ticksLeft,
+                p.fuerzaArrastre(),
+                p.danioParaSoltar());
     }
 
     private static int waterDepth(ServerLevel level, ServerPlayer player) {
         var pos = new net.minecraft.core.BlockPos.MutableBlockPos();
         int x = player.getBlockX(), z = player.getBlockZ();
-        return WaterColumn.depth(y -> level.getFluidState(pos.set(x, y, z)).is(FluidTags.WATER), player.getBlockY(), level.getMinY(), level.getMaxY(), 32);
+        return WaterColumn.depth(
+                y -> level.getFluidState(pos.set(x, y, z)).is(FluidTags.WATER),
+                player.getBlockY(),
+                level.getMinY(),
+                level.getMaxY(),
+                32);
     }
 
     private void hold(ServerLevel level) {
         var p = params();
         var player = grabbed;
-        boolean present = !player.isRemoved() && !player.hasDisconnected() && player.level() == level;
-        String reason = GrabRules.releaseReason(new GrabRules.Inputs(ticksLeft, abilityEnabled(CombatParams.Abismo.ABILITY), isAlive(), isInWater(),
-            present, player.isAlive(), !player.isCreative() && !player.isSpectator(), player.isInWater(),
-            distanceToSqr(player), RELEASE_DISTANCE * RELEASE_DISTANCE));
-        if (reason != null) { release(reason); return; }
+        boolean present =
+                !player.isRemoved() && !player.hasDisconnected() && player.level() == level;
+        String reason =
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                ticksLeft,
+                                abilityEnabled(CombatParams.Abismo.ABILITY),
+                                isAlive(),
+                                isInWater(),
+                                present,
+                                player.isAlive(),
+                                !player.isCreative() && !player.isSpectator(),
+                                player.isInWater(),
+                                distanceToSqr(player),
+                                RELEASE_DISTANCE * RELEASE_DISTANCE));
+        if (reason != null) {
+            release(reason);
+            return;
+        }
         ticksLeft--;
         heldTicks++;
 
-        double[] drag = DragMath.drag(player.getX(), player.getY(), player.getZ(), getX(), getY(), getZ(), p.fuerzaArrastre());
+        double[] drag =
+                DragMath.drag(
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
+                        getX(),
+                        getY(),
+                        getZ(),
+                        p.fuerzaArrastre());
         Vec3 v = player.getDeltaMovement();
         double[] next = DragMath.addClamped(new double[] {v.x, v.y, v.z}, drag, MAX_COMPONENT);
         player.setDeltaMovement(next[0], next[1], next[2]);
-        player.connection.send(new ClientboundSetEntityMotionPacket(player)); // players own their movement: push it to the client
+        player.connection.send(
+                new ClientboundSetEntityMotionPacket(
+                        player)); // players own their movement: push it to the client
         Vec3 own = getDeltaMovement();
         setDeltaMovement(own.x, Math.min(own.y, 0) - p.fuerzaArrastre() * 0.5, own.z);
 
-        if (p.nivelFatiga() > 0 && heldTicks % 20 == 1) player.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, FATIGUE_TICKS, p.nivelFatiga() - 1, false, false));
+        if (p.nivelFatiga() > 0 && heldTicks % 20 == 1)
+            player.addEffect(
+                    new MobEffectInstance(
+                            MobEffects.MINING_FATIGUE,
+                            FATIGUE_TICKS,
+                            p.nivelFatiga() - 1,
+                            false,
+                            false));
         if (heldTicks % LOG_PERIOD == 0) {
-            Abilities.debug(this, "abismo_grab_tick", "target={} held={} left={} y={} velocity={}", player.getName().getString(), heldTicks, ticksLeft, player.getY(), next[1]);
+            Abilities.debug(
+                    this,
+                    "abismo_grab_tick",
+                    "target={} held={} left={} y={} velocity={}",
+                    player.getName().getString(),
+                    heldTicks,
+                    ticksLeft,
+                    player.getY(),
+                    next[1]);
         }
     }
 
@@ -125,38 +207,57 @@ public class AbismoZombie extends ConfiguredZombie {
         grabbed = null;
         long now = level().getGameTime();
         cooldown.start(now, params().enfriamiento());
-        Abilities.debug(this, "abismo_grab_release", "reason={} target={} held={} cooldown={}", reason, player.getName().getString(), heldTicks, params().enfriamiento());
+        Abilities.debug(
+                this,
+                "abismo_grab_release",
+                "reason={} target={} held={} cooldown={}",
+                reason,
+                player.getName().getString(),
+                heldTicks,
+                params().enfriamiento());
         heldTicks = 0;
         ticksLeft = 0;
     }
 
-    @Override public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         boolean hurt = super.hurtServer(level, source, amount);
         if (hurt && grabbed != null) {
-            String reason = GrabRules.damageReason(source.getEntity() == grabbed, amount, params().danioParaSoltar());
+            String reason =
+                    GrabRules.damageReason(
+                            source.getEntity() == grabbed, amount, params().danioParaSoltar());
             if (reason != null) release(reason);
         }
         return hurt;
     }
 
-    @Override public boolean doHurtTarget(ServerLevel level, Entity target) {
+    @Override
+    public boolean doHurtTarget(ServerLevel level, Entity target) {
         boolean hit = super.doHurtTarget(level, target);
-        if (hit && grabbed == null && target instanceof ServerPlayer player && abilityEnabled(CombatParams.Abismo.ABILITY)) tryGrab(level, player, "melee_hit");
+        if (hit
+                && grabbed == null
+                && target instanceof ServerPlayer player
+                && abilityEnabled(CombatParams.Abismo.ABILITY)) tryGrab(level, player, "melee_hit");
         return hit;
     }
 
-    @Override public void die(DamageSource source) {
+    @Override
+    public void die(DamageSource source) {
         super.die(source);
         release(GrabRules.ZOMBIE_DEAD);
     }
 
-    @Override public void remove(Entity.RemovalReason reason) {
+    @Override
+    public void remove(Entity.RemovalReason reason) {
         if (grabbed != null) release("zombie_removed_" + reason);
         super.remove(reason);
     }
 
-    /** No swimming upward while holding the victim, otherwise the pull would be undone each tick. */
-    @Override protected void jumpInLiquid(TagKey<Fluid> fluid) {
+    /**
+     * No swimming upward while holding the victim, otherwise the pull would be undone each tick.
+     */
+    @Override
+    protected void jumpInLiquid(TagKey<Fluid> fluid) {
         if (grabbed == null) super.jumpInLiquid(fluid);
     }
 }

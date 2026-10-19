@@ -1,17 +1,19 @@
 package com.dolfin.zombies.kinds;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.dolfin.zombies.ZombieConfig;
 import com.dolfin.zombies.ZombieKind;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CombatKindsTest {
 
@@ -39,20 +41,27 @@ class CombatKindsTest {
         assertFalse(ShieldMath.inCone(0, 0, 0, 0, 0, 90));
 
         // Decision priority order.
-        assertEquals(ShieldMath.Decision.ABILITY_OFF,
-            ShieldMath.decide(false, false, true, false, true, false, true));
-        assertEquals(ShieldMath.Decision.BYPASS,
-            ShieldMath.decide(true, true, true, false, true, false, true));
-        assertEquals(ShieldMath.Decision.NO_SOURCE_POSITION,
-            ShieldMath.decide(true, false, false, false, true, false, true));
-        assertEquals(ShieldMath.Decision.PROJECTILE_IGNORED,
-            ShieldMath.decide(true, false, true, true, false, false, true));
-        assertEquals(ShieldMath.Decision.SHIELD_DISABLED,
-            ShieldMath.decide(true, false, true, false, true, true, true));
-        assertEquals(ShieldMath.Decision.OUTSIDE_CONE,
-            ShieldMath.decide(true, false, true, false, true, false, false));
-        assertEquals(ShieldMath.Decision.BLOCK,
-            ShieldMath.decide(true, false, true, true, true, false, true));
+        assertEquals(
+                ShieldMath.Decision.ABILITY_OFF,
+                ShieldMath.decide(false, false, true, false, true, false, true));
+        assertEquals(
+                ShieldMath.Decision.BYPASS,
+                ShieldMath.decide(true, true, true, false, true, false, true));
+        assertEquals(
+                ShieldMath.Decision.NO_SOURCE_POSITION,
+                ShieldMath.decide(true, false, false, false, true, false, true));
+        assertEquals(
+                ShieldMath.Decision.PROJECTILE_IGNORED,
+                ShieldMath.decide(true, false, true, true, false, false, true));
+        assertEquals(
+                ShieldMath.Decision.SHIELD_DISABLED,
+                ShieldMath.decide(true, false, true, false, true, true, true));
+        assertEquals(
+                ShieldMath.Decision.OUTSIDE_CONE,
+                ShieldMath.decide(true, false, true, false, true, false, false));
+        assertEquals(
+                ShieldMath.Decision.BLOCK,
+                ShieldMath.decide(true, false, true, true, true, false, true));
     }
 
     @Test
@@ -61,7 +70,10 @@ class CombatKindsTest {
         boolean[] valid = {true, false, true, true};
         assertEquals(3, FoodChoice.nearest(distSq, valid, 100.0));
         assertEquals(-1, FoodChoice.nearest(distSq, valid, 3.0));
-        assertEquals(1, FoodChoice.nearest(new double[] {10.0, 5.0, 5.0}, new boolean[] {true, true, true}, 20.0));
+        assertEquals(
+                1,
+                FoodChoice.nearest(
+                        new double[] {10.0, 5.0, 5.0}, new boolean[] {true, true, true}, 20.0));
     }
 
     @Test
@@ -82,8 +94,13 @@ class CombatKindsTest {
     void waterColumnDepthAndCaps() {
         // Water from y=55 to y=62 (8 blocks total).
         assertEquals(8, WaterColumn.depth(y -> y >= 55 && y <= 62, 60, -64, 320, 32));
-        assertEquals(5, WaterColumn.depth(y -> y >= 55 && y <= 62, 58, -64, 320, 2)); // 1 + 2 up + 2 down
-        assertEquals(0, WaterColumn.depth(y -> y >= 55 && y <= 62, 63, -64, 320, 32)); // origin not in water
+        assertEquals(
+                5,
+                WaterColumn.depth(y -> y >= 55 && y <= 62, 58, -64, 320, 2)); // 1 + 2 up + 2 down
+        assertEquals(
+                0,
+                WaterColumn.depth(
+                        y -> y >= 55 && y <= 62, 63, -64, 320, 32)); // origin not in water
         assertEquals(0, WaterColumn.depth(y -> true, -65, -64, 320, 32)); // out of world bounds
     }
 
@@ -92,24 +109,51 @@ class CombatKindsTest {
         var ok = new GrabRules.Inputs(30, true, true, true, true, true, true, true, 4.0, 12.25);
         assertNull(GrabRules.releaseReason(ok));
 
-        assertEquals(GrabRules.ZOMBIE_DEAD,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, false, true, true, true, true, true, 4.0, 12.25)));
-        assertEquals(GrabRules.TARGET_GONE,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, true, false, true, true, true, 4.0, 12.25)));
-        assertEquals(GrabRules.TARGET_DEAD,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, true, true, false, true, true, 4.0, 12.25)));
-        assertEquals(GrabRules.TARGET_INVALID,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, true, true, true, false, true, 4.0, 12.25)));
-        assertEquals(GrabRules.ABILITY_OFF,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, false, true, true, true, true, true, true, 4.0, 12.25)));
-        assertEquals(GrabRules.ZOMBIE_OUT_OF_WATER,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, false, true, true, true, true, 4.0, 12.25)));
-        assertEquals(GrabRules.TARGET_LEFT_WATER,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, true, true, true, true, false, 4.0, 12.25)));
-        assertEquals(GrabRules.TOO_FAR,
-            GrabRules.releaseReason(new GrabRules.Inputs(30, true, true, true, true, true, true, true, 13.0, 12.25)));
-        assertEquals(GrabRules.DURATION,
-            GrabRules.releaseReason(new GrabRules.Inputs(0, true, true, true, true, true, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.ZOMBIE_DEAD,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, false, true, true, true, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.TARGET_GONE,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, true, false, true, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.TARGET_DEAD,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, true, true, false, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.TARGET_INVALID,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, true, true, true, false, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.ABILITY_OFF,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, false, true, true, true, true, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.ZOMBIE_OUT_OF_WATER,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, false, true, true, true, true, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.TARGET_LEFT_WATER,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, true, true, true, true, false, 4.0, 12.25)));
+        assertEquals(
+                GrabRules.TOO_FAR,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                30, true, true, true, true, true, true, true, 13.0, 12.25)));
+        assertEquals(
+                GrabRules.DURATION,
+                GrabRules.releaseReason(
+                        new GrabRules.Inputs(
+                                0, true, true, true, true, true, true, true, 4.0, 12.25)));
 
         // Any hit by the grabbed player breaks the grab; external damage must be >= threshold (4).
         assertEquals(GrabRules.HIT_BY_TARGET, GrabRules.damageReason(true, 0.5, 4.0));
@@ -132,7 +176,9 @@ class CombatKindsTest {
         assertEquals(-0.20, far[1], 1e-9);
         assertEquals(0.08, far[2], 1e-9);
 
-        double[] clamped = DragMath.addClamped(new double[] {0.5, -0.55, -0.9}, new double[] {0.3, -0.2, 0.1}, 0.6);
+        double[] clamped =
+                DragMath.addClamped(
+                        new double[] {0.5, -0.55, -0.9}, new double[] {0.3, -0.2, 0.1}, 0.6);
         assertArrayEquals(new double[] {0.6, -0.6, -0.6}, clamped, 1e-9);
     }
 
@@ -151,7 +197,10 @@ class CombatKindsTest {
 
     @Test
     void weightedPickParsesAndSelectsProportionally() {
-        JsonObject raw = JsonParser.parseString("{\"zombie_horse\":60,\"spider\":40,\"zero\":0,\"neg\":-5,\"bad\":\"x\"}").getAsJsonObject();
+        JsonObject raw =
+                JsonParser.parseString(
+                                "{\"zombie_horse\":60,\"spider\":40,\"zero\":0,\"neg\":-5,\"bad\":\"x\"}")
+                        .getAsJsonObject();
         Map<String, Double> weights = WeightedPick.parse(raw);
         assertEquals(2, weights.size());
         assertEquals("zombie_horse", WeightedPick.pick(weights, 0.0));

@@ -6,8 +6,14 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class GlowingFungusBlock extends VegetationBlock {
-    public GlowingFungusBlock(Properties properties) { super(properties); }
-    @Override protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-        return state.is(com.dolfin.space.SpaceContent.REGOLITO_BLOCK) || state.is(PlanetModule.BLOCKS.get("roca_lunar")) || state.is(PlanetModule.BLOCKS.get("bloque_cristal_energia"));
+    public GlowingFungusBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
+        return state.is(com.dolfin.space.SpaceContent.REGOLITO_BLOCK)
+                || state.is(PlanetModule.BLOCKS.get("roca_lunar"))
+                || state.is(PlanetModule.BLOCKS.get("bloque_cristal_energia"));
     }
 }

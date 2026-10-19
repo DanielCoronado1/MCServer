@@ -17,6 +17,7 @@ Los mods que instalo una version anterior y ya no estan en el pack se borran. Lo
 pongas tu a mano en mods/ no se tocan (pero mejor anadelos al pack con packwiz).
 Necesita Python 3.11 o mas reciente.
 """
+
 import argparse
 import hashlib
 import json
@@ -44,8 +45,11 @@ def mods_propios():
     for proyecto in sorted((RAIZ / "mods").iterdir()):
         if not (proyecto / "build.gradle").is_file():
             continue
-        candidatos = [j for j in (proyecto / "build" / "libs").glob("*.jar")
-                      if not j.stem.endswith(("-sources", "-dev"))]
+        candidatos = [
+            j
+            for j in (proyecto / "build" / "libs").glob("*.jar")
+            if not j.stem.endswith(("-sources", "-dev"))
+        ]
         if not candidatos:
             raise FileNotFoundError(f"Compila primero {proyecto.relative_to(RAIZ)} (gradlew build)")
         jars.append(max(candidatos, key=lambda j: j.stat().st_mtime))
@@ -88,11 +92,15 @@ def sincronizar_whitelist():
             raise ValueError(f"Nombre de Minecraft invalido: {nombre}")
         if offline:
             # Java UUID.nameUUIDFromBytes uses MD5 with UUID version 3 bits.
-            identificador = str(uuid.UUID(bytes=hashlib.md5(f"OfflinePlayer:{nombre}".encode()).digest(), version=3))
+            identificador = str(
+                uuid.UUID(bytes=hashlib.md5(f"OfflinePlayer:{nombre}".encode()).digest(), version=3)
+            )
         else:
             perfil = next((p for p in perfiles if p["name"].lower() == nombre.lower()), None)
             if perfil is None:
-                raise ValueError(f"Perfil online desconocido: {nombre}. Ejecuta 'whitelist add {nombre}' en consola primero.")
+                raise ValueError(
+                    f"Perfil online desconocido: {nombre}. Ejecuta 'whitelist add {nombre}' en consola primero."
+                )
             identificador = perfil["uuid"]
         entradas = [e for e in entradas if e["name"].lower() != nombre.lower()]
         entradas.append({"uuid": identificador, "name": nombre})
@@ -105,7 +113,9 @@ REGISTRO = SERVIDOR / ".dolfin-instalados.json"
 
 
 def pedir(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=CABECERAS), timeout=120) as respuesta:
+    with urllib.request.urlopen(
+        urllib.request.Request(url, headers=CABECERAS), timeout=120
+    ) as respuesta:
         return respuesta.read()
 
 
@@ -113,8 +123,11 @@ def leer_pack():
     """Devuelve (pack.toml, [metadatos de cada mod])."""
     pack = tomllib.loads((PACK / "pack.toml").read_text(encoding="utf-8"))
     indice = tomllib.loads((PACK / pack["index"]["file"]).read_text(encoding="utf-8"))
-    mods = [tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
-            for f in indice["files"] if f.get("metafile")]
+    mods = [
+        tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
+        for f in indice["files"]
+        if f.get("metafile")
+    ]
     return pack, mods
 
 
@@ -127,7 +140,9 @@ def instalar_mod(mod, destino):
         return
     datos = pedir(mod["download"]["url"])
     if not huella_correcta(datos, mod["download"]):
-        raise ValueError(f"La huella de {mod['filename']} no coincide: descarga corrupta o manipulada")
+        raise ValueError(
+            f"La huella de {mod['filename']} no coincide: descarga corrupta o manipulada"
+        )
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_bytes(datos)
     print(f"  {destino.relative_to(SERVIDOR)}")
@@ -138,13 +153,19 @@ def main():
     preparar_servidor()
     sincronizar_whitelist()
     pack, mods = leer_pack()
-    anterior = json.loads(REGISTRO.read_text(encoding="utf-8")) if REGISTRO.exists() else {"archivos": []}
+    anterior = (
+        json.loads(REGISTRO.read_text(encoding="utf-8")) if REGISTRO.exists() else {"archivos": []}
+    )
 
     lanzador = f"{pack['versions']['fabric']}/{INSTALADOR_FABRIC}"
     if anterior.get("lanzador") != lanzador or not (SERVIDOR / "fabric-server-launch.jar").exists():
-        print(f"Lanzador de Fabric {pack['versions']['minecraft']} (cargador {pack['versions']['fabric']})")
-        url = (f"https://meta.fabricmc.net/v2/versions/loader/{pack['versions']['minecraft']}/"
-               f"{pack['versions']['fabric']}/{INSTALADOR_FABRIC}/server/jar")
+        print(
+            f"Lanzador de Fabric {pack['versions']['minecraft']} (cargador {pack['versions']['fabric']})"
+        )
+        url = (
+            f"https://meta.fabricmc.net/v2/versions/loader/{pack['versions']['minecraft']}/"
+            f"{pack['versions']['fabric']}/{INSTALADOR_FABRIC}/server/jar"
+        )
         (SERVIDOR / "fabric-server-launch.jar").write_bytes(pedir(url))
 
     print(f"Mods de {pack['name']} {pack['version']}:")
@@ -173,13 +194,23 @@ def main():
             (SERVIDOR / viejo).unlink()
             print(f"  borrado {viejo}")
 
-    REGISTRO.write_text(json.dumps({"lanzador": lanzador, "archivos": sorted(instalados)}, indent=2), encoding="utf-8")
+    REGISTRO.write_text(
+        json.dumps({"lanzador": lanzador, "archivos": sorted(instalados)}, indent=2),
+        encoding="utf-8",
+    )
     print("Listo. Si el servidor estaba encendido, reinicialo para cargar los cambios.")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Install Fabric and the locked modpack; stop the server first.")
-    parser.add_argument("--server-dir", type=Path, default=SERVIDOR, help="Runtime directory (e.g. Crafty's managed server)")
+    parser = argparse.ArgumentParser(
+        description="Install Fabric and the locked modpack; stop the server first."
+    )
+    parser.add_argument(
+        "--server-dir",
+        type=Path,
+        default=SERVIDOR,
+        help="Runtime directory (e.g. Crafty's managed server)",
+    )
     args = parser.parse_args()
     SERVIDOR = args.server_dir.resolve()
     REGISTRO = SERVIDOR / ".dolfin-instalados.json"

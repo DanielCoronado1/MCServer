@@ -10,7 +10,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
-import java.util.function.Supplier;
+
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SkyRenderer;
@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.model.sprite.AtlasManager;
 import net.minecraft.world.level.MoonPhase;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -31,24 +32,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.function.Supplier;
+
 /**
  * Customizes {@link SkyRenderer} for {@code dolfinspace:kepler}: renders a black space sky with
  * permanent stars, suppresses atmospheric sunrise glow, and draws the Earth celestial sprite.
  */
 @Mixin(SkyRenderer.class)
 public abstract class KeplerSkyMixin {
-    @Unique
-    private static final float EARTH_HEIGHT = 100.0F;
-    @Unique
-    private static final float EARTH_SIZE = 28.0F;
+    @Unique private static final float EARTH_HEIGHT = 100.0F;
+    @Unique private static final float EARTH_SIZE = 28.0F;
 
-    @Shadow
-    @Final
-    private TextureAtlas celestialsAtlas;
+    @Shadow @Final private TextureAtlas celestialsAtlas;
 
-    @Shadow
-    @Final
-    private RenderSystem.AutoStorageIndexBuffer quadIndices;
+    @Shadow @Final private RenderSystem.AutoStorageIndexBuffer quadIndices;
 
     @Shadow
     private static GpuBuffer buildCelestialQuad(String label, TextureAtlasSprite sprite) {
@@ -67,22 +64,20 @@ public abstract class KeplerSkyMixin {
             GpuBufferSlice transformSlice,
             GpuBuffer indexBuffer,
             GpuBuffer vertexBuffer,
-            int baseVertex
-    ) {
+            int baseVertex) {
         throw new AssertionError();
     }
 
-    @Unique
-    private GpuBuffer dolfinspace$earthBuffer;
+    @Unique private GpuBuffer dolfinspace$earthBuffer;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void dolfinspace$initEarthQuad(
             TextureManager textureManager,
             AtlasManager atlasManager,
             RenderTarget renderTarget,
-            CallbackInfo ci
-    ) {
-        TextureAtlasSprite earthSprite = this.celestialsAtlas.getSprite(DolfinSpaceClient.EARTH_SPRITE);
+            CallbackInfo ci) {
+        TextureAtlasSprite earthSprite =
+                this.celestialsAtlas.getSprite(DolfinSpaceClient.EARTH_SPRITE);
         this.dolfinspace$earthBuffer = buildCelestialQuad("Earth quad", earthSprite);
     }
 
@@ -92,8 +87,7 @@ public abstract class KeplerSkyMixin {
             float partialTick,
             Camera camera,
             SkyRenderState state,
-            CallbackInfo ci
-    ) {
+            CallbackInfo ci) {
         boolean inKepler = KeplerDimension.isKepler(level.dimension());
         DolfinSpaceClient.renderingKeplerSky = inKepler;
         if (!inKepler) {
@@ -101,9 +95,8 @@ public abstract class KeplerSkyMixin {
         }
 
         SpaceConfig cfg = DolfinSpace.config();
-        float starBrightness = cfg != null
-                ? (float) cfg.current().cliente().brilloEstrellasKepler()
-                : 0.90F;
+        float starBrightness =
+                cfg != null ? (float) cfg.current().cliente().brilloEstrellasKepler() : 0.90F;
 
         state.skyColor = new Vector3f(0.0F, 0.0F, 0.0F);
         state.sunriseAndSunsetColor = new Vector4f(0.0F, 0.0F, 0.0F, 0.0F);
@@ -118,8 +111,7 @@ public abstract class KeplerSkyMixin {
             MoonPhase phase,
             float rainBrightness,
             PoseStack poseStack,
-            CallbackInfo ci
-    ) {
+            CallbackInfo ci) {
         if (!DolfinSpaceClient.renderingKeplerSky || this.dolfinspace$earthBuffer == null) {
             return;
         }
@@ -130,16 +122,16 @@ public abstract class KeplerSkyMixin {
         }
 
         Matrix4f transform = this.applyCelestialBodyTransform(poseStack, EARTH_HEIGHT, EARTH_SIZE);
-        GpuBufferSlice uniformSlice = RenderSystem.getDynamicUniforms()
-                .writeTransform(transform, new Vector4f(1.0F, 1.0F, 1.0F, rainBrightness));
+        GpuBufferSlice uniformSlice =
+                RenderSystem.getDynamicUniforms()
+                        .writeTransform(transform, new Vector4f(1.0F, 1.0F, 1.0F, rainBrightness));
         this.drawCelestialBody(
                 () -> "Earth",
                 pass,
                 uniformSlice,
                 this.quadIndices.getBuffer(6),
                 this.dolfinspace$earthBuffer,
-                0
-        );
+                0);
         ci.cancel();
     }
 

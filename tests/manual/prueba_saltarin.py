@@ -4,9 +4,10 @@ enciende la mecha y anota la altura de la vaca cada cuarto de segundo.
 
 Uso: python tests/manual/prueba_saltarin.py
 """
+
+import os
 import re
 import shutil
-import os
 import subprocess
 import threading
 import time
@@ -14,17 +15,32 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 SERVIDOR = RAIZ / "runtime/test-server"
-JAVA = str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java")) if "JAVA_HOME" in os.environ else "java"
+JAVA = (
+    str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java"))
+    if "JAVA_HOME" in os.environ
+    else "java"
+)
 
 shutil.rmtree(SERVIDOR / "world", ignore_errors=True)
 for viejo in (SERVIDOR / "mods").glob("dolfincreepers-*.jar"):
     viejo.unlink()
-jar = max((RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"), key=lambda j: j.stat().st_mtime)
+jar = max(
+    (RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"),
+    key=lambda j: j.stat().st_mtime,
+)
 shutil.copy2(jar, SERVIDOR / "mods" / jar.name)
 
-proceso = subprocess.Popen([JAVA, "-Xms2G", "-Xmx2G", "-jar", "fabric-server-launch.jar", "nogui"],
-                           cwd=SERVIDOR, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                           text=True, encoding="utf-8", errors="replace", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+proceso = subprocess.Popen(
+    [JAVA, "-Xms2G", "-Xmx2G", "-jar", "fabric-server-launch.jar", "nogui"],
+    cwd=SERVIDOR,
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    encoding="utf-8",
+    errors="replace",
+    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+)
 lineas = []
 listo = threading.Event()
 

@@ -10,7 +10,10 @@ public final class FoodChoice {
         double bestD = Double.MAX_VALUE;
         for (int i = 0; i < distSq.length; i++) {
             if (!valid[i] || distSq[i] > maxDistSq) continue;
-            if (distSq[i] < bestD) { bestD = distSq[i]; best = i; }
+            if (distSq[i] < bestD) {
+                bestD = distSq[i];
+                best = i;
+            }
         }
         return best;
     }

@@ -2,6 +2,7 @@ package com.dolfin.zombies.kinds;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 

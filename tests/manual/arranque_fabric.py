@@ -4,6 +4,7 @@ de comprobacion y lo apaga. Guarda toda la salida en runtime/server/prueba_arran
 
 Uso: python tests/manual/arranque_fabric.py ["comando" ...]
 """
+
 import os
 import subprocess
 import sys
@@ -12,11 +13,22 @@ import time
 from pathlib import Path
 
 SERVIDOR = Path(__file__).resolve().parents[2] / "runtime" / "server"
-JAVA = str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java")) if "JAVA_HOME" in os.environ else "java"
+JAVA = (
+    str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java"))
+    if "JAVA_HOME" in os.environ
+    else "java"
+)
 
-proceso = subprocess.Popen([JAVA, "-Xms4G", "-Xmx4G", "-jar", "fabric-server-launch.jar", "nogui"],
-                           cwd=SERVIDOR, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+proceso = subprocess.Popen(
+    [JAVA, "-Xms4G", "-Xmx4G", "-jar", "fabric-server-launch.jar", "nogui"],
+    cwd=SERVIDOR,
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    encoding="utf-8",
+    errors="replace",
+)
 lineas = []
 listo = threading.Event()
 
@@ -40,4 +52,10 @@ proceso.stdin.write("stop\n")
 proceso.stdin.flush()
 proceso.wait(120)
 (SERVIDOR / "prueba_arranque.log").write_text("".join(lineas), encoding="utf-8")
-print("".join(l for l in lineas if any(p in l for p in ("ERROR", "WARN", "Exception", "Done (", "Loading", "mods"))))
+print(
+    "".join(
+        l
+        for l in lineas
+        if any(p in l for p in ("ERROR", "WARN", "Exception", "Done (", "Loading", "mods"))
+    )
+)

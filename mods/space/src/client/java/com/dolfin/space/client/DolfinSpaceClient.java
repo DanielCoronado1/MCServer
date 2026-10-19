@@ -2,6 +2,7 @@ package com.dolfin.space.client;
 
 import com.dolfin.space.DolfinSpace;
 import com.dolfin.space.SpaceHandshakePayload;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -24,12 +25,13 @@ public final class DolfinSpaceClient implements ClientModInitializer {
         com.dolfin.space.client.mobs.MobsClient.init();
         ClientConfigurationNetworking.registerGlobalReceiver(
                 SpaceHandshakePayload.TYPE,
-                (payload, context) -> DolfinSpace.LOGGER.debug(
-                        "event=client_handshake_received serverModVersion={}",
-                        payload.version()
-                )
-        );
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> renderingKeplerSky = false);
-        DolfinSpace.LOGGER.info("event=client_startup modId={} earthSprite={}", DolfinSpace.MOD_ID, EARTH_SPRITE);
+                (payload, context) ->
+                        DolfinSpace.LOGGER.debug(
+                                "event=client_handshake_received serverModVersion={}",
+                                payload.version()));
+        ClientPlayConnectionEvents.DISCONNECT.register(
+                (handler, client) -> renderingKeplerSky = false);
+        DolfinSpace.LOGGER.info(
+                "event=client_startup modId={} earthSprite={}", DolfinSpace.MOD_ID, EARTH_SPRITE);
     }
 }

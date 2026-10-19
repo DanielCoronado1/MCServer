@@ -17,11 +17,21 @@ public final class GrabRules {
     public static final String DAMAGE = "damage";
 
     /** Per-tick facts about a running grab. */
-    public record Inputs(int ticksLeft, boolean abilityEnabled, boolean zombieAlive, boolean zombieInWater,
-                         boolean targetPresent, boolean targetAlive, boolean targetValid, boolean targetInWater,
-                         double distanceSq, double maxDistanceSq) {}
+    public record Inputs(
+            int ticksLeft,
+            boolean abilityEnabled,
+            boolean zombieAlive,
+            boolean zombieInWater,
+            boolean targetPresent,
+            boolean targetAlive,
+            boolean targetValid,
+            boolean targetInWater,
+            double distanceSq,
+            double maxDistanceSq) {}
 
-    /** Reason to release now, or {@code null} to keep holding. Ordered from most to least decisive. */
+    /**
+     * Reason to release now, or {@code null} to keep holding. Ordered from most to least decisive.
+     */
     public static String releaseReason(Inputs i) {
         if (!i.zombieAlive()) return ZOMBIE_DEAD;
         if (!i.targetPresent()) return TARGET_GONE;
@@ -35,7 +45,10 @@ public final class GrabRules {
         return null;
     }
 
-    /** Release caused by a damage event on the zombie: a hit from the victim or any hit of at least {@code threshold}. */
+    /**
+     * Release caused by a damage event on the zombie: a hit from the victim or any hit of at least
+     * {@code threshold}.
+     */
     public static String damageReason(boolean fromVictim, double amount, double threshold) {
         if (fromVictim) return HIT_BY_TARGET;
         if (amount >= threshold) return DAMAGE;

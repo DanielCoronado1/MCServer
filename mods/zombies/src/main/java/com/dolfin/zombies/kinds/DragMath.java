@@ -7,8 +7,12 @@ public final class DragMath {
     /** Horizontal slack: closer than this to the zombie the victim is not pulled sideways. */
     public static final double HOLD_RADIUS = 0.6;
 
-    /** Velocity increment per tick: always down by {@code strength}, sideways toward the zombie at half strength. */
-    public static double[] drag(double px, double py, double pz, double zx, double zy, double zz, double strength) {
+    /**
+     * Velocity increment per tick: always down by {@code strength}, sideways toward the zombie at
+     * half strength.
+     */
+    public static double[] drag(
+            double px, double py, double pz, double zx, double zy, double zz, double strength) {
         double dx = zx - px, dz = zz - pz;
         double h = Math.hypot(dx, dz);
         double sx = 0, sz = 0;

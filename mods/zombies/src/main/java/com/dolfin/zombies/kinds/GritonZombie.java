@@ -30,7 +30,7 @@ public final class GritonZombie extends SupportZombie {
   if(fleeFrom!=null){DolfinZombies.LOGGER.debug("event=griton_flee_end uuid={}",getUUID());fleeFrom=null;}
   if(now<readyAt){reject("cooldown");return;}
   var a=ability("llamada");double radius=Math.min(64,a.get("radioLlamada").getAsDouble());
-  Player player=world.getNearestPlayer(this,32);if(player==null||player.isCreative()||player.isSpectator()||!getSensing().hasLineOfSight(player)){reject("no_visible_player");return;}
+  Player player=world.getEntitiesOfClass(Player.class,getBoundingBox().inflate(32),p->p.isAlive()&&!p.isCreative()&&!p.isSpectator()&&distanceToSqr(p)<=1024&&getSensing().hasLineOfSight(p)).stream().min(java.util.Comparator.comparingDouble(this::distanceToSqr)).orElse(null);if(player==null){reject("no_visible_player");return;}
   int count=0,limit=Math.min(64,a.get("maxZombiesLlamados").getAsInt());
   for(var z:world.getEntitiesOfClass(Zombie.class,getBoundingBox().inflate(radius),z->z!=this&&z.isAlive()&&SupportRules.within(distanceToSqr(z),radius)&&(a.get("incluyeVanilla").getAsBoolean()||z instanceof ConfiguredZombie))){
    if(count>=limit)break;z.setTarget(player);z.getNavigation().moveTo(player,1.1);count++;
@@ -43,7 +43,7 @@ public final class GritonZombie extends SupportZombie {
    if(!world.noCollision(z)||!world.getBlockState(pos.below()).isSolidRender()){reject("reinforcement_obstructed");continue;}
    z.finalizeSpawn(world,world.getCurrentDifficultyAt(pos),EntitySpawnReason.REINFORCEMENT,null);z.setTarget(player);world.addFreshEntity(z);spawned++;
   }else reject("reinforcements_no_blood_moon");
-  playSound(SoundEvents.GHAST_SCREAM,1.5f,.7f);world.sendParticles(ParticleTypes.ANGRY_VILLAGER,getX(),getEyeY(),getZ(),12,.4,.4,.4,0);
+  playSound(ZombieSounds.GRITON_SCREAM,1.5f,1);world.sendParticles(ParticleTypes.ANGRY_VILLAGER,getX(),getEyeY(),getZ(),12,.4,.4,.4,0);
   readyAt=now+Math.max(20,a.get("enfriamiento").getAsInt());fleeUntil=now+60;fleeFrom=player;setTarget(null);retreat(player,1.4);
   DolfinZombies.LOGGER.debug("event=griton_call uuid={} target={} called={} spawned={} radius={} fleeUntil={}",getUUID(),player.getUUID(),count,spawned,radius,fleeUntil);
  }

@@ -38,5 +38,9 @@
   "dolfinzombies.bloodmoon.stopped": "Se detuvo la luna de sangre.",
   "dolfinzombies.bloodmoon.join": "Hay una luna de sangre en curso: no se puede dormir.",
   "dolfinzombies.bloodmoon.sleep_active": "No podés dormir durante la luna de sangre.",
-  "dolfinzombies.bloodmoon.sleep_pending": "Esta noche hay luna de sangre: no podés dormir."
+  "dolfinzombies.bloodmoon.sleep_pending": "Esta noche hay luna de sangre: no podés dormir.",
+  "subtitles.dolfinzombies.griton_scream": "El Gritón grita",
+  "subtitles.dolfinzombies.bilioso_burst": "El Bilioso revienta",
+  "subtitles.dolfinzombies.abismo_grab": "El Ahogado agarra",
+  "subtitles.dolfinzombies.ladron_steal": "El Ladrón roba"
 }

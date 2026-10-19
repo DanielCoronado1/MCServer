@@ -27,7 +27,7 @@ public final class DolfinZombies implements ModInitializer {
         config=new ZombieConfig(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID),LOGGER::warn);
         for(var kind:ZombieKind.values()){
             var key=ResourceKey.create(Registries.ENTITY_TYPE,id(kind.id()));
-            var type=Registry.register(BuiltInRegistries.ENTITY_TYPE,key,EntityType.Builder.<ConfiguredZombie>of((t,l)->new ConfiguredZombie(t,l,kind),MobCategory.MONSTER).sized(.6f,1.95f).clientTrackingRange(8).build(key));
+            var type=Registry.register(BuiltInRegistries.ENTITY_TYPE,key,EntityType.Builder.<ConfiguredZombie>of((t,l)->ZombieFactories.create(t,l,kind),MobCategory.MONSTER).sized(.6f,1.95f).clientTrackingRange(8).build(key));
             TYPES.put(kind,type);FabricDefaultAttributeRegistry.register(type,Zombie.createAttributes().add(Attributes.SCALE,1));
             var egg=ResourceKey.create(Registries.ITEM,id(kind.id()+"_spawn_egg"));
             Registry.register(BuiltInRegistries.ITEM,egg,new SpawnEggItem(new Item.Properties().setId(egg).spawnEgg(type)));

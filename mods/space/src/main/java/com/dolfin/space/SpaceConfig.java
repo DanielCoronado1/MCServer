@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -25,6 +26,8 @@ public final class SpaceConfig {
     public static final String FILE_NAME = "dolfin-space.json";
     private static final Gson GSON =
             new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Set<String> KNOWN_SECTIONS =
+            Set.of("general", "dimension", "maquinas", "naves", "oxigeno", "mobs", "cliente");
 
     /** Describes a single configuration validation fallback. */
     public record Problem(String field, String reason) {
@@ -197,6 +200,147 @@ public final class SpaceConfig {
         }
     }
 
+    /**
+     * Reads and validates typed configuration fields for a single section, recording known keys and
+     * emitting {@link Problem}s for missing or invalid values.
+     */
+    public static final class SectionReader {
+        private final String section;
+        private JsonObject obj;
+        private final List<Problem> problems;
+        private final Set<String> knownKeys = new HashSet<>();
+
+        public SectionReader(String section, JsonObject obj, List<Problem> problems) {
+            this.section = section;
+            this.obj = obj != null ? obj : new JsonObject();
+            this.problems = problems;
+        }
+
+        public static SectionReader from(JsonObject root, String section, List<Problem> problems) {
+            if (!root.has(section)) {
+                return new SectionReader(section, new JsonObject(), problems);
+            }
+            JsonElement el = root.get(section);
+            if (!el.isJsonObject()) {
+                problems.add(new Problem(section, "expected object section"));
+                return new SectionReader(section, new JsonObject(), problems);
+            }
+            return new SectionReader(section, el.getAsJsonObject(), problems);
+        }
+
+        /** Accepts a legacy spelling; when present it takes precedence over the canonical key. */
+        public void alias(String aliasKey, String canonicalKey) {
+            knownKeys.add(aliasKey);
+            if (obj.has(aliasKey)) {
+                obj = obj.deepCopy();
+                obj.add(canonicalKey, obj.get(aliasKey));
+            }
+        }
+
+        public boolean bool(String key, boolean def) {
+            knownKeys.add(key);
+            if (!obj.has(key)) {
+                return def;
+            }
+            JsonElement el = obj.get(key);
+            if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isBoolean()) {
+                problems.add(new Problem(section + "." + key, "expected boolean"));
+                return def;
+            }
+            return el.getAsBoolean();
+        }
+
+        public int integer(String key, int def, int min, int max) {
+            knownKeys.add(key);
+            if (!obj.has(key)) {
+                return def;
+            }
+            JsonElement el = obj.get(key);
+            if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isNumber()) {
+                problems.add(
+                        new Problem(
+                                section + "." + key,
+                                "expected integer in [" + min + "," + max + "]"));
+                return def;
+            }
+            double value = el.getAsDouble();
+            if (!Double.isFinite(value)
+                    || value != Math.rint(value)
+                    || value < min
+                    || value > max) {
+                problems.add(
+                        new Problem(
+                                section + "." + key,
+                                "value " + el + " out of integer range [" + min + "," + max + "]"));
+                return def;
+            }
+            return (int) value;
+        }
+
+        public double decimal(String key, double def, double min, double max) {
+            knownKeys.add(key);
+            if (!obj.has(key)) {
+                return def;
+            }
+            JsonElement el = obj.get(key);
+            if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isNumber()) {
+                problems.add(
+                        new Problem(
+                                section + "." + key,
+                                "expected number in [" + min + "," + max + "]"));
+                return def;
+            }
+            double value = el.getAsDouble();
+            if (!Double.isFinite(value) || value < min || value > max) {
+                problems.add(
+                        new Problem(
+                                section + "." + key,
+                                "value " + el + " out of range [" + min + "," + max + "]"));
+                return def;
+            }
+            return value;
+        }
+
+        public String string(String key, String def) {
+            knownKeys.add(key);
+            if (!obj.has(key)) {
+                return def;
+            }
+            JsonElement el = obj.get(key);
+            if (!el.isJsonPrimitive()
+                    || !el.getAsJsonPrimitive().isString()
+                    || el.getAsString().isBlank()) {
+                problems.add(new Problem(section + "." + key, "expected non-blank string"));
+                return def;
+            }
+            return el.getAsString();
+        }
+
+        public String identifier(String key, String def) {
+            knownKeys.add(key);
+            if (!obj.has(key)) {
+                return def;
+            }
+            JsonElement el = obj.get(key);
+            if (!el.isJsonPrimitive()
+                    || !el.getAsJsonPrimitive().isString()
+                    || !el.getAsString().matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) {
+                problems.add(new Problem(section + "." + key, "expected namespaced identifier"));
+                return def;
+            }
+            return el.getAsString();
+        }
+
+        /** Emits problems for any keys present in the JSON object that were not recognized. */
+        public void finish() {
+            for (String key : obj.keySet()) {
+                if (!knownKeys.contains(key)) {
+                    problems.add(new Problem(section + "." + key, "unknown configuration key"));
+                }
+            }
+        }
+    }
+
     private final Path file;
     private final Consumer<String> warnings;
     private volatile Snapshot snapshot;
@@ -269,502 +413,176 @@ public final class SpaceConfig {
             return def;
         }
 
-        checkUnknownKeys(
-                root,
-                Set.of("general", "dimension", "maquinas", "naves", "oxigeno", "mobs", "cliente"),
-                "",
-                problems);
+        for (String key : root.keySet()) {
+            if (!KNOWN_SECTIONS.contains(key)) {
+                problems.add(new Problem(key, "unknown configuration key"));
+            }
+        }
         return new Snapshot(
-                parseGeneral(section(root, "general", problems), problems),
-                parseDimension(section(root, "dimension", problems), problems),
-                parseMachines(section(root, "maquinas", problems), problems),
-                parseShips(section(root, "naves", problems), problems),
-                parseOxygen(section(root, "oxigeno", problems), problems),
-                parseMobs(section(root, "mobs", problems), problems),
-                parseClient(section(root, "cliente", problems), problems),
+                parseGeneral(SectionReader.from(root, "general", problems)),
+                parseDimension(SectionReader.from(root, "dimension", problems)),
+                parseMachines(SectionReader.from(root, "maquinas", problems)),
+                parseShips(SectionReader.from(root, "naves", problems)),
+                parseOxygen(SectionReader.from(root, "oxigeno", problems)),
+                parseMobs(SectionReader.from(root, "mobs", problems)),
+                parseClient(SectionReader.from(root, "cliente", problems)),
                 nextGen);
     }
 
-    private static GeneralSection parseGeneral(JsonObject obj, List<Problem> problems) {
+    private static GeneralSection parseGeneral(SectionReader r) {
         GeneralSection d = GeneralSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "activo",
-                        "exigirModEnCliente",
-                        "mensajeSinMod",
-                        "respetarClaims",
-                        "mensajesChat"),
-                "general.",
-                problems);
-        return new GeneralSection(
-                boolField(obj, "general", "activo", d.activo(), problems),
-                boolField(obj, "general", "exigirModEnCliente", d.exigirModEnCliente(), problems),
-                nonBlankString(obj, "general", "mensajeSinMod", d.mensajeSinMod(), problems),
-                boolField(obj, "general", "respetarClaims", d.respetarClaims(), problems),
-                boolField(obj, "general", "mensajesChat", d.mensajesChat(), problems));
+        GeneralSection section =
+                new GeneralSection(
+                        r.bool("activo", d.activo()),
+                        r.bool("exigirModEnCliente", d.exigirModEnCliente()),
+                        r.string("mensajeSinMod", d.mensajeSinMod()),
+                        r.bool("respetarClaims", d.respetarClaims()),
+                        r.bool("mensajesChat", d.mensajesChat()));
+        r.finish();
+        return section;
     }
 
-    private static DimensionSection parseDimension(JsonObject obj, List<Problem> problems) {
+    private static DimensionSection parseDimension(SectionReader r) {
         DimensionSection d = DimensionSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "idDimension",
-                        "multiplicadorGravedad",
-                        "multiplicadorDanioCaida",
-                        "multiplicadorDistanciaSeguraCaida",
-                        "sinLluvia",
-                        "sinNubes",
-                        "sinMobsVanilla",
-                        "camasExplotan",
-                        "anclaReaparicionActiva",
-                        "bloquearPortales",
-                        "bloquearTpDirecto",
-                        "permitirExecuteAdmin"),
-                "dimension.",
-                problems);
-        return new DimensionSection(
-                identifierField(obj, "dimension", "idDimension", d.idDimension(), problems),
-                doubleField(
-                        obj,
-                        "dimension",
-                        "multiplicadorGravedad",
-                        d.multiplicadorGravedad(),
-                        0.05,
-                        2.0,
-                        problems),
-                doubleField(
-                        obj,
-                        "dimension",
-                        "multiplicadorDanioCaida",
-                        d.multiplicadorDanioCaida(),
-                        0.0,
-                        2.0,
-                        problems),
-                doubleField(
-                        obj,
-                        "dimension",
-                        "multiplicadorDistanciaSeguraCaida",
-                        d.multiplicadorDistanciaSeguraCaida(),
-                        1.0,
-                        10.0,
-                        problems),
-                boolField(obj, "dimension", "sinLluvia", d.sinLluvia(), problems),
-                boolField(obj, "dimension", "sinNubes", d.sinNubes(), problems),
-                boolField(obj, "dimension", "sinMobsVanilla", d.sinMobsVanilla(), problems),
-                boolField(obj, "dimension", "camasExplotan", d.camasExplotan(), problems),
-                boolField(
-                        obj,
-                        "dimension",
-                        "anclaReaparicionActiva",
-                        d.anclaReaparicionActiva(),
-                        problems),
-                boolField(obj, "dimension", "bloquearPortales", d.bloquearPortales(), problems),
-                boolField(obj, "dimension", "bloquearTpDirecto", d.bloquearTpDirecto(), problems),
-                boolField(
-                        obj,
-                        "dimension",
-                        "permitirExecuteAdmin",
-                        d.permitirExecuteAdmin(),
-                        problems));
+        DimensionSection section =
+                new DimensionSection(
+                        r.identifier("idDimension", d.idDimension()),
+                        r.decimal("multiplicadorGravedad", d.multiplicadorGravedad(), 0.05, 2.0),
+                        r.decimal("multiplicadorDanioCaida", d.multiplicadorDanioCaida(), 0.0, 2.0),
+                        r.decimal(
+                                "multiplicadorDistanciaSeguraCaida",
+                                d.multiplicadorDistanciaSeguraCaida(),
+                                1.0,
+                                10.0),
+                        r.bool("sinLluvia", d.sinLluvia()),
+                        r.bool("sinNubes", d.sinNubes()),
+                        r.bool("sinMobsVanilla", d.sinMobsVanilla()),
+                        r.bool("camasExplotan", d.camasExplotan()),
+                        r.bool("anclaReaparicionActiva", d.anclaReaparicionActiva()),
+                        r.bool("bloquearPortales", d.bloquearPortales()),
+                        r.bool("bloquearTpDirecto", d.bloquearTpDirecto()),
+                        r.bool("permitirExecuteAdmin", d.permitirExecuteAdmin()));
+        r.finish();
+        return section;
     }
 
-    private static MachinesSection parseMachines(JsonObject obj, List<Problem> problems) {
+    private static MachinesSection parseMachines(SectionReader r) {
         MachinesSection d = MachinesSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "ticksCompresor",
-                        "ticksFabricadorCircuitos",
-                        "ticksRefineria",
-                        "ticksCompresorOxigeno",
-                        "segundosRecargaPorCicloOxigeno"),
-                "maquinas.",
-                problems);
-        return new MachinesSection(
-                intField(
-                        obj, "maquinas", "ticksCompresor", d.ticksCompresor(), 20, 12000, problems),
-                intField(
-                        obj,
-                        "maquinas",
-                        "ticksFabricadorCircuitos",
-                        d.ticksFabricadorCircuitos(),
-                        20,
-                        12000,
-                        problems),
-                intField(
-                        obj, "maquinas", "ticksRefineria", d.ticksRefineria(), 20, 12000, problems),
-                intField(
-                        obj,
-                        "maquinas",
-                        "ticksCompresorOxigeno",
-                        d.ticksCompresorOxigeno(),
-                        20,
-                        12000,
-                        problems),
-                intField(
-                        obj,
-                        "maquinas",
-                        "segundosRecargaPorCicloOxigeno",
-                        d.segundosRecargaPorCicloOxigeno(),
-                        1,
-                        3600,
-                        problems));
+        MachinesSection section =
+                new MachinesSection(
+                        r.integer("ticksCompresor", d.ticksCompresor(), 20, 12000),
+                        r.integer(
+                                "ticksFabricadorCircuitos",
+                                d.ticksFabricadorCircuitos(),
+                                20,
+                                12000),
+                        r.integer("ticksRefineria", d.ticksRefineria(), 20, 12000),
+                        r.integer("ticksCompresorOxigeno", d.ticksCompresorOxigeno(), 20, 12000),
+                        r.integer(
+                                "segundosRecargaPorCicloOxigeno",
+                                d.segundosRecargaPorCicloOxigeno(),
+                                1,
+                                3600));
+        r.finish();
+        return section;
     }
 
-    private static ShipsSection parseShips(JsonObject obj, List<Problem> problems) {
+    private static ShipsSection parseShips(SectionReader r) {
         ShipsSection d = ShipsSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "soloDuenioYAliadosPilotan",
-                        "invulnerables",
-                        "retornoAutomaticoAlReaparecerFuera",
-                        "porcentajeCombustiblePorViaje",
-                        "porcentajeCombustibleMinimoDespegueTierra",
-                        "segundosCuentaRegresivaBasica",
-                        "segundosCuentaRegresivaCarga",
-                        "segundosCuentaRegresivaRapida",
-                        "ranurasInventarioCarga",
-                        "alturaAscensoDespegue"),
-                "naves.",
-                problems);
-        return new ShipsSection(
-                boolField(
-                        obj,
-                        "naves",
-                        "soloDuenioYAliadosPilotan",
-                        d.soloDuenioYAliadosPilotan(),
-                        problems),
-                boolField(obj, "naves", "invulnerables", d.invulnerables(), problems),
-                boolField(
-                        obj,
-                        "naves",
-                        "retornoAutomaticoAlReaparecerFuera",
-                        d.retornoAutomaticoAlReaparecerFuera(),
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "porcentajeCombustiblePorViaje",
-                        d.porcentajeCombustiblePorViaje(),
-                        1,
-                        100,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "porcentajeCombustibleMinimoDespegueTierra",
-                        d.porcentajeCombustibleMinimoDespegueTierra(),
-                        1,
-                        100,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "segundosCuentaRegresivaBasica",
-                        d.segundosCuentaRegresivaBasica(),
-                        1,
-                        60,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "segundosCuentaRegresivaCarga",
-                        d.segundosCuentaRegresivaCarga(),
-                        1,
-                        60,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "segundosCuentaRegresivaRapida",
-                        d.segundosCuentaRegresivaRapida(),
-                        1,
-                        60,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "ranurasInventarioCarga",
-                        d.ranurasInventarioCarga(),
-                        9,
-                        54,
-                        problems),
-                intField(
-                        obj,
-                        "naves",
-                        "alturaAscensoDespegue",
-                        d.alturaAscensoDespegue(),
-                        16,
-                        512,
-                        problems));
+        ShipsSection section =
+                new ShipsSection(
+                        r.bool("soloDuenioYAliadosPilotan", d.soloDuenioYAliadosPilotan()),
+                        r.bool("invulnerables", d.invulnerables()),
+                        r.bool(
+                                "retornoAutomaticoAlReaparecerFuera",
+                                d.retornoAutomaticoAlReaparecerFuera()),
+                        r.integer(
+                                "porcentajeCombustiblePorViaje",
+                                d.porcentajeCombustiblePorViaje(),
+                                1,
+                                100),
+                        r.integer(
+                                "porcentajeCombustibleMinimoDespegueTierra",
+                                d.porcentajeCombustibleMinimoDespegueTierra(),
+                                1,
+                                100),
+                        r.integer(
+                                "segundosCuentaRegresivaBasica",
+                                d.segundosCuentaRegresivaBasica(),
+                                1,
+                                60),
+                        r.integer(
+                                "segundosCuentaRegresivaCarga",
+                                d.segundosCuentaRegresivaCarga(),
+                                1,
+                                60),
+                        r.integer(
+                                "segundosCuentaRegresivaRapida",
+                                d.segundosCuentaRegresivaRapida(),
+                                1,
+                                60),
+                        r.integer("ranurasInventarioCarga", d.ranurasInventarioCarga(), 9, 54),
+                        r.integer("alturaAscensoDespegue", d.alturaAscensoDespegue(), 16, 512));
+        r.finish();
+        return section;
     }
 
-    private static OxygenSection parseOxygen(JsonObject obj, List<Problem> problems) {
+    private static OxygenSection parseOxygen(SectionReader r) {
         OxygenSection d = OxygenSection.defaults();
-        // #29 public spelling, retaining the foundation spelling for existing configs.
-        if (obj.has("danioAsfixiaPorSegundo")) {
-            obj = obj.deepCopy();
-            obj.add("danioSinOxigenoPorSegundo", obj.get("danioAsfixiaPorSegundo"));
-        }
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "segundosTanqueChico",
-                        "segundosTanqueMediano",
-                        "segundosTanqueGrande",
-                        "danioSinOxigenoPorSegundo",
-                        "danioAsfixiaPorSegundo",
-                        "porcentajeAlertaOxigeno",
-                        "consumirEnNave",
-                        "consumirFueraDelPlaneta"),
-                "oxigeno.",
-                problems);
-        return new OxygenSection(
-                intField(
-                        obj,
-                        "oxigeno",
-                        "segundosTanqueChico",
-                        d.segundosTanqueChico(),
-                        30,
-                        7200,
-                        problems),
-                intField(
-                        obj,
-                        "oxigeno",
-                        "segundosTanqueMediano",
-                        d.segundosTanqueMediano(),
-                        60,
-                        14400,
-                        problems),
-                intField(
-                        obj,
-                        "oxigeno",
-                        "segundosTanqueGrande",
-                        d.segundosTanqueGrande(),
-                        120,
-                        28800,
-                        problems),
-                doubleField(
-                        obj,
-                        "oxigeno",
-                        "danioSinOxigenoPorSegundo",
-                        d.danioSinOxigenoPorSegundo(),
-                        0.5,
-                        20.0,
-                        problems),
-                doubleField(
-                        obj,
-                        "oxigeno",
-                        "porcentajeAlertaOxigeno",
-                        d.porcentajeAlertaOxigeno(),
-                        0.05,
-                        0.90,
-                        problems),
-                boolField(obj, "oxigeno", "consumirEnNave", d.consumirEnNave(), problems),
-                boolField(
-                        obj,
-                        "oxigeno",
-                        "consumirFueraDelPlaneta",
-                        d.consumirFueraDelPlaneta(),
-                        problems));
+        r.alias("danioAsfixiaPorSegundo", "danioSinOxigenoPorSegundo");
+        OxygenSection section =
+                new OxygenSection(
+                        r.integer("segundosTanqueChico", d.segundosTanqueChico(), 30, 7200),
+                        r.integer("segundosTanqueMediano", d.segundosTanqueMediano(), 60, 14400),
+                        r.integer("segundosTanqueGrande", d.segundosTanqueGrande(), 120, 28800),
+                        r.decimal(
+                                "danioSinOxigenoPorSegundo",
+                                d.danioSinOxigenoPorSegundo(),
+                                0.5,
+                                20.0),
+                        r.decimal(
+                                "porcentajeAlertaOxigeno", d.porcentajeAlertaOxigeno(), 0.05, 0.90),
+                        r.bool("consumirEnNave", d.consumirEnNave()),
+                        r.bool("consumirFueraDelPlaneta", d.consumirFueraDelPlaneta()));
+        r.finish();
+        return section;
     }
 
-    private static MobsSection parseMobs(JsonObject obj, List<Problem> problems) {
+    private static MobsSection parseMobs(SectionReader r) {
         MobsSection d = MobsSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "parasitoVida",
-                        "parasitoDanio",
-                        "parasitoSegundosLevitacion",
-                        "acechadorVida",
-                        "acechadorDanio",
-                        "gusanoVida",
-                        "gusanoDanio",
-                        "centinelaVida",
-                        "centinelaDanioProyectil"),
-                "mobs.",
-                problems);
-        return new MobsSection(
-                doubleField(obj, "mobs", "parasitoVida", d.parasitoVida(), 1.0, 100.0, problems),
-                doubleField(obj, "mobs", "parasitoDanio", d.parasitoDanio(), 0.5, 50.0, problems),
-                intField(
-                        obj,
-                        "mobs",
-                        "parasitoSegundosLevitacion",
-                        d.parasitoSegundosLevitacion(),
-                        1,
-                        30,
-                        problems),
-                doubleField(obj, "mobs", "acechadorVida", d.acechadorVida(), 1.0, 200.0, problems),
-                doubleField(obj, "mobs", "acechadorDanio", d.acechadorDanio(), 0.5, 50.0, problems),
-                doubleField(obj, "mobs", "gusanoVida", d.gusanoVida(), 1.0, 200.0, problems),
-                doubleField(obj, "mobs", "gusanoDanio", d.gusanoDanio(), 0.5, 50.0, problems),
-                doubleField(obj, "mobs", "centinelaVida", d.centinelaVida(), 1.0, 200.0, problems),
-                doubleField(
-                        obj,
-                        "mobs",
-                        "centinelaDanioProyectil",
-                        d.centinelaDanioProyectil(),
-                        0.5,
-                        50.0,
-                        problems));
+        MobsSection section =
+                new MobsSection(
+                        r.decimal("parasitoVida", d.parasitoVida(), 1.0, 100.0),
+                        r.decimal("parasitoDanio", d.parasitoDanio(), 0.5, 50.0),
+                        r.integer(
+                                "parasitoSegundosLevitacion",
+                                d.parasitoSegundosLevitacion(),
+                                1,
+                                30),
+                        r.decimal("acechadorVida", d.acechadorVida(), 1.0, 200.0),
+                        r.decimal("acechadorDanio", d.acechadorDanio(), 0.5, 50.0),
+                        r.decimal("gusanoVida", d.gusanoVida(), 1.0, 200.0),
+                        r.decimal("gusanoDanio", d.gusanoDanio(), 0.5, 50.0),
+                        r.decimal("centinelaVida", d.centinelaVida(), 1.0, 200.0),
+                        r.decimal(
+                                "centinelaDanioProyectil", d.centinelaDanioProyectil(), 0.5, 50.0));
+        r.finish();
+        return section;
     }
 
-    private static ClientSection parseClient(JsonObject obj, List<Problem> problems) {
+    private static ClientSection parseClient(SectionReader r) {
         ClientSection d = ClientSection.defaults();
-        checkUnknownKeys(
-                obj,
-                Set.of(
-                        "intensidadVibracionCamara",
-                        "mostrarTierraEnCielo",
-                        "brilloEstrellasKepler"),
-                "cliente.",
-                problems);
-        return new ClientSection(
-                doubleField(
-                        obj,
-                        "cliente",
-                        "intensidadVibracionCamara",
-                        d.intensidadVibracionCamara(),
-                        0.0,
-                        1.0,
-                        problems),
-                boolField(
-                        obj, "cliente", "mostrarTierraEnCielo", d.mostrarTierraEnCielo(), problems),
-                doubleField(
-                        obj,
-                        "cliente",
-                        "brilloEstrellasKepler",
-                        d.brilloEstrellasKepler(),
-                        0.0,
-                        1.0,
-                        problems));
-    }
-
-    private static JsonObject section(JsonObject root, String name, List<Problem> problems) {
-        if (!root.has(name)) {
-            return new JsonObject();
-        }
-        JsonElement el = root.get(name);
-        if (!el.isJsonObject()) {
-            problems.add(new Problem(name, "expected object section"));
-            return new JsonObject();
-        }
-        return el.getAsJsonObject();
-    }
-
-    private static void checkUnknownKeys(
-            JsonObject obj, Set<String> allowed, String prefix, List<Problem> problems) {
-        for (String key : obj.keySet()) {
-            if (!allowed.contains(key)) {
-                problems.add(new Problem(prefix + key, "unknown configuration key"));
-            }
-        }
-    }
-
-    private static boolean boolField(
-            JsonObject obj, String section, String key, boolean def, List<Problem> problems) {
-        if (!obj.has(key)) {
-            return def;
-        }
-        JsonElement el = obj.get(key);
-        if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isBoolean()) {
-            problems.add(new Problem(section + "." + key, "expected boolean"));
-            return def;
-        }
-        return el.getAsBoolean();
-    }
-
-    private static int intField(
-            JsonObject obj,
-            String section,
-            String key,
-            int def,
-            int min,
-            int max,
-            List<Problem> problems) {
-        if (!obj.has(key)) {
-            return def;
-        }
-        JsonElement el = obj.get(key);
-        if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isNumber()) {
-            problems.add(
-                    new Problem(
-                            section + "." + key, "expected integer in [" + min + "," + max + "]"));
-            return def;
-        }
-        double value = el.getAsDouble();
-        if (!Double.isFinite(value) || value != Math.rint(value) || value < min || value > max) {
-            problems.add(
-                    new Problem(
-                            section + "." + key,
-                            "value " + el + " out of integer range [" + min + "," + max + "]"));
-            return def;
-        }
-        return (int) value;
-    }
-
-    private static double doubleField(
-            JsonObject obj,
-            String section,
-            String key,
-            double def,
-            double min,
-            double max,
-            List<Problem> problems) {
-        if (!obj.has(key)) {
-            return def;
-        }
-        JsonElement el = obj.get(key);
-        if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive().isNumber()) {
-            problems.add(
-                    new Problem(
-                            section + "." + key, "expected number in [" + min + "," + max + "]"));
-            return def;
-        }
-        double value = el.getAsDouble();
-        if (!Double.isFinite(value) || value < min || value > max) {
-            problems.add(
-                    new Problem(
-                            section + "." + key,
-                            "value " + el + " out of range [" + min + "," + max + "]"));
-            return def;
-        }
-        return value;
-    }
-
-    private static String nonBlankString(
-            JsonObject obj, String section, String key, String def, List<Problem> problems) {
-        if (!obj.has(key)) {
-            return def;
-        }
-        JsonElement el = obj.get(key);
-        if (!el.isJsonPrimitive()
-                || !el.getAsJsonPrimitive().isString()
-                || el.getAsString().isBlank()) {
-            problems.add(new Problem(section + "." + key, "expected non-blank string"));
-            return def;
-        }
-        return el.getAsString();
-    }
-
-    private static String identifierField(
-            JsonObject obj, String section, String key, String def, List<Problem> problems) {
-        if (!obj.has(key)) {
-            return def;
-        }
-        JsonElement el = obj.get(key);
-        if (!el.isJsonPrimitive()
-                || !el.getAsJsonPrimitive().isString()
-                || !el.getAsString().matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) {
-            problems.add(new Problem(section + "." + key, "expected namespaced identifier"));
-            return def;
-        }
-        return el.getAsString();
+        ClientSection section =
+                new ClientSection(
+                        r.decimal(
+                                "intensidadVibracionCamara",
+                                d.intensidadVibracionCamara(),
+                                0.0,
+                                1.0),
+                        r.bool("mostrarTierraEnCielo", d.mostrarTierraEnCielo()),
+                        r.decimal("brilloEstrellasKepler", d.brilloEstrellasKepler(), 0.0, 1.0));
+        r.finish();
+        return section;
     }
 
     private static JsonObject toJsonObject(Snapshot s) {

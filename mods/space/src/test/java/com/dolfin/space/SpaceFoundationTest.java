@@ -302,6 +302,86 @@ class SpaceFoundationTest {
                         && signature[3] == 0x47);
     }
 
+    @Test
+    void sectionReaderParsesValidValuesAndEnforcesTypesAndRanges() {
+        JsonObject json = new JsonObject();
+        json.addProperty("unBoolean", true);
+        json.addProperty("malBoolean", "not_bool");
+        json.addProperty("unEntero", 42);
+        json.addProperty("enteroFuera", 5);
+        json.addProperty("enteroFraccional", 42.5);
+        json.addProperty("unDecimal", 3.14);
+        json.addProperty("decimalFuera", 100.0);
+        json.addProperty("unTexto", "hola");
+        json.addProperty("textoBlanco", "   ");
+        json.addProperty("unId", "dolfinspace:kepler");
+        json.addProperty("malId", "sin_namespace");
+        json.addProperty("claveDesconocida", 999);
+
+        List<SpaceConfig.Problem> problems = new ArrayList<>();
+        SpaceConfig.SectionReader reader = new SpaceConfig.SectionReader("test", json, problems);
+
+        assertTrue(reader.bool("unBoolean", false));
+        assertFalse(reader.bool("malBoolean", false));
+        assertFalse(reader.bool("ausenteBoolean", false));
+
+        assertEquals(42, reader.integer("unEntero", 10, 10, 50));
+        assertEquals(10, reader.integer("enteroFuera", 10, 10, 50));
+        assertEquals(10, reader.integer("enteroFraccional", 10, 10, 50));
+        assertEquals(10, reader.integer("ausenteEntero", 10, 10, 50));
+
+        assertEquals(3.14, reader.decimal("unDecimal", 1.0, 0.0, 10.0), 1e-6);
+        assertEquals(1.0, reader.decimal("decimalFuera", 1.0, 0.0, 10.0), 1e-6);
+        assertEquals(1.0, reader.decimal("ausenteDecimal", 1.0, 0.0, 10.0), 1e-6);
+
+        assertEquals("hola", reader.string("unTexto", "defecto"));
+        assertEquals("defecto", reader.string("textoBlanco", "defecto"));
+        assertEquals("defecto", reader.string("ausenteTexto", "defecto"));
+
+        assertEquals("dolfinspace:kepler", reader.identifier("unId", "dolfinspace:defecto"));
+        assertEquals("dolfinspace:defecto", reader.identifier("malId", "dolfinspace:defecto"));
+        assertEquals("dolfinspace:defecto", reader.identifier("ausenteId", "dolfinspace:defecto"));
+
+        reader.finish();
+
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.malBoolean")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.enteroFuera")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.enteroFraccional")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.decimalFuera")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.textoBlanco")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.malId")));
+        assertTrue(problems.stream().anyMatch(p -> p.field().equals("test.claveDesconocida")));
+    }
+
+    @Test
+    void sectionReaderHandlesAliasesWithLegacyPrecedence() {
+        JsonObject onlyAlias = new JsonObject();
+        onlyAlias.addProperty("legacyKey", 4.5);
+        List<SpaceConfig.Problem> aliasProblems = new ArrayList<>();
+        SpaceConfig.SectionReader aliasReader =
+                new SpaceConfig.SectionReader("oxigeno", onlyAlias, aliasProblems);
+        aliasReader.alias("legacyKey", "canonicalKey");
+        double val1 = aliasReader.decimal("canonicalKey", 1.0, 0.0, 10.0);
+        aliasReader.finish();
+
+        assertEquals(4.5, val1, 1e-6);
+        assertTrue(aliasProblems.isEmpty(), "Legacy alias should not be reported as unknown");
+
+        JsonObject both = new JsonObject();
+        both.addProperty("canonicalKey", 7.0);
+        both.addProperty("legacyKey", 4.5);
+        List<SpaceConfig.Problem> bothProblems = new ArrayList<>();
+        SpaceConfig.SectionReader bothReader =
+                new SpaceConfig.SectionReader("oxigeno", both, bothProblems);
+        bothReader.alias("legacyKey", "canonicalKey");
+        double val2 = bothReader.decimal("canonicalKey", 1.0, 0.0, 10.0);
+        bothReader.finish();
+
+        assertEquals(4.5, val2, 1e-6);
+        assertTrue(
+                bothProblems.isEmpty(), "Neither key should be unknown when both are registered");
+    }
+
     private static JsonObject readJson(Path path) throws IOException {
         return JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8))
                 .getAsJsonObject();

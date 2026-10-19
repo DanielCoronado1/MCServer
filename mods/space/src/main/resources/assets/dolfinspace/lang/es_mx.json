@@ -1,0 +1,8 @@
+{
+  "itemGroup.dolfinspace.space": "Espacio",
+  "block.dolfinspace.regolito": "Regolito",
+  "item.dolfinspace.regolito": "Regolito",
+  "dolfinspace.command.reloaded": "Configuración de DolfinSpace recargada (generación %s, advertencias: %s).",
+  "dolfinspace.command.info": "DolfinSpace activo — dimensión: %s, gravedad: %s%%, generación: %s.",
+  "dolfinspace.travel.blocked": "Solo puedes viajar a Kepler a bordo de una nave espacial."
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "dolfinspace",
+  "version": "${version}",
+  "name": "DolfinSpace",
+  "description": "Sistema de exploración espacial y dimensión Kepler de baja gravedad para DolfinServer.",
+  "authors": [
+    "DolfinServer"
+  ],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.dolfin.space.DolfinSpace"
+    ],
+    "client": [
+      "com.dolfin.space.client.DolfinSpaceClient"
+    ]
+  },
+  "mixins": [
+    "dolfinspace.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "fabric-permissions-api-v0": "*"
+  }
+}

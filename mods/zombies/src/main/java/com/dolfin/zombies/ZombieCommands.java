@@ -77,6 +77,19 @@ public final class ZombieCommands {
         case EXPLORADOR -> "iluminar el área";
         default -> "distancia, escudo y zona iluminada";
     };}
-    private static int moon(CommandSourceStack s,boolean start){boolean ok=BloodMoon.change(start,"command:"+s.getTextName(),start);s.sendSuccess(()->Component.literal(BloodMoon.status()),true);return ok?1:0;}
+    private static int moon(CommandSourceStack s,boolean start){
+        var r=start?BloodMoon.start(s.getTextName()):BloodMoon.stop(s.getTextName());
+        String text=switch(r){
+            case STARTED -> "Luna de sangre iniciada.";
+            case STOPPED -> "Luna de sangre detenida.";
+            case CANCELLED -> "Luna de sangre de esta noche cancelada.";
+            case ALREADY_ACTIVE -> "La luna de sangre ya está activa.";
+            case NOT_ACTIVE -> "No hay luna de sangre activa ni programada para esta noche.";
+            case DISABLED -> "La luna de sangre está desactivada (activo en general.json o lunaDeSangre.activo).";
+            case NOT_LOADED -> "El servidor aún no ha cargado el estado de la luna de sangre.";
+        }+" "+BloodMoon.status();
+        boolean ok=r==BloodMoon.CommandResult.STARTED||r==BloodMoon.CommandResult.STOPPED||r==BloodMoon.CommandResult.CANCELLED;
+        if(ok)s.sendSuccess(()->Component.literal(text),true);else s.sendFailure(Component.literal(text));return ok?1:0;
+    }
     private static int deferred(CommandSourceStack s,int issue){s.sendFailure(Component.literal("Función pendiente del issue #"+issue+"; todavía no está implementada."));return 0;}
 }

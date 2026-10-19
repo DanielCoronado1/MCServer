@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+/** Blood moon spawn frequency (extra MONSTER passes per chunk tick) and the live special-zombie pool per position. */
 @Mixin(NaturalSpawner.class)
 public class NaturalSpawnerMixin {
  private static boolean extraPass;
@@ -21,13 +22,11 @@ public class NaturalSpawnerMixin {
 
  @Inject(method="mobsAt",at=@At("RETURN"),cancellable=true)
  private static void pool(ServerLevel l,StructureManager s,ChunkGenerator g,MobCategory c,BlockPos p,CallbackInfoReturnable<WeightedList<MobSpawnSettings.SpawnerData>> ci){if(c==MobCategory.MONSTER)ci.setReturnValue(SpawnRules.pool(l,p,ci.getReturnValue()));}
- @Inject(method="isValidSpawnPostitionForType",at=@At("HEAD"),cancellable=true)
- private static void cap(ServerLevel l,MobCategory c,StructureManager s,ChunkGenerator g,MobSpawnSettings.SpawnerData data,BlockPos.MutableBlockPos p,double distance,CallbackInfoReturnable<Boolean> ci){var k=SpawnRules.kind(data.type());if(k!=null&&SpawnRules.rejection(l,p,k,true)!=null)ci.setReturnValue(false);}
  @Inject(method="spawnForChunk",at=@At("RETURN"))
  private static void frequency(ServerLevel l,LevelChunk chunk,NaturalSpawner.SpawnState state,java.util.List<MobCategory> categories,CallbackInfo ci){
   if(extraPass)return;
   if(!BloodMoon.active(l)||!categories.contains(MobCategory.MONSTER)){BloodMoon.SPAWNING_LEVEL.remove();return;}
-  double extra=Math.max(0,BloodMoon.multiplier()-1);int passes=(int)extra+(l.getRandom().nextDouble()<extra-(int)extra?1:0);
+  int passes=BloodMoonOptions.extraPasses(BloodMoon.multiplier(),l.getRandom().nextDouble());
   extraPass=true;try{for(int i=0;i<passes;i++)NaturalSpawner.spawnForChunk(l,chunk,state,java.util.List.of(MobCategory.MONSTER));}finally{extraPass=false;BloodMoon.SPAWNING_LEVEL.remove();}
  }
 }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "minecraft:cauldron",
+    "dolfinspace:circuito_basico",
+    "minecraft:blast_furnace"
+  ],
+  "result": {
+    "id": "dolfinspace:refineria",
+    "count": 1
+  }
+}

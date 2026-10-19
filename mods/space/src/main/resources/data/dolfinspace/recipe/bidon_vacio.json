@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero"
+  ],
+  "result": {
+    "id": "dolfinspace:bidon_vacio",
+    "count": 1
+  }
+}

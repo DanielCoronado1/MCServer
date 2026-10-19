@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:coal"
+  ],
+  "result": {
+    "id": "dolfinspace:mezcla_acero",
+    "count": 1
+  }
+}

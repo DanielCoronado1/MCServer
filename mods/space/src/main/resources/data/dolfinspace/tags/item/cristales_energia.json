@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:amethyst_shard",
+    {
+      "id": "dolfinspace:cristal_energia",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "minecraft:repeater",
+    "minecraft:diamond"
+  ],
+  "result": {
+    "id": "dolfinspace:fabricador_circuitos",
+    "count": 1
+  }
+}

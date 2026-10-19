@@ -4,5 +4,19 @@
   "item.dolfinspace.regolito": "Regolito",
   "dolfinspace.command.reloaded": "Configuración de DolfinSpace recargada (generación %s, advertencias: %s).",
   "dolfinspace.command.info": "DolfinSpace activo — dimensión: %s, gravedad: %s%%, generación: %s.",
-  "dolfinspace.travel.blocked": "Solo puedes viajar a Kepler a bordo de una nave espacial."
+  "dolfinspace.travel.blocked": "Solo puedes viajar a Kepler a bordo de una nave espacial.",
+  "item.dolfinspace.mezcla_acero": "Mezcla acero",
+  "item.dolfinspace.lingote_acero": "Lingote acero",
+  "item.dolfinspace.placa_acero": "Placa acero",
+  "item.dolfinspace.placa_cobre": "Placa cobre",
+  "item.dolfinspace.placa_oro": "Placa oro",
+  "item.dolfinspace.placa_titanio": "Placa titanio",
+  "item.dolfinspace.circuito_basico": "Circuito basico",
+  "item.dolfinspace.circuito_avanzado": "Circuito avanzado",
+  "item.dolfinspace.bidon_vacio": "Bidon vacio",
+  "item.dolfinspace.bidon_combustible": "Bidon combustible",
+  "block.dolfinspace.bloque_acero": "Bloque acero",
+  "block.dolfinspace.compresor": "Compresor",
+  "block.dolfinspace.fabricador_circuitos": "Fabricador circuitos",
+  "block.dolfinspace.refineria": "Refineria"
 }

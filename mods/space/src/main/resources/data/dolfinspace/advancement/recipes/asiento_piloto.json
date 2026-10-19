@@ -1,0 +1,17 @@
+{
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "requirements": [
+    [
+      "tick"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dolfinspace:asiento_piloto"
+    ]
+  }
+}

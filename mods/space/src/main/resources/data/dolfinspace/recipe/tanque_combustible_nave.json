@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:bidon_vacio"
+  ],
+  "result": {
+    "id": "dolfinspace:tanque_combustible_nave",
+    "count": 1
+  }
+}

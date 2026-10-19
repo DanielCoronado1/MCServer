@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "center=false": {
+      "model": "dolfinspace:block/bloque_plataforma"
+    },
+    "center=true": {
+      "model": "dolfinspace:block/plataforma_centro"
+    }
+  }
+}

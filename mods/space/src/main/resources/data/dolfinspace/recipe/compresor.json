@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "minecraft:piston",
+    "minecraft:piston",
+    "minecraft:furnace"
+  ],
+  "result": {
+    "id": "dolfinspace:compresor",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:lingote_acero",
+    "minecraft:stone"
+  ],
+  "result": {
+    "id": "dolfinspace:bloque_plataforma",
+    "count": 3
+  }
+}

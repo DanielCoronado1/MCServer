@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "minecraft:crafting_table",
+    "dolfinspace:circuito_basico"
+  ],
+  "result": {
+    "id": "dolfinspace:mesa_ensamblaje",
+    "count": 1
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "dolfinspace:mezcla_acero",
+  "result": {
+    "id": "dolfinspace:lingote_acero"
+  },
+  "experience": 0.5,
+  "cookingtime": 100
+}

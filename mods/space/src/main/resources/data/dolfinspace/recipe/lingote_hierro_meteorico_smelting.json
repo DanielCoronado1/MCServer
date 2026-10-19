@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": "dolfinspace:hierro_meteorico_crudo",
+  "cookingtime": 200,
+  "experience": 0.7,
+  "result": {
+    "id": "dolfinspace:lingote_hierro_meteorico"
+  }
+}

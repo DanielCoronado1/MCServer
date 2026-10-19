@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PGP",
+    "PGP",
+    "PPP"
+  ],
+  "key": {
+    "P": "#dolfinspace:placas_tanque",
+    "G": "minecraft:diamond"
+  },
+  "result": {
+    "id": "dolfinspace:tanque_oxigeno_grande",
+    "count": 1,
+    "components": {
+      "minecraft:damage": 1200
+    }
+  }
+}

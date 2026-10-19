@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "dolfinspace:block/bloque_plataforma"
+  }
+}

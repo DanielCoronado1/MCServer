@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.dolfin.space.client.travel",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "CameraShakeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

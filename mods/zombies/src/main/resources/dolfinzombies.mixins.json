@@ -6,7 +6,11 @@
     "NaturalSpawnerMixin",
     "MonsterCapMixin",
     "SpawnPlacementsInvoker",
-    "SpawnStateMixin"
+    "SpawnStateMixin",
+    "ServerPlayerCustodyMixin",
+    "BaseContainerProtectionMixin",
+    "ServerExplosionProtectionMixin",
+    "ServerLevelTickProbeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,0 +1,162 @@
+{
+  "type": "dolfinspace:kepler",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "dolfinspace:kepler",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "dolfinspace:kepler_plains",
+          "parameters": {
+            "temperature": [
+              -1,
+              -0.35
+            ],
+            "humidity": [
+              -1,
+              1
+            ],
+            "continentalness": [
+              -1,
+              1
+            ],
+            "erosion": [
+              -1,
+              1
+            ],
+            "weirdness": [
+              -1,
+              1
+            ],
+            "depth": [
+              -1,
+              0.25
+            ],
+            "offset": 0
+          }
+        },
+        {
+          "biome": "dolfinspace:kepler_craters",
+          "parameters": {
+            "temperature": [
+              -0.35,
+              0.1
+            ],
+            "humidity": [
+              -1,
+              1
+            ],
+            "continentalness": [
+              -1,
+              1
+            ],
+            "erosion": [
+              -1,
+              1
+            ],
+            "weirdness": [
+              -1,
+              1
+            ],
+            "depth": [
+              -1,
+              0.25
+            ],
+            "offset": 0
+          }
+        },
+        {
+          "biome": "dolfinspace:kepler_crystal_forest",
+          "parameters": {
+            "temperature": [
+              0.1,
+              0.5
+            ],
+            "humidity": [
+              -1,
+              1
+            ],
+            "continentalness": [
+              -1,
+              1
+            ],
+            "erosion": [
+              -1,
+              1
+            ],
+            "weirdness": [
+              -1,
+              1
+            ],
+            "depth": [
+              -1,
+              0.25
+            ],
+            "offset": 0
+          }
+        },
+        {
+          "biome": "dolfinspace:kepler_acid_marshes",
+          "parameters": {
+            "temperature": [
+              0.5,
+              1
+            ],
+            "humidity": [
+              -1,
+              1
+            ],
+            "continentalness": [
+              -1,
+              1
+            ],
+            "erosion": [
+              -1,
+              1
+            ],
+            "weirdness": [
+              -1,
+              1
+            ],
+            "depth": [
+              -1,
+              0.25
+            ],
+            "offset": 0
+          }
+        },
+        {
+          "biome": "dolfinspace:kepler_abyssal_caverns",
+          "parameters": {
+            "temperature": [
+              -1,
+              1
+            ],
+            "humidity": [
+              -1,
+              1
+            ],
+            "continentalness": [
+              -1,
+              1
+            ],
+            "erosion": [
+              -1,
+              1
+            ],
+            "weirdness": [
+              -1,
+              1
+            ],
+            "depth": [
+              0.4,
+              1.5
+            ],
+            "offset": 0
+          }
+        }
+      ]
+    }
+  }
+}

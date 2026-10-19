@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "dolfinspace:block/mesa_ensamblaje"
+    }
+  }
+}

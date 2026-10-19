@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dolfinspace:regolito",
+    "dolfinspace:roca_lunar",
+    "dolfinspace:bloque_cristal_energia",
+    "dolfinspace:mena_titanio",
+    "dolfinspace:mena_hierro_meteorico",
+    "dolfinspace:mena_cristal_energia"
+  ]
+}

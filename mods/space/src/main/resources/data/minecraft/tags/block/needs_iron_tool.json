@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "dolfinspace:mena_titanio",
+    "dolfinspace:mena_cristal_energia",
+    "dolfinspace:bloque_cristal_energia"
+  ]
+}

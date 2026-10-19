@@ -27,7 +27,7 @@ public final class DolfinZombies implements ModInitializer {
         config=new ZombieConfig(FabricLoader.getInstance().getConfigDir().resolve(MOD_ID),LOGGER::warn);
         for(var kind:ZombieKind.values()){
             var key=ResourceKey.create(Registries.ENTITY_TYPE,id(kind.id()));
-            var type=Registry.register(BuiltInRegistries.ENTITY_TYPE,key,EntityType.Builder.<ConfiguredZombie>of((t,l)->new ConfiguredZombie(t,l,kind),MobCategory.MONSTER).sized(.6f,1.95f).clientTrackingRange(8).build(key));
+            var type=Registry.register(BuiltInRegistries.ENTITY_TYPE,key,EntityType.Builder.<ConfiguredZombie>of((t,l)->ZombieFactories.create(t,l,kind),MobCategory.MONSTER).sized(.6f,1.95f).clientTrackingRange(8).build(key));
             TYPES.put(kind,type);FabricDefaultAttributeRegistry.register(type,Zombie.createAttributes().add(Attributes.SCALE,1));
             var egg=ResourceKey.create(Registries.ITEM,id(kind.id()+"_spawn_egg"));
             Registry.register(BuiltInRegistries.ITEM,egg,new SpawnEggItem(new Item.Properties().setId(egg).spawnEgg(type)));
@@ -38,8 +38,12 @@ public final class DolfinZombies implements ModInitializer {
                 LOGGER.debug("event=zombie_disabled_discard id={} uuid={} dimension={} pos={}",zombie.kind().id(),zombie.getUUID(),level.dimension().identifier(),zombie.blockPosition());zombie.discard();
             }
         });
+        ZombieTickProbe.init(); ZombieSounds.init();
+        com.dolfin.zombies.custody.InfectionEffect.register();
+        com.dolfin.zombies.custody.CustodyManager.init();
         SpawnRules.init(); BloodMoon.init();
+        com.dolfin.zombies.griefing.BlockGuard.init(); com.dolfin.zombies.griefing.CongeladoIce.register();
         CommandRegistrationCallback.EVENT.register((dispatcher,access,environment)->ZombieCommands.register(dispatcher));
-        LOGGER.info("event=startup registeredEntities={} registeredEggs={} configRoot={} generation={} permissionProvider={} naturalSpawning=dynamic mechanics=deferred_issues_4_7",TYPES.size(),TYPES.size(),config.root().toAbsolutePath(),config.current().generation(),ZombiePermissions.provider());
+        LOGGER.info("event=startup registeredEntities={} registeredEggs={} configRoot={} generation={} permissionProvider={} naturalSpawning=dynamic mechanics=all_16_kinds_active",TYPES.size(),TYPES.size(),config.root().toAbsolutePath(),config.current().generation(),ZombiePermissions.provider());
     }
 }

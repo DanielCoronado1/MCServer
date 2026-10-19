@@ -1,0 +1,38 @@
+{
+  "griton_scream": {
+    "subtitle": "subtitles.dolfinzombies.griton_scream",
+    "sounds": [
+      {
+        "name": "dolfinzombies:griton_scream",
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "bilioso_burst": {
+    "subtitle": "subtitles.dolfinzombies.bilioso_burst",
+    "sounds": [
+      {
+        "name": "dolfinzombies:bilioso_burst",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "abismo_grab": {
+    "subtitle": "subtitles.dolfinzombies.abismo_grab",
+    "sounds": [
+      {
+        "name": "dolfinzombies:abismo_grab",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ladron_steal": {
+    "subtitle": "subtitles.dolfinzombies.ladron_steal",
+    "sounds": [
+      {
+        "name": "dolfinzombies:ladron_steal",
+        "attenuation_distance": 16
+      }
+    ]
+  }
+}

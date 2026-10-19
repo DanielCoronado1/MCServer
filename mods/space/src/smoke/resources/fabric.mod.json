@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "dolfinspace_smoke",
+  "version": "1.0.0",
+  "name": "Space isolated runtime probes (development only)",
+  "environment": "server",
+  "entrypoints": { "main": ["com.dolfin.space.mobs.smoke.SpaceRuntimeProbe"] },
+  "depends": { "dolfinspace": "*", "fabric-api": "*" }
+}

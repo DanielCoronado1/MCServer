@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero",
+    "dolfinspace:lingote_acero"
+  ],
+  "result": {
+    "id": "dolfinspace:bloque_acero",
+    "count": 1
+  }
+}

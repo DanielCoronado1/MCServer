@@ -1,0 +1,11 @@
+{
+  "type": "dolfinspace:kepler",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "dolfinspace:kepler_plains"
+    },
+    "settings": "dolfinspace:kepler"
+  }
+}

@@ -34,6 +34,7 @@ public final class DolfinSpace implements ModInitializer {
         SpaceContent.init();
         com.dolfin.space.machines.MachinesModule.init();
         com.dolfin.space.ships.ShipsModule.init();
+        com.dolfin.space.travel.TravelModule.init();
         SpaceModpackCheck.init();
         KeplerDimension.init();
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->

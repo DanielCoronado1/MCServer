@@ -33,5 +33,7 @@
   "item.dolfinspace.nave_rapida": "Nave rapida",
   "block.dolfinspace.bloque_plataforma": "Bloque plataforma",
   "block.dolfinspace.mesa_ensamblaje": "Mesa ensamblaje",
-  "block.dolfinspace.cargador_combustible": "Cargador combustible"
+  "block.dolfinspace.cargador_combustible": "Cargador combustible",
+  "key.dolfinspace.cabina": "Cockpit panel",
+  "entity.dolfinspace.nave": "Spaceship"
 }

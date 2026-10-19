@@ -1,31 +1,113 @@
 {
+  "has_precipitation": false,
+  "temperature": 0.2,
+  "downfall": 0.0,
   "attributes": {
+    "minecraft:visual/sky_color": "#100e22",
+    "minecraft:visual/fog_color": "#403949",
+    "minecraft:visual/water_fog_color": "#403949",
+    "minecraft:visual/ambient_particles": {
+      "modifier": "append",
+      "argument": [
+        {
+          "particle": {
+            "type": "minecraft:white_ash"
+          },
+          "probability": 0.015
+        }
+      ]
+    },
     "minecraft:gameplay/natural_mob_spawns": {
+      "modifier": "overlay",
       "argument": {
         "spawn_costs": {},
         "spawns_by_category": {
-          "ambient": [],
-          "axolotls": [],
-          "creature": [],
-          "misc": [],
-          "monster": [],
-          "underground_water_creature": [],
-          "water_ambient": [],
-          "water_creature": []
+          "monster": [
+            {
+              "type": "dolfinspace:parasito",
+              "weight": 35,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            },
+            {
+              "type": "dolfinspace:acechador",
+              "weight": 20,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 2,
+                "max_inclusive": 3
+              }
+            },
+            {
+              "type": "dolfinspace:gusano",
+              "weight": 12,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            },
+            {
+              "type": "dolfinspace:centinela",
+              "weight": 6,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            },
+            {
+              "type": "dolfinspace:zombi_espacial",
+              "weight": 18,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            },
+            {
+              "type": "dolfinspace:esqueleto_espacial",
+              "weight": 15,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            },
+            {
+              "type": "dolfinspace:creeper_espacial",
+              "weight": 8,
+              "count": {
+                "type": "minecraft:uniform",
+                "min_inclusive": 1,
+                "max_inclusive": 2
+              }
+            }
+          ]
         }
-      },
-      "modifier": "overlay"
-    },
-    "minecraft:visual/fog_color": "#000000",
-    "minecraft:visual/sky_color": "#000000",
-    "minecraft:visual/water_fog_color": "#050533"
+      }
+    }
+  },
+  "effects": {
+    "water_color": "#40605a"
   },
   "carvers": [],
-  "downfall": 0.0,
-  "effects": {
-    "water_color": "#3f76e4"
-  },
-  "features": [],
-  "has_precipitation": false,
-  "temperature": 0.2
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "dolfinspace:mena_titanio"
+    ],
+    [],
+    [],
+    [],
+    []
+  ]
 }

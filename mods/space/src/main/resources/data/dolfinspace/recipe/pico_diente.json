@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DDD",
+    " S ",
+    " S "
+  ],
+  "key": {
+    "D": "dolfinspace:diente_gusano",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "minecraft:iron_pickaxe"
+  }
+}

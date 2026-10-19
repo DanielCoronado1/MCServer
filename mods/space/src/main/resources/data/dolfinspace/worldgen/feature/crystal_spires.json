@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block_column",
+  "direction": "up",
+  "allowed_placement": {
+    "type": "minecraft:matching_blocks",
+    "blocks": "minecraft:air"
+  },
+  "prioritize_tip": false,
+  "layers": [
+    {
+      "height": {
+        "type": "minecraft:uniform",
+        "min_inclusive": 2,
+        "max_inclusive": 5
+      },
+      "provider": {
+        "id": "dolfinspace:bloque_cristal_energia"
+      }
+    }
+  ]
+}

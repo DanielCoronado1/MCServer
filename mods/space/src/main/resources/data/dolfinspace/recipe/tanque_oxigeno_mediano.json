@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PGP",
+    "PGP",
+    "PPP"
+  ],
+  "key": {
+    "P": "#dolfinspace:placas_tanque",
+    "G": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "dolfinspace:tanque_oxigeno_mediano",
+    "count": 1,
+    "components": {
+      "minecraft:damage": 600
+    }
+  }
+}

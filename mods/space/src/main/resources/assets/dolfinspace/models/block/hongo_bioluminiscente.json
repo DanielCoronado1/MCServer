@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "dolfinspace:block/hongo_bioluminiscente"
+  }
+}

@@ -1,10 +1,6 @@
 {
   "replace": false,
   "values": [
-    "minecraft:iron_ingot",
-    {
-      "id": "dolfinspace:lingote_titanio",
-      "required": false
-    }
+    "dolfinspace:lingote_titanio"
   ]
 }

@@ -3,7 +3,7 @@
   "id": "dolfinspace",
   "version": "${version}",
   "name": "DolfinSpace",
-  "description": "Sistema de exploración espacial y dimensión Kepler de baja gravedad para DolfinServer.",
+  "description": "Sistema de exploraci\u00f3n espacial y dimensi\u00f3n Kepler de baja gravedad para DolfinServer.",
   "authors": [
     "DolfinServer"
   ],
@@ -20,7 +20,10 @@
   },
   "mixins": [
     "dolfinspace.mixins.json",
-    "dolfinspace.travel.mixins.json"
+    "dolfinspace.travel.mixins.json",
+    "dolfinspace.oxygen.mixins.json",
+    "dolfinspace.oxygen.client.mixins.json",
+    "dolfinspace.mobs.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.5",

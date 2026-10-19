@@ -52,3 +52,18 @@ test {
 		exceptionFormat 'full'
 	}
 }
+
+// Runtime probes are a separate development mod, never included in the release jar.
+sourceSets {
+    smoke {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        "dolfinspace_smoke" { sourceSet sourceSets.smoke }
+    }
+}
+tasks.named('check') { dependsOn tasks.named('smokeClasses') }
+tasks.named('runServer') { dependsOn tasks.named('smokeClasses') }

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "dolfinspace:block/mena_cristal_energia"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dolfinspace:item/parasito_spawn_egg"
+  }
+}

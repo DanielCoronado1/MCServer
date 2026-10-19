@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.dolfin.space.oxygen.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "PlayerTankMixin",
+    "InventoryTankMixin",
+    "CreativeTankMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

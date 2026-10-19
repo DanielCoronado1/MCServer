@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.dolfin.space.client.oxygen.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "CreativeTankPositionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

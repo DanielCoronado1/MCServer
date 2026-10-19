@@ -65,6 +65,7 @@ public enum ZombieKind {
         if(this==GRANJERO){JsonObject b=new JsonObject();b.addProperty("activo",false);o.getAsJsonObject("habilidades").add("atacarAnimales",b);}
         if(this==ENANO){o.addProperty("escala",.5);o.add("alturaY",JsonParser.parseString("[-64,39]"));}
         if(this==BOMBERO||this==CONGELADO||this==EXPLORADOR)o.addProperty("quemaConSol",false);
+        com.dolfin.zombies.kinds.CombatDefaults.extend(this,o.getAsJsonObject("habilidades")); // #5 combat kinds
         String biomes=switch(this){
             case BOMBERO -> "[\"#minecraft:is_forest\",\"#minecraft:is_savanna\"]";
             case ABISMO -> "[\"#minecraft:is_ocean\",\"#minecraft:is_river\"]";

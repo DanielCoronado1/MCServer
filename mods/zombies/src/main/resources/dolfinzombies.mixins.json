@@ -9,7 +9,8 @@
     "SpawnStateMixin",
     "ServerPlayerCustodyMixin",
     "BaseContainerProtectionMixin",
-    "ServerExplosionProtectionMixin"
+    "ServerExplosionProtectionMixin",
+    "ServerLevelTickProbeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

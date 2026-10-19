@@ -18,11 +18,11 @@ public final class BrujaZombie extends SupportZombie {
    public boolean canUse(){return !level().isClientSide()&&abilityEnabled("curacion")&&getTarget() instanceof Player;}
    public void tick(){var target=getTarget();if(target==null)return;double preferred=Math.min(24,ability("curacion").get("distanciaPreferida").getAsDouble());
     getLookControl().setLookAt(target,30,30);
-    if(distanceToSqr(target)<preferred*preferred){if(tickCount%20==0)retreat(target,1.2);}else if(distanceToSqr(target)>(preferred+2)*(preferred+2))getNavigation().moveTo(target,1);else getNavigation().stop();
+    if(distanceToSqr(target)<preferred*preferred){if(ZombieTickPolicy.navigationDue(tickCount,getId()))retreat(target,1.2);}else if(distanceToSqr(target)>(preferred+2)*(preferred+2)){if(ZombieTickPolicy.navigationDue(tickCount,getId()))getNavigation().moveTo(target,1);}else getNavigation().stop();
    }
   });}
  @Override public void tick(){super.tick();if(!(level() instanceof ServerLevel world))return;
-  long now=world.getGameTime();if(!SupportRules.scanDue(now,nextScan))return;nextScan=now+20;
+  long now=world.getGameTime();if(nextScan==0)nextScan=now+Math.floorMod(-getId()-now,20);if(!SupportRules.scanDue(now,nextScan))return;nextScan=now+20;
   if(!abilityEnabled("curacion")){reject("disabled");return;}
   var a=ability("curacion");double radius=Math.min(32,a.get("radioCuracion").getAsDouble());
   if(now<potionAt){reject("potion_cooldown");return;}
@@ -32,7 +32,6 @@ public final class BrujaZombie extends SupportZombie {
   }
   var target=getTarget();boolean cast=false;
   if(target instanceof Player player&&player.isAlive()&&!player.isCreative()&&!player.isSpectator()&&distanceToSqr(player)<=1024&&getSensing().hasLineOfSight(player)){
-   double preferred=Math.min(24,a.get("distanciaPreferida").getAsDouble());if(distanceToSqr(player)<preferred*preferred)retreat(player,1.2);else if(distanceToSqr(player)>(preferred+2)*(preferred+2))getNavigation().moveTo(player,1);else getNavigation().stop();
    var effect=BuiltInRegistries.MOB_EFFECT.get(Identifier.parse(a.get("efectoLanzado").getAsString()));
    if(effect.isPresent()){player.addEffect(new MobEffectInstance(effect.get(),a.get("duracionEfecto").getAsInt()*20,0),this);cast=true;world.sendParticles(ParticleTypes.WITCH,player.getX(),player.getY()+1,player.getZ(),12,.3,.5,.3,0);}
    else reject("unknown_effect");

@@ -24,7 +24,7 @@ public final class GritonZombie extends SupportZombie {
   chance.removeModifiers();chance.setBaseValue(0);return super.hurtServer(world,source,amount);
  }
  @Override public void tick(){super.tick();if(!(level() instanceof ServerLevel world))return;
-  long now=world.getGameTime();if(!SupportRules.scanDue(now,nextScan))return;nextScan=now+20;
+  long now=world.getGameTime();if(nextScan==0)nextScan=now+Math.floorMod(-getId()-now,20);if(!SupportRules.scanDue(now,nextScan))return;nextScan=now+20;
   if(!abilityEnabled("llamada")){reject("disabled");return;}
   if(now<fleeUntil&&fleeFrom!=null){setTarget(null);retreat(fleeFrom,1.4);return;}
   if(fleeFrom!=null){DolfinZombies.LOGGER.debug("event=griton_flee_end uuid={}",getUUID());fleeFrom=null;}

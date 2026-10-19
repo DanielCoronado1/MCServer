@@ -24,7 +24,7 @@ public final class ExploradorZombie extends SupportZombie {
  private void reveal(boolean value,String reason){if(value!=bodyRevealed()){entityData.set(REVEALED,value);DolfinZombies.LOGGER.debug("event=explorador_reveal uuid={} revealed={} reason={}",getUUID(),value,reason);}setInvisible(!value);}
  @Override public void tick(){super.tick();if(!(level() instanceof ServerLevel world))return;
   if(day())setTarget(null);
-  long now=world.getGameTime();if(!SupportRules.scanDue(now,nextScan)){reveal(ambientReveal||now<damagedUntil,"damage_timeout");return;}nextScan=now+20;
+  long now=world.getGameTime();if(nextScan==0)nextScan=now+Math.floorMod(-getId()-now,20);if(!SupportRules.scanDue(now,nextScan)){reveal(ambientReveal||now<damagedUntil,"damage_timeout");return;}nextScan=now+20;
   var a=ability("invisibilidad");boolean enabled=abilityEnabled("invisibilidad"),day=day();
   int light=Math.max(world.getBrightness(LightLayer.BLOCK,blockPosition()),Math.max(0,world.getBrightness(LightLayer.SKY,blockPosition())-world.getSkyDarken()));
   ambientReveal=SupportRules.revealed(enabled,day,light,a.get("revelarConLuz").getAsBoolean(),now,0);

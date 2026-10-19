@@ -76,6 +76,8 @@ public final class MimoZombie extends ConfiguredZombie {
     public void configureFromDeath(UUID playerUuid,String playerName,double playerMaxHealth,List<ItemStack> armor){
         this.mimicPlayerUuid=playerUuid;
         this.mimicPlayerName=playerName==null?"":playerName;
+        if(playerUuid!=null)setPlayerAppearance(ResolvableProfile.createUnresolved(playerUuid));
+        else if(!this.mimicPlayerName.isEmpty())setPlayerAppearance(ResolvableProfile.createUnresolved(this.mimicPlayerName));
         this.sourcePlayerHealth=playerMaxHealth;
         this.entityData.set(DATA_MIMIC_UUID,playerUuid==null?"":playerUuid.toString());
         this.entityData.set(DATA_MIMIC_NAME,this.mimicPlayerName);
@@ -109,6 +111,7 @@ public final class MimoZombie extends ConfiguredZombie {
             if(nearest instanceof ServerPlayer sp){
                 boolean copyEnch=settings().getAsJsonObject("habilidades").getAsJsonObject("aparicionPorMuerte").get("copiarEncantamientos").getAsBoolean();
                 configureFromDeath(sp.getUUID(),sp.getGameProfile().name(),sp.getMaxHealth(),copyPlayerArmor(sp,copyEnch));
+                setPlayerAppearance(ResolvableProfile.createResolved(sp.getGameProfile()));
             }
         }
         return res;
@@ -164,6 +167,7 @@ public final class MimoZombie extends ConfiguredZombie {
                 this.sourcePlayerHealth=in.getDoubleOr("DolfinMimicSourceHealth",20.0);
                 this.entityData.set(DATA_MIMIC_UUID,raw);
                 this.entityData.set(DATA_MIMIC_NAME,this.mimicPlayerName);
+                if(!hasPlayerAppearance())setPlayerAppearance(ResolvableProfile.createUnresolved(this.mimicPlayerUuid));
             }catch(IllegalArgumentException ignored){}
         });
     }

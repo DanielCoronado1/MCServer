@@ -76,8 +76,7 @@ public class HambrientoZombie extends ConfiguredZombie {
 
         @Override public boolean canUse() {
             if (!active() || !(zombie.level() instanceof ServerLevel)) return false;
-            if (--scanDelay > 0) return false;
-            scanDelay = 15 + zombie.getRandom().nextInt(10);
+            if (!com.dolfin.zombies.ZombieTickPolicy.scanDue(zombie.kind(),zombie.tickCount,zombie.getId())) return false;
             double radius = zombie.params().radioComida();
             List<ItemEntity> items = zombie.level().getEntitiesOfClass(ItemEntity.class, zombie.getBoundingBox().inflate(radius, 3, radius), HambrientoZombie.FoodDistractionGoal::isPlayerFood);
             if (items.isEmpty()) return false;

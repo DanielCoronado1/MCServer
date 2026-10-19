@@ -130,6 +130,7 @@ public final class ContagiadoZombie extends ConfiguredZombie {
             }
         }
         converted.configureConverted(player.getUUID(),player.getName().getString(),visualArmor,packet);
+        converted.setPlayerAppearance(ResolvableProfile.createResolved(player.getGameProfile()));
         if(!level.addFreshEntity(converted)){
             DolfinZombies.LOGGER.error("event=contagiado_conversion_spawn_failed player={} pos={}",player.getUUID(),player.blockPosition());
             return;
@@ -153,6 +154,7 @@ public final class ContagiadoZombie extends ConfiguredZombie {
     public void configureConverted(UUID ownerUuid,String ownerName,List<ItemStack> visualEquipment,ItemAccounting.Packet<ItemStack> packet){
         this.convertedOwner=ownerUuid;
         this.convertedOwnerName=ownerName==null?"":ownerName;
+        if(ownerUuid!=null)setPlayerAppearance(ResolvableProfile.createUnresolved(ownerUuid));
         this.custodyPacket=packet;
         this.released=false;
         this.entityData.set(DATA_CONVERTED_UUID,ownerUuid==null?"":ownerUuid.toString());
@@ -284,6 +286,7 @@ public final class ContagiadoZombie extends ConfiguredZombie {
                 this.convertedOwnerName=in.getStringOr("DolfinConvertedName","");
                 this.entityData.set(DATA_CONVERTED_UUID,raw);
                 this.entityData.set(DATA_CONVERTED_NAME,this.convertedOwnerName);
+                if(!hasPlayerAppearance())setPlayerAppearance(ResolvableProfile.createUnresolved(this.convertedOwner));
                 setPersistenceRequired();
                 for(EquipmentSlot slot:EquipmentSlot.values())setDropChance(slot,0f);
             }catch(IllegalArgumentException ignored){}

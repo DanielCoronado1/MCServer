@@ -36,6 +36,7 @@ public class BiliosoZombie extends ConfiguredZombie {
         super.die(source);
         if (level() instanceof ServerLevel server && !clouded && abilityEnabled(CombatParams.Bilioso.ABILITY)) {
             clouded = true;
+            com.dolfin.zombies.ZombieSounds.play(this,com.dolfin.zombies.ZombieSounds.BILIOSO_BURST);
             BiliousClouds.spawn(server, getX(), getY(), getZ(), params(), getUUID());
             Abilities.debug(this, "bilioso_death", "cause={} radius={} ticks={}", source.getMsgId(), params().radioNube(), params().duracionNube());
         }

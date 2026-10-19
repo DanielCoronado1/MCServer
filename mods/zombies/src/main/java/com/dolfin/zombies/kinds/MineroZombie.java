@@ -73,7 +73,7 @@ public class MineroZombie extends ConfiguredZombie {
         super.customServerAiStep(level);
         if(!abilityEnabled(ABILITY)){if(miningPos!=null)cancel(level,"disabled");return;}
         if(miningPos!=null){continueMining(level);return;}
-        if((tickCount+getId())%SCAN_INTERVAL==0)scan(level);
+        if(com.dolfin.zombies.ZombieTickPolicy.scanDue(kind(),tickCount,getId()))scan(level);
     }
 
     private void scan(ServerLevel level){

@@ -27,10 +27,16 @@ public class ConfiguredZombie extends Zombie {
     @Override protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder){super.defineSynchedData(builder);builder.define(APPEARANCE,net.minecraft.world.item.component.ResolvableProfile.createUnresolved("Mimo"));builder.define(HAS_APPEARANCE,false);}
     public boolean hasPlayerAppearance(){return entityData.get(HAS_APPEARANCE);}
     public net.minecraft.world.item.component.ResolvableProfile playerAppearance(){return entityData.get(APPEARANCE);}
+    /** Appearance only: custody mechanics own equipment and enchantment/drop policies. */
+    public void setPlayerAppearance(net.minecraft.world.item.component.ResolvableProfile profile){
+        if(kind!=ZombieKind.MIMO&&kind!=ZombieKind.CONTAGIADO)return;
+        entityData.set(APPEARANCE,java.util.Objects.requireNonNull(profile));entityData.set(HAS_APPEARANCE,true);
+        DolfinZombies.LOGGER.debug("event=zombie_appearance_set uuid={} kind={}",getUUID(),kind);
+    }
     /** Conversion/death mechanics call once; profile properties and equipped armor survive restart and synchronize. */
     public void copyPlayerAppearance(net.minecraft.world.entity.player.Player player){
         if(kind!=ZombieKind.MIMO&&kind!=ZombieKind.CONTAGIADO)return;
-        entityData.set(APPEARANCE,net.minecraft.world.item.component.ResolvableProfile.createResolved(player.getGameProfile()));entityData.set(HAS_APPEARANCE,true);
+        setPlayerAppearance(net.minecraft.world.item.component.ResolvableProfile.createResolved(player.getGameProfile()));
         for(var slot:EquipmentSlot.values())if(slot.getType()==EquipmentSlot.Type.HUMANOID_ARMOR)setItemSlot(slot,player.getItemBySlot(slot).copy());
         DolfinZombies.LOGGER.debug("event=zombie_appearance_copied uuid={} player={} kind={}",getUUID(),player.getUUID(),kind);
     }
@@ -45,7 +51,6 @@ public class ConfiguredZombie extends Zombie {
     public void playStealSound(){if(kind==ZombieKind.LADRON&&abilityEnabled("robar"))ZombieSounds.play(this,ZombieSounds.LADRON_STEAL);}
     /** The grab ability invokes this after accepting its target. */
     public void playGrabSound(){if(kind==ZombieKind.ABISMO&&abilityEnabled("agarre"))ZombieSounds.play(this,ZombieSounds.ABISMO_GRAB);}
-    @Override protected net.minecraft.sounds.SoundEvent getDeathSound(){return kind==ZombieKind.BILIOSO&&abilityEnabled("nube")?ZombieSounds.BILIOSO_BURST:super.getDeathSound();}
     public ZombieKind kind(){return kind;}
     public long configGeneration(){return configGeneration;}
     public JsonObject settings(){return settings==null?kind.defaults():settings.deepCopy();}
@@ -54,11 +59,12 @@ public class ConfiguredZombie extends Zombie {
         if(settings==null)return;
         // Vanilla can randomly make a leader with multiplied health; config owns these stats.
         getAttribute(Attributes.MAX_HEALTH).removeModifier(net.minecraft.resources.Identifier.withDefaultNamespace("leader_zombie_bonus"));
-        getAttribute(Attributes.MAX_HEALTH).setBaseValue(settings.get("vida").getAsDouble());
-        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(settings.get("danio").getAsDouble());
-        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(.23*settings.get("velocidad").getAsDouble());
-        getAttribute(Attributes.ARMOR).setBaseValue(settings.get("armadura").getAsDouble());
-        getAttribute(Attributes.SCALE).setBaseValue(settings.get("escala").getAsDouble());
+        var stats=ZombieStats.from(settings);
+        getAttribute(Attributes.MAX_HEALTH).setBaseValue(stats.health());
+        getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(stats.damage());
+        getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(stats.movementSpeed());
+        getAttribute(Attributes.ARMOR).setBaseValue(stats.armor());
+        getAttribute(Attributes.SCALE).setBaseValue(stats.scale());
         setHealth(getMaxHealth());
     }
     @Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor level,net.minecraft.world.DifficultyInstance difficulty,EntitySpawnReason reason,SpawnGroupData group){

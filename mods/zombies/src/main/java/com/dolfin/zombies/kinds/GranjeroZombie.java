@@ -78,7 +78,7 @@ public class GranjeroZombie extends ConfiguredZombie {
 
     @Override protected void customServerAiStep(ServerLevel level){
         super.customServerAiStep(level);
-        if((tickCount+getId())%SCAN_INTERVAL!=0)return;
+        if(!com.dolfin.zombies.ZombieTickPolicy.scanDue(kind(),tickCount,getId()))return;
         // Live switch: drop an animal target the moment the ability is turned off.
         if(getTarget() instanceof Animal a&&!wantsAnimal(a,level)){setTarget(null);DolfinZombies.LOGGER.debug("event=granjero_drop_target id={} uuid={} target={}",kind().id(),getUUID(),a.getType());}
         if(getTarget()!=null){farmPos=null;return;}

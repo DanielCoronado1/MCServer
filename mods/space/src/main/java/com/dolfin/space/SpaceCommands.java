@@ -23,6 +23,7 @@ public final class SpaceCommands {
 
     private static LiteralArgumentBuilder<CommandSourceStack> buildRoot(String literal) {
         return Commands.literal(literal)
+                .then(com.dolfin.space.compat.SpaceCompat.recoveryTree())
                 .then(Commands.literal("reload")
                         .requires(SpacePermissions::isAdmin)
                         .executes(ctx -> executeReload(ctx.getSource())))

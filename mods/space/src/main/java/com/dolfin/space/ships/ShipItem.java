@@ -24,6 +24,7 @@ public final class ShipItem extends Item {
    DolfinSpace.LOGGER.debug("event=ship_placement_rejected player={} pos={} reason=platform_or_clearance",player.getUUID(),pos);return InteractionResult.FAIL;
   }
   if(!level.isClientSide()){
+   if(!com.dolfin.space.compat.SpaceClaims.shipPlacement(player,(net.minecraft.server.level.ServerLevel)level,pos,tier))return InteractionResult.FAIL;
    var ship=new SpaceshipEntity(ShipsModule.SHIP,level);var saved=stored(c.getItemInHand());ship.apply(saved);ship.tier(tier);
    if(ship.owner==null)ship.owner=player.getUUID();
    if(!ShipAccess.allowed(ship.owner,player))return InteractionResult.FAIL;

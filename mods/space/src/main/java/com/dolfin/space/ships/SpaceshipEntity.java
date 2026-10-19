@@ -25,7 +25,7 @@ public final class SpaceshipEntity extends Entity {
  public BlockPos home;
  public boolean passengersAllowed;
  public boolean inFlight;
- public final SimpleContainer cargo=new SimpleContainer(27){public boolean stillValid(Player p){return !isRemoved()&&distanceToSqr(p)<64&&ShipAccess.allowed(owner,p);} public void setChanged(){super.setChanged();DolfinSpace.LOGGER.debug("event=ship_cargo_changed ship={}",getUUID());}};
+ public final SimpleContainer cargo=new SimpleContainer(27){public boolean stillValid(Player p){return !isRemoved()&&distanceToSqr(p)<64&&ShipAccess.allowed(owner,p)&&com.dolfin.space.compat.SpaceClaims.entityUse(p,SpaceshipEntity.this);} public void setChanged(){super.setChanged();DolfinSpace.LOGGER.debug("event=ship_cargo_changed ship={}",getUUID());}};
  /** Persistent flight journal supplied by #28; opaque to the construction module. */
  public CompoundTag flight=new CompoundTag();
  public SpaceshipEntity(EntityType<? extends SpaceshipEntity> t,Level l){super(t,l);setNoGravity(true);setPermanentlyInvulnerable(true);}
@@ -61,6 +61,7 @@ public final class SpaceshipEntity extends Entity {
  public InteractionResult interact(Player player,InteractionHand hand,Vec3 location){
   if(level().isClientSide())return InteractionResult.SUCCESS;
   if(player.getVehicle()!=this&&!clearBoarding(player)){DolfinSpace.LOGGER.debug("event=ship_access_rejected ship={} player={} reason=wall_or_range",getUUID(),player.getUUID());return InteractionResult.FAIL;}
+  if(!com.dolfin.space.compat.SpaceClaims.entityUse(player,this))return InteractionResult.FAIL;
   boolean allowed=ShipAccess.allowed(owner,player);
   if(getFirstPassenger()==player&&player.getItemInHand(hand).is(Items.LEVER)){
    passengersAllowed=!passengersAllowed;player.sendOverlayMessage(Component.translatable(passengersAllowed?"space.ui.passengers_on":"space.ui.passengers_off"));
@@ -72,6 +73,7 @@ public final class SpaceshipEntity extends Entity {
    DolfinSpace.LOGGER.info("event=ship_pickup ship={} owner={} fuel={}",getUUID(),owner,fuel());discard();return InteractionResult.SUCCESS;
   }
   if(player.getItemInHand(hand).is(Items.CHEST)&&tier()==ShipTier.CARGA&&allowed){
+   com.dolfin.space.compat.SpaceLedgerIntegration.container(player,(ServerLevel)level(),blockPosition());
    player.openMenu(new SimpleMenuProvider((id,inv,p)->ChestMenu.threeRows(id,inv,cargo),Component.translatable("space.ui.cargo")));return InteractionResult.SUCCESS;
   }
   if(inFlight)return InteractionResult.FAIL;

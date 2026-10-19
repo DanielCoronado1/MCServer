@@ -126,5 +126,7 @@
   "space.sound.fuel_alarm": "Low fuel alarm",
   "space.sound.engine": "Ship engine",
   "space.sound.parasite": "Parasite",
-  "death.attack.dolfinspace.oxygen.player": "%1$s ran out of oxygen while escaping %2$s"
+  "death.attack.dolfinspace.oxygen.player": "%1$s ran out of oxygen while escaping %2$s",
+  "space.command.recovery": "Queued %s ships for recovery (return fuel: 0).",
+  "space.audit": "Space audit"
 }

@@ -126,5 +126,7 @@
   "space.sound.fuel_alarm": "Alarma de combustible",
   "space.sound.engine": "Motor de nave",
   "space.sound.parasite": "Parásito",
-  "death.attack.dolfinspace.oxygen.player": "%1$s ran out of oxygen while escaping %2$s"
+  "death.attack.dolfinspace.oxygen.player": "%1$s ran out of oxygen while escaping %2$s",
+  "space.command.recovery": "Recuperación en cola para %s naves (combustible al volver: 0).",
+  "space.audit": "Auditoría espacial"
 }

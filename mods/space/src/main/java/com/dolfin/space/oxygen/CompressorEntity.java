@@ -47,7 +47,7 @@ public final class CompressorEntity extends BaseContainerBlockEntity implements 
     }
     @Override public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos,state);
-        if (level != null) Containers.dropContents(level,pos,this);
+
     }
     public void tick() {
         int selected = -1;

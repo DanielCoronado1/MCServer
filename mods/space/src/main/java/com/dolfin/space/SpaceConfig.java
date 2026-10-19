@@ -351,9 +351,14 @@ public final class SpaceConfig {
 
     private static OxygenSection parseOxygen(JsonObject obj, List<Problem> problems) {
         OxygenSection d = OxygenSection.defaults();
+        // #29 public spelling, retaining the foundation spelling for existing configs.
+        if (obj.has("danioAsfixiaPorSegundo")) {
+            obj = obj.deepCopy();
+            obj.add("danioSinOxigenoPorSegundo", obj.get("danioAsfixiaPorSegundo"));
+        }
         checkUnknownKeys(obj, Set.of(
                 "segundosTanqueChico", "segundosTanqueMediano", "segundosTanqueGrande",
-                "danioSinOxigenoPorSegundo", "porcentajeAlertaOxigeno",
+                "danioSinOxigenoPorSegundo", "danioAsfixiaPorSegundo", "porcentajeAlertaOxigeno",
                 "consumirEnNave", "consumirFueraDelPlaneta"
         ), "oxigeno.", problems);
         return new OxygenSection(

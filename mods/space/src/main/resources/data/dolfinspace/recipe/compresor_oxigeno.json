@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "LCL",
+    "PPP"
+  ],
+  "key": {
+    "P": "#dolfinspace:placas_tanque",
+    "L": "#minecraft:leaves",
+    "C": "#dolfinspace:circuitos_compresor"
+  },
+  "result": {
+    "id": "dolfinspace:compresor_oxigeno",
+    "count": 1
+  }
+}

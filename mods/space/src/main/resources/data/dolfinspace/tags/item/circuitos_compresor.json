@@ -1,0 +1,9 @@
+{
+  "values": [
+    "minecraft:redstone",
+    {
+      "id": "dolfinspace:circuito_basico",
+      "required": false
+    }
+  ]
+}

@@ -4,5 +4,10 @@
   "item.dolfinspace.regolito": "Regolito",
   "dolfinspace.command.reloaded": "Configuración de DolfinSpace recargada (generación %s, advertencias: %s).",
   "dolfinspace.command.info": "DolfinSpace activo — dimensión: %s, gravedad: %s%%, generación: %s.",
-  "dolfinspace.travel.blocked": "Solo puedes viajar a Kepler a bordo de una nave espacial."
+  "dolfinspace.travel.blocked": "Solo puedes viajar a Kepler a bordo de una nave espacial.",
+  "block.dolfinspace.compresor_oxigeno": "Compresor de oxígeno",
+  "item.dolfinspace.tanque_oxigeno_chico": "Tanque de oxígeno chico",
+  "item.dolfinspace.tanque_oxigeno_mediano": "Tanque de oxígeno mediano",
+  "item.dolfinspace.tanque_oxigeno_grande": "Tanque de oxígeno grande",
+  "death.attack.dolfinspace.oxygen": "%1$s se quedó sin oxígeno"
 }

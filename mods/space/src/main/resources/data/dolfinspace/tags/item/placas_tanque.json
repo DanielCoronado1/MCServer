@@ -1,0 +1,13 @@
+{
+  "values": [
+    "minecraft:iron_ingot",
+    {
+      "id": "dolfinspace:placas_acero",
+      "required": false
+    },
+    {
+      "id": "dolfinspace:placa_acero",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:short_grass",
+    "minecraft:tall_grass",
+    "minecraft:fern",
+    "minecraft:large_fern",
+    "minecraft:moss_block",
+    "minecraft:vine",
+    "minecraft:azalea",
+    "minecraft:flowering_azalea",
+    "minecraft:dandelion",
+    "minecraft:poppy"
+  ]
+}

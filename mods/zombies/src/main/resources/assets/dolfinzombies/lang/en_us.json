@@ -42,5 +42,9 @@
   "dolfinzombies.ability.romperBloques": "Break blocks",
   "dolfinzombies.ability.quemarBloques": "Ignite blocks and players",
   "dolfinzombies.ability.destruirCultivos": "Trample crops",
-  "dolfinzombies.ability.atacarAnimales": "Hunt farm animals"
+  "dolfinzombies.ability.atacarAnimales": "Hunt farm animals",
+  "subtitles.dolfinzombies.griton_scream": "Gritón screams",
+  "subtitles.dolfinzombies.bilioso_burst": "Bilious zombie bursts",
+  "subtitles.dolfinzombies.abismo_grab": "Abyss drowned grabs",
+  "subtitles.dolfinzombies.ladron_steal": "Thief snatches"
 }

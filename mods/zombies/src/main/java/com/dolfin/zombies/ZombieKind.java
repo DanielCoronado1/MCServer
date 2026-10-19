@@ -61,7 +61,8 @@ public enum ZombieKind {
             case CONTAGIADO -> "{\"probabilidadInfeccion\":0.25,\"duracionInfeccion\":6000}";
             case MIMO -> "{\"probabilidadAparecer\":0.30,\"minutosVentana\":10,\"copiarEncantamientos\":false}";
             case EXPLORADOR -> "{\"visibleAlRecibirDanio\":3,\"pasosSilenciosos\":true,\"revelarConLuz\":true}";
-        }).getAsJsonObject();a.addProperty("activo",this!=GRANJERO);o.getAsJsonObject("habilidades").add(ability,a);
+        }).getAsJsonObject();a.addProperty("activo",this!=GRANJERO);
+        if(this==BRUJA){a.addProperty("efectoLanzado","minecraft:slowness");a.addProperty("duracionEfecto",6);}o.getAsJsonObject("habilidades").add(ability,a);
         if(this==GRANJERO){JsonObject b=new JsonObject();b.addProperty("activo",false);b.add("animales",JsonParser.parseString("[\"minecraft:cow\",\"minecraft:sheep\",\"minecraft:pig\",\"minecraft:chicken\"]"));o.getAsJsonObject("habilidades").add("atacarAnimales",b);}
         if(this==ENANO){o.addProperty("escala",.5);o.add("alturaY",JsonParser.parseString("[-64,39]"));}
         if(this==BOMBERO||this==CONGELADO||this==EXPLORADOR)o.addProperty("quemaConSol",false);

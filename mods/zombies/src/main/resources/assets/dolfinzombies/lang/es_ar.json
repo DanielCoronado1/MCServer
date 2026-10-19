@@ -42,5 +42,9 @@
   "dolfinzombies.ability.romperBloques": "Romper bloques",
   "dolfinzombies.ability.quemarBloques": "Quemar bloques y jugadores",
   "dolfinzombies.ability.destruirCultivos": "Pisotear cultivos",
-  "dolfinzombies.ability.atacarAnimales": "Atacar animales de granja"
+  "dolfinzombies.ability.atacarAnimales": "Atacar animales de granja",
+  "subtitles.dolfinzombies.griton_scream": "El Gritón grita",
+  "subtitles.dolfinzombies.bilioso_burst": "El Bilioso revienta",
+  "subtitles.dolfinzombies.abismo_grab": "El Ahogado agarra",
+  "subtitles.dolfinzombies.ladron_steal": "El Ladrón roba"
 }

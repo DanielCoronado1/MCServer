@@ -1,47 +1,57 @@
-# Unattended Windows host
+# Host Windows con arranque automático
 
-The Windows source checkout lives at `C:\Users\emi0x7d1\Projects\MCServer`. Docker Engine runs in the existing **Ubuntu WSL2** distribution. The deployed Linux checkout is `/srv/dolfin`; its runtime is on the distribution's Linux filesystem, rather than a Windows bind mount. The original Windows `runtime/server/` remains a preserved migration copy. After import, the active world is `/srv/dolfin/runtime/crafty/servers/<server-id>/`.
+[← Volver a DolfinServer](../README.md)
 
-## Startup and recovery
+## Estructura del despliegue
 
-- Windows Task Scheduler task **DolfinServer-WSL** runs at boot with the distribution owner's S4U identity and highest privileges. It requires no saved password or interactive login.
-- `deploy/windows/start-crafty.ps1` starts Docker, reconciles the Compose deployment, updates Windows port forwarding to the current WSL address, and keeps WSL alive. It retries after a WSL failure. Task Scheduler also restarts the task if its process fails.
-- Docker's systemd service is enabled. Crafty's container uses `restart: always`, with 120 seconds for graceful shutdown.
-- The imported Minecraft server has Crafty **auto start** and **crash detection** enabled, using Java 25 and a 2 GB initial / 10 GB maximum heap. Crafty checks crashes periodically and stops retrying after repeated failures, to avoid an endless failure loop. A deliberate stop from Crafty remains stopped until explicitly started or the controller restarts.
-- Windows forwards TCP 25565 and 8443 into WSL. Firewall rules allow Minecraft connections and restrict the dashboard to LAN/Tailscale addresses.
+En el despliegue documentado, el repositorio de Windows está en `C:\Users\emi0x7d1\Projects\MCServer`. Docker Engine se ejecuta en **Ubuntu WSL2**. El repositorio Linux está en `/srv/dolfin`; sus datos se guardan en el sistema de archivos Linux de la distribución. El `runtime/server/` original de Windows se conserva como copia de migración. Tras importar, el mundo activo está en `/srv/dolfin/runtime/crafty/servers/<server-id>/`.
 
-Host logs are in the Windows checkout's `runtime/host/startup.log`. Crafty logs and data are in the Linux checkout's `runtime/crafty/`. The host's `.wslconfig` caps WSL at 12 GB with 4 GB swap; AC sleep was already disabled.
+## Arranque y recuperación
 
-## Provisioning another Windows host
+- La tarea **DolfinServer-WSL** del Programador de tareas arranca al encender Windows con la identidad S4U del propietario de la distribución y privilegios elevados. No necesita contraseña guardada ni inicio de sesión interactivo.
+- `deploy/windows/start-crafty.ps1` inicia Docker, aplica el despliegue de Compose, actualiza el reenvío de puertos a la dirección actual de WSL y mantiene WSL activo. Reintenta ante fallos de WSL; el Programador de tareas también reinicia la tarea si su proceso falla.
+- El servicio systemd de Docker está habilitado. El contenedor de Crafty usa `restart: always` y dispone de 120 segundos para apagarse correctamente.
+- Minecraft tiene **auto start** y **crash detection** activados en Crafty, Java 25 y heap inicial de 2 GB y máximo de 10 GB. Crafty comprueba los fallos periódicamente y deja de reintentar tras varios fallos consecutivos. Si detienes el servidor desde Crafty, queda detenido hasta que lo arranques explícitamente o se reinicie el controlador.
+- Windows reenvía TCP 25565 y 8443 a WSL. El firewall permite conexiones de Minecraft y restringe el panel a direcciones LAN/Tailscale.
 
-Use elevated PowerShell with WSL2 virtualization features enabled and an Ubuntu distribution owned by the intended task account. Enabling features can require a reboot. Set `[boot] systemd=true` in Ubuntu's `/etc/wsl.conf` and restart that distribution. Size WSL memory to fit the server heap and controller while reserving memory for Windows.
+Los registros del host están en `runtime/host/startup.log` del repositorio Windows; los datos y registros de Crafty, en `runtime/crafty/` del repositorio Linux. La configuración documentada de `.wslconfig` limita WSL a 12 GB de RAM y 4 GB de intercambio; la suspensión con alimentación de corriente estaba desactivada. Comprueba estos valores en el equipo actual antes de asumirlos.
 
-Build/install the server and stop it before copying its state. From Ubuntu as root, run `bash /mnt/c/Users/<name>/Projects/MCServer/deploy/windows/provision-wsl.sh /mnt/c/Users/<name>/Projects/MCServer`. The script installs Docker using its official Ubuntu repository and copies the preserved runtime into Linux storage only if no Linux runtime exists. Never overwrite an active managed world with the migration copy.
+## Preparar otro equipo
 
-Then run `python3 /srv/dolfin/deploy/crafty/configure_server.py` as root in Ubuntu. It uses the generated private credentials to import the existing accepted-EULA server and enable autostart/crash detection. It does not print passwords or tokens. The default Java path targets the deployed amd64 image; use `--java` for other architectures. After changing the admin password, configure an existing instance through the dashboard instead of this initial provisioning helper.
+Usa PowerShell elevado, virtualización WSL2 habilitada y una distribución Ubuntu propiedad de la cuenta que ejecutará la tarea. Habilitar estas funciones puede requerir reiniciar. Configura `[boot] systemd=true` en `/etc/wsl.conf` de Ubuntu y reinicia esa distribución. Reserva memoria para Windows al dimensionar WSL, el heap y el controlador.
 
-Finally, from the Windows checkout in elevated PowerShell:
+Compila e instala el servidor y detenlo antes de copiar su estado. En Ubuntu, como root, ejecuta:
+
+```sh
+bash /mnt/c/Users/<nombre>/Projects/MCServer/deploy/windows/provision-wsl.sh /mnt/c/Users/<nombre>/Projects/MCServer
+```
+
+El script instala Docker desde su repositorio oficial de Ubuntu y copia el entorno conservado a Linux solo si todavía no existe uno allí. Nunca sobrescribas un mundo administrado activo con la copia de migración.
+
+Ejecuta `python3 /srv/dolfin/deploy/crafty/configure_server.py` como root en Ubuntu. Usa las credenciales privadas generadas para importar el servidor con la EULA ya aceptada y activar el arranque automático y la detección de fallos. No imprime contraseñas ni tokens. La ruta predeterminada de Java corresponde a la imagen amd64; usa `--java` para otras arquitecturas. Tras cambiar la contraseña de administración, configura la instancia desde el panel en lugar del asistente de aprovisionamiento inicial.
+
+Finalmente, desde el repositorio Windows en PowerShell elevado:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File deploy/windows/install-startup.ps1
 ```
 
-The installer registers and starts the boot task, enables IP Helper, and creates the firewall rules. Docker Desktop is not used for this deployment and does not need to start at sign-in. Reboot once to verify the task and both services start without desktop login.
+El instalador registra e inicia la tarea de arranque, habilita IP Helper y crea las reglas del firewall. Este despliegue no usa Docker Desktop ni necesita iniciarlo al entrar a Windows. Reinicia una vez para comprobar que la tarea y ambos servicios arrancan sin iniciar sesión en el escritorio.
 
-## Operations
+## Operación diaria
 
-Open the dashboard at `https://<Windows-host>:8443`. The generated initial login is in `/srv/dolfin/runtime/crafty/config/default-creds.txt` inside Ubuntu; keep it private and change it through Crafty.
+Abre `https://<host-Windows>:8443`. Las credenciales iniciales están en `/srv/dolfin/runtime/crafty/config/default-creds.txt`, dentro de Ubuntu; mantenlas privadas y cámbialas desde Crafty.
 
-Run Docker commands from Windows with:
+Para ejecutar Docker desde Windows:
 
 ```powershell
 wsl -d Ubuntu -u root -- docker compose -f /srv/dolfin/deploy/crafty/compose.yaml ps
 ```
 
-Stop/start Minecraft through Crafty. Before maintenance, disable the boot task and stop it, then stop Crafty with Compose; otherwise the supervisor may bring the stack back up. Re-enable and start the task after maintenance. Use the panel's graceful stop before rebooting Windows so Minecraft saves the world.
+Detén y arranca Minecraft desde Crafty. Antes del mantenimiento, deshabilita y detén la tarea de arranque y luego detén Crafty con Compose; de lo contrario, el supervisor podría volver a levantar los servicios. Al terminar, habilita e inicia la tarea. Antes de reiniciar Windows, detén Minecraft de forma ordenada desde el panel para guardar el mundo.
 
-To update code, update the Windows checkout and fast-forward the Linux checkout from its Windows origin. For server mod updates, use Python 3.11+ and target the **managed Linux runtime**, not the original import copy. On this Ubuntu 22.04 host, Windows Python 3.13 can run `scripts/install_server.py --server-dir \\wsl.localhost\Ubuntu\srv\dolfin\runtime\crafty\servers\<server-id>` from the Windows checkout after stopping Minecraft. Apply template changes separately.
+Para actualizar el código, actualiza el repositorio Windows y avanza el repositorio Linux desde su origen de Windows sin reescribir su historial. Para actualizar mods, usa Python 3.11+ y apunta al **directorio administrado de Linux**. En el host Ubuntu 22.04 documentado, Python 3.13 de Windows puede ejecutar `scripts/install_server.py --server-dir \\wsl.localhost\Ubuntu\srv\dolfin\runtime\crafty\servers\<server-id>` desde el repositorio Windows con Minecraft detenido. Aplica los cambios de plantillas por separado.
 
-Back up the complete Linux `runtime/crafty/` for recovery, including controller configuration/database and managed worlds. Keep both checkouts' runtime data out of Git.
+Respalda todo `runtime/crafty/` de Linux, incluidas configuración, base de datos y mundos administrados. Mantén los datos de ejecución de ambos repositorios fuera de Git.
 
-References: [Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/), [Microsoft WSL systemd configuration](https://learn.microsoft.com/en-us/windows/wsl/systemd), and [Crafty Docker setup](https://docs.craftycontrol.com/pages/getting-started/installation/docker/).
+Referencias: [Docker Engine en Ubuntu](https://docs.docker.com/engine/install/ubuntu/), [systemd en WSL](https://learn.microsoft.com/en-us/windows/wsl/systemd) e [instalación de Crafty con Docker](https://docs.craftycontrol.com/pages/getting-started/installation/docker/).

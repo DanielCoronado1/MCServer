@@ -1,27 +1,31 @@
-# Server operations
+# Operación y versiones
 
-Run commands from the repository or extracted release root. Install with `python3 scripts/install_server.py`; use `--server-dir /absolute/path` to target a different runtime, including a Crafty-managed server. Always stop that server first.
+[← Volver a DolfinServer](../README.md)
 
-Installation seeds missing configuration without overwriting local edits. Apply future template changes manually after reviewing them. It merges the name-only whitelist into Minecraft's runtime JSON; existing players remain. EULA acceptance and operator state are local, never release inputs. On a fresh install, edit `runtime/server/eula.txt` to accept the EULA before starting.
+## Instalar y actualizar
 
-The default is 25 players, whitelist enabled, 10 GB heap, view distance 8, and simulation distance 6. Review these for your host. `online-mode=false` is the existing server policy; change it deliberately alongside player identity data when migrating to authenticated accounts.
+Ejecuta los comandos desde la raíz del repositorio o de la versión descomprimida. Instala con `python3 scripts/install_server.py`; usa `--server-dir /ruta/absoluta` para elegir otro destino, incluido un servidor administrado por Crafty. **Detén ese servidor antes de instalar.**
 
-AutoModpack serves clients from `automodpack/host-modpack/main/`. Server-only mods stay in `mods/` inside the runtime. Share the certificate fingerprint printed by AutoModpack with players so they can verify the initial connection.
+La instalación crea la configuración que falta sin sobrescribir ajustes locales. Revisa y aplica manualmente los cambios posteriores de las plantillas. La lista de nombres se combina con el JSON del servidor y conserva a los jugadores existentes. La aceptación de la EULA y los operadores son estado local: no se incluyen en las versiones. En una instalación nueva, lee y acepta la EULA en `runtime/server/eula.txt` antes de arrancar.
 
-## Releases
+Los valores incluidos son 25 jugadores, lista de acceso activada, heap máximo de 10 GB, distancia de visión 8 y distancia de simulación 6. Ajústalos a tu equipo. `online-mode=false` es la política de la configuración existente; si migras a cuentas autenticadas, revisa también los datos de identidad de los jugadores.
 
-Build each project in `mods/`, then run:
+AutoModpack distribuye los mods de cliente desde `automodpack/host-modpack/main/`. Los mods exclusivos del servidor permanecen en `mods/` dentro del entorno de ejecución. Comparte con los jugadores la huella del certificado que imprime AutoModpack para que verifiquen la primera conexión.
+
+## Preparar una versión
+
+Compila cada proyecto de `mods/` y ejecuta:
 
 ```sh
 python3 scripts/build_release.py 0.0.0-test
 ```
 
-`dist/` receives a server ZIP, a client `.mrpack` containing Fabric and AutoModpack download metadata, and `notas.md` release notes. Server ZIPs contain templates, locked Packwiz metadata, compiled custom mods, installer, deployment configuration, and documentation. They never package runtime worlds, operator lists, EULA acceptance, or generated player UUIDs. Third-party mod binaries are downloaded and verified during installation.
+En `dist/` se generan un ZIP del servidor, un `.mrpack` de cliente con los metadatos de descarga de Fabric y AutoModpack, y las notas `notas.md`. El ZIP contiene plantillas, metadatos fijados de Packwiz, mods propios compilados, instalador, configuración de despliegue y documentación. No incluye mundos, operadores, aceptación de la EULA ni UUID generados. Los mods de terceros se descargan y verifican durante la instalación.
 
-Extract updates into the existing repository/release root, stop the server, and rerun the installer. Runtime files remain separate. Back up runtime state before upgrading Minecraft, mods, or Crafty.
+Descomprime las actualizaciones en la raíz existente del repositorio o de la versión, detén el servidor y vuelve a ejecutar el instalador. El estado de ejecución se mantiene separado. Haz una copia de seguridad antes de actualizar Minecraft, mods o Crafty.
 
-GitHub Actions validates Packwiz, builds all custom mods, runs tooling tests, and packages artifacts on pushes and pull requests. Push a `v<version>` tag to publish a GitHub release. Import the player `.mrpack` into Prism Launcher or Modrinth App; connect, verify the server fingerprint, accept the hosted mods, and restart when AutoModpack requests it.
+GitHub Actions valida Packwiz, compila todos los mods propios, ejecuta las pruebas de herramientas y empaqueta artefactos en pushes y pull requests. Una etiqueta `v<versión>` publica una versión en GitHub. Los jugadores importan el `.mrpack` en Prism Launcher o Modrinth App, se conectan, verifican la huella del servidor, aceptan los mods y reinician cuando AutoModpack lo solicita.
 
-## Migrating the old layout
+## Migrar la estructura anterior
 
-The former `server-fabric/` runtime is now `runtime/server/`; tracked templates moved to `server/`. With the server stopped, back up and copy existing worlds, mods, configuration, operator list, whitelist, EULA, certificates, and `.dolfin-instalados.json` to `runtime/server/` before installing. Do not overwrite these with templates. `mods-src/` is now `mods/`; `scripts/pruebas/` moved to `tests/manual/`. Installer and release commands are now `scripts/install_server.py` and `scripts/build_release.py`.
+El antiguo entorno `server-fabric/` ahora es `runtime/server/`; las plantillas versionadas están en `server/`. Con el servidor detenido, respalda y copia los mundos, mods, configuración, operadores, lista de acceso, EULA, certificados y `.dolfin-instalados.json` a `runtime/server/` antes de instalar. No los sobrescribas con las plantillas. `mods-src/` ahora es `mods/`; `scripts/pruebas/` pasó a `tests/manual/`. Los comandos actuales son `scripts/install_server.py` y `scripts/build_release.py`.

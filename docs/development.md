@@ -1,58 +1,77 @@
-# Development
+# Desarrollo
 
-Each custom mod is an independent Gradle project under `mods/<name>/`, with its own wrapper and standard `src/main` / `src/client` source sets. Keep binaries and caches in its ignored `build/` and `.gradle/` directories. Use JDK 25 via `JAVA_HOME`; no machine-specific JDK paths belong in Gradle properties.
+[← Volver a DolfinServer](../README.md)
+
+Cada mod propio es un proyecto Gradle independiente en `mods/<nombre>/`, con su wrapper y las fuentes habituales `src/main` y `src/client`. Mantén binarios y cachés en `build/` y `.gradle/`, excluidos de Git. Usa JDK 25 mediante `JAVA_HOME`; no guardes rutas de un equipo concreto en las propiedades de Gradle.
 
 ## Creepers
 
-`mods/creepers/` adds fire, ice, electric, jumping, mini, multiplying, toxic, giant, and king creepers. Build with `./gradlew build` from that directory. On Windows, `scripts/update_creepers.bat` builds and installs the mod; stop the server first. Deploy through the installer so the server and AutoModpack client copies stay synchronized. Bump `version` in `gradle.properties` when publishing changes.
+`mods/creepers/` añade creepers de fuego, hielo, eléctricos, saltarines, mini, multiplicadores, tóxicos, gigantes y el Rey Creeper. Compila con `./gradlew build` desde ese directorio. En Windows, `scripts/update_creepers.bat` compila e instala el mod; detén el servidor primero. Despliega mediante el instalador para sincronizar las copias del servidor y de AutoModpack. Actualiza `version` en `gradle.properties` al publicar cambios.
 
-Generate textures with `python3 tools/generate_creeper_textures.py`. Textures and their preview live in the mod project. Install `requirements-dev.txt` for asset and visual tools.
+Genera las texturas con `python3 tools/generate_creeper_textures.py`. Las texturas y su vista previa viven en el proyecto del mod. Instala `requirements-dev.txt` para usar las herramientas de recursos y comprobación visual.
 
-## Third-party mods
+## Mods de terceros
 
-Manage Packwiz metadata from `pack/`:
+Gestiona los metadatos de Packwiz desde `pack/`:
 
 ```sh
-packwiz modrinth add <project>
-packwiz update <project>
-packwiz remove <project>
+packwiz modrinth add <proyecto>
+packwiz update <proyecto>
+packwiz remove <proyecto>
 packwiz refresh
 ```
 
-Set `side` in each `mods/*.pw.toml`: `server` installs only on the server; `client` only in AutoModpack's hosted pack; `both` in both. AutoModpack itself is installed separately on the server and via the player `.mrpack`, and is excluded from its own hosted pack. CI checks index consistency.
+Configura `side` en cada `mods/*.pw.toml`: `server` instala solo en el servidor; `client`, solo en el pack alojado por AutoModpack; `both`, en ambos. AutoModpack se instala por separado en el servidor y mediante el `.mrpack` del jugador, y se excluye de su propio pack alojado. CI comprueba la coherencia del índice.
 
-## Validation
+## Validación
 
-Run `python3 -m unittest discover -s tests -p 'test_*.py'` for isolated tooling tests. CI also builds every custom mod and creates release artifacts.
+Ejecuta las pruebas aisladas de herramientas:
 
-Manual game scripts live in `tests/manual/`:
+```sh
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
 
-- `arranque_fabric.py ["command" ...]` starts the **real** `runtime/server/`, executes commands, and stops it. Use only while it is otherwise stopped.
-- `prueba_mod_servidor.py` checks variants in `runtime/test-server/` on port 25570.
-- `prueba_saltarin.py` measures jumping creeper launches in that test instance.
-- `prueba_visual_mod.py` uses `runtime/test-server/` and `runtime/test-client/` and captures variants. It requires Windows desktop access and exclusive use of the machine.
-- `hoja.py [directory]` creates a contact sheet from captures.
+CI también compila todos los mods propios y genera los artefactos de las versiones. Los scripts de juego están en `tests/manual/`:
 
-These manual scripts expect pre-provisioned Fabric test instances; they are not the automated unit suite. Visual automation remains Windows-specific. Configure `JAVA_HOME` for the test JDK. Test scripts can reset the test world. A successful build or release archive does not establish in-game behavior.
+| Script | Qué comprueba |
+| :--- | :--- |
+| `arranque_fabric.py ["comando" ...]` | Arranca el **servidor real** de `runtime/server/`, ejecuta comandos y lo detiene. Úsalo solo cuando esté detenido. |
+| `prueba_mod_servidor.py` | Variantes en `runtime/test-server/`, puerto 25570. |
+| `prueba_saltarin.py` | Lanzamientos del creeper saltarín en esa instancia de prueba. |
+| `prueba_visual_mod.py` | Capturas de variantes con `runtime/test-server/` y `runtime/test-client/`. Requiere escritorio Windows y uso exclusivo del equipo. |
+| `hoja.py [directorio]` | Una hoja de contacto con las capturas. |
 
-## Zombies foundation (#1 / #2)
+Estos scripts requieren instancias Fabric de prueba ya preparadas; no forman parte de las pruebas unitarias automáticas. La automatización visual sigue siendo específica de Windows. Configura `JAVA_HOME` para el JDK de prueba. Los scripts pueden restablecer el mundo de prueba. Compilar o generar un archivo de versión no demuestra el comportamiento dentro del juego.
 
-`mods/zombies/` follows the current `mods/creepers/` layout (the issues' `mods-src/` path predates this repository layout). Build with `JAVA_HOME=<JDK25> mods/zombies/gradlew -p mods/zombies build`. CI builds every `mods/*` project; the release builder includes both custom JARs and the installer synchronizes them to server and AutoModpack clients without a separate mod list.
+## Base de zombis (#1 / #2)
 
-The foundation registers sixteen independent `Zombie` entity types, matching spawn eggs and datapack loot tables under `dolfinzombies:entities/<id>`. Each loot table currently delegates to vanilla zombie loot. Entity/egg names ship in en_us, es_mx, es_es and es_ar. Rendering uses the vanilla zombie model/texture until #8. The individual mechanics (#4–#7), player-health-derived Mimo spawning (#7), and blood moon/natural spawning (#3) are subsequent work; the epic remains open.
+`mods/zombies/` sigue la estructura de `mods/creepers/`; la ruta `mods-src/` de los issues corresponde a la estructura anterior. Compila con `JAVA_HOME=<JDK25> mods/zombies/gradlew -p mods/zombies build`. CI compila todos los proyectos `mods/*`; el empaquetador incluye ambos JAR propios y el instalador los sincroniza con el servidor y los clientes AutoModpack sin una lista adicional.
 
-The first load creates `config/dolfinzombies/general.json` and `zombies/<id>.json`. Every missing field receives its default; invalid fields fall back independently while valid siblings survive. Malformed JSON falls back for that file without overwriting the original. Configuration is parsed only during startup/reload/toggle, on the server thread. No asynchronous world mutations or block-changing mechanics are introduced.
+La base registra dieciséis tipos de entidad `Zombie` independientes, sus huevos de aparición y tablas de botín de datapack en `dolfinzombies:entities/<id>`. Cada tabla delega actualmente en el botín del zombi de Minecraft. Los nombres de entidades y huevos incluyen `en_us`, `es_mx`, `es_es` y `es_ar`. El renderizado usa el modelo y la textura del zombi de Minecraft hasta el trabajo de #8. Las mecánicas individuales (#4–#7), la aparición del Mimo según la salud del jugador (#7) y la luna de sangre/aparición natural (#3) amplían esta base. El trabajo de #3 está en desarrollo en esta rama; no se considera validado por las pruebas de la base. La épica sigue abierta.
 
-`/zombies` (`/zb`) exposes `invocar <id> [cantidad 1..64] [jugador]`, `recargar`, `activar|desactivar <id>` and `info <id>`. Console invocation uses its own position unless a player is supplied. Tab completion lists IDs. Reload reports the 17 files and all file/field errors and explains that existing entities retain their stats; toggles atomically save `activo`. Disabled kinds/global configuration reject command summons and discard disabled entities loaded through eggs, vanilla summon, or world loading. Disabling does not retroactively destroy currently loaded entities; it gates subsequent loads/spawns. Abilities expose independent live boolean switches for future mechanics, with Granjero's two destructive abilities disabled by default. `lunadesangre iniciar|detener` and `dondeesta` explicitly report their pending issues until implemented.
+### Configuración y comandos
 
-LuckPerms is optional: explicit nodes `dolfinzombies.admin.recargar`, `.admin.invocar`, `.admin.config`, `.admin.luna`, `.info` and `.dondeesta` are checked through its API when installed. An explicit denial overrides the default; unset admin nodes fall back to vanilla operator level 2, while info/location default to everyone. Console uses vanilla permissions. With LuckPerms absent there is no runtime API dependency. Active settings are captured per new entity and saved in NBT alongside the reload generation. Vanilla loads saved attributes/health, so config reloads/restarts do not silently heal or update existing entities. Per-ability toggles are checked against the current config.
+El primer arranque crea `config/dolfinzombies/general.json` y `zombies/<id>.json`. Cada campo ausente recibe su valor predeterminado; los campos inválidos usan su valor de respaldo de forma independiente y conservan los campos válidos. Un JSON malformado usa los valores predeterminados de ese archivo sin sobrescribir el original. La configuración solo se analiza durante el arranque, recarga o activación/desactivación, en el hilo del servidor. La base no introduce modificaciones asíncronas del mundo ni mecánicas que cambien bloques.
 
-Observability and validation:
+`/zombies` y `/zb` ofrecen `invocar <id> [cantidad 1..64] [jugador]`, `recargar`, `activar|desactivar <id>` e `info <id>`. La invocación usa la posición del origen del comando, salvo que se indique un jugador. El autocompletado enumera los identificadores. La recarga informa de los 17 archivos y todos los errores de archivos/campos, y explica que las entidades existentes conservan sus estadísticas. Los cambios de activación guardan `activo` de forma atómica.
 
-- Startup logs registered counts, absolute config root, reload generation, permission provider and deferred feature scope.
-- Every invalid field logs `event=config_invalid` with file, field, reason and generation. `config/dolfinzombies/diagnostics/last-reload.json` records effective configuration, all fallback reasons, timestamp and duration without altering input files.
-- Admin reload, toggle and summon events include actor, kind, count/results, dimension, position and generation. Per-entity spawn and disabled-load events are DEBUG to avoid production log floods; enable DEBUG for `dolfinzombies` when investigating spawn behavior. Entity NBT contains `DolfinZombieSettings` and `DolfinConfigGeneration`, alongside vanilla attributes/health.
-- JUnit reports are `mods/zombies/build/reports/tests/test/index.html` and `build/test-results/test/`. Tests cover first-load defaults, per-field fallback, malformed JSON, reload snapshot isolation, immutable reads, global/kind/ability switches, persistence, array/identifier validation and permission resolution.
-- `tests/manual/prueba_zombies.py --java <JDK25>/bin/java` drives an isolated Fabric server with both custom mods in a single session: every entity/loot table, reload health preservation, malformed/invalid configuration, toggles and command diagnostics. Provision `runtime/zombies-smoke/` with the Fabric 26.3/0.19.5 launcher named `fabric-server-launch.jar`, Fabric API and the two built custom JARs in `mods/`, and accept the Minecraft EULA there first. Use a dedicated `server.properties` port, `online-mode=false`, `view-distance=2`, `simulation-distance=2` and `pause-when-empty-seconds=0`. Keep this directory separate from production. Artifacts are `console-smoke.log`, `smoke-result.json`, `logs/latest.log` and the reload diagnostic JSON. The harness saves the world and always stops the process on failure; no repeated manual gameplay is needed to inspect a failed assertion.
+La desactivación global o por tipo rechaza invocaciones por comando y descarta entidades desactivadas que se carguen mediante huevos, invocaciones de Minecraft o carga del mundo. No destruye retroactivamente entidades ya cargadas: controla las cargas y apariciones posteriores. Las habilidades tienen interruptores booleanos independientes para futuras mecánicas; las dos habilidades destructivas del Granjero están desactivadas de forma predeterminada. En la base #1/#2, `lunadesangre iniciar|detener` y `dondeesta` informan de sus issues pendientes; el trabajo posterior de #3 amplía la luna de sangre.
 
-Headless checks establish server registration and command/config behavior. They do not establish client rendering, permission-provider integration with real online users, AutoModpack transfer or future zombie mechanics.
+LuckPerms es opcional. Si está instalado, se comprueban mediante su API los nodos `dolfinzombies.admin.recargar`, `.admin.invocar`, `.admin.config`, `.admin.luna`, `.info` y `.dondeesta`. Una denegación explícita prevalece; los nodos de administración sin configurar recurren al nivel de operador 2 de Minecraft, mientras que información/localización se permiten a todos de forma predeterminada. La consola usa los permisos de Minecraft. Sin LuckPerms no hay dependencia de su API durante la ejecución.
+
+Cada entidad nueva captura sus ajustes y los guarda en NBT junto con la generación de recarga. Minecraft carga los atributos y la salud guardados, por lo que las recargas y reinicios no curan ni actualizan silenciosamente a entidades existentes. Los interruptores de habilidades consultan la configuración actual.
+
+### Diagnósticos y pruebas de la base
+
+- El arranque registra cantidades de elementos registrados, ruta absoluta de configuración, generación de recarga, proveedor de permisos y funciones pendientes.
+- Cada campo inválido registra `event=config_invalid`, archivo, campo, motivo y generación. `config/dolfinzombies/diagnostics/last-reload.json` guarda la configuración efectiva, motivos de respaldo, fecha y duración sin modificar los archivos de entrada.
+- Las recargas, activaciones e invocaciones administrativas incluyen actor, tipo, cantidad/resultados, dimensión, posición y generación. Los eventos por entidad de aparición y carga desactivada usan DEBUG para evitar saturar producción; habilita DEBUG de `dolfinzombies` al investigar. El NBT contiene `DolfinZombieSettings` y `DolfinConfigGeneration`, además de los atributos y salud de Minecraft.
+- Los informes JUnit están en `mods/zombies/build/reports/tests/test/index.html` y `mods/zombies/build/test-results/test/`. Cubren valores iniciales, respaldo por campo, JSON malformado, aislamiento entre recargas, lecturas inmutables, interruptores globales/por tipo/por habilidad, persistencia, validación de arreglos e identificadores y resolución de permisos.
+
+`tests/manual/prueba_zombies.py --java <JDK25>/bin/java` controla un servidor Fabric aislado con ambos mods propios en una sesión. Comprueba cada entidad y tabla de botín, conservación de salud al recargar, configuración inválida o malformada, interruptores y diagnósticos de comandos.
+
+Prepara `runtime/zombies-smoke/` con el lanzador Fabric 26.3/0.19.5 llamado `fabric-server-launch.jar`, Fabric API y ambos JAR compilados en `mods/`. Acepta antes la EULA de Minecraft en esa instancia. Usa un puerto dedicado en `server.properties`, `online-mode=false`, `view-distance=2`, `simulation-distance=2` y `pause-when-empty-seconds=0`. Mantén este directorio separado de producción.
+
+Se generan `console-smoke.log`, `smoke-result.json`, `logs/latest.log` y el JSON de diagnóstico de recarga. El script guarda el mundo y detiene el proceso también ante un fallo; los artefactos permiten investigar una aserción fallida sin repetir sesiones manuales de juego.
+
+Estas comprobaciones sin interfaz validan el registro del servidor y el comportamiento de comandos/configuración. No validan el renderizado del cliente, la integración de permisos con usuarios reales conectados, la transferencia de AutoModpack ni las futuras mecánicas de zombis.

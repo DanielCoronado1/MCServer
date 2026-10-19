@@ -28,7 +28,7 @@ class ZombieAssetsTest {
   for(var kind:ZombieKind.values()){
    String id=kind.id()+"_spawn_egg";var model=json("items/"+id+".json").getAsJsonObject("model");assertEquals("minecraft:model",model.get("type").getAsString());assertEquals("dolfinzombies:item/"+id,model.get("model").getAsString());
    var geometry=json("models/item/"+id+".json");assertEquals("minecraft:item/generated",geometry.get("parent").getAsString());assertEquals("dolfinzombies:item/"+id,geometry.getAsJsonObject("textures").get("layer0").getAsString());
-   String texture="textures/item/"+id+".png";var egg=image(texture,16,16);assertEquals(0,egg.getRGB(0,0)>>>24);assertEquals(255,egg.getRGB(7,7)>>>24);assertTrue(hashes.add(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes(texture)))));
+   String texture="textures/item/"+id+".png";var egg=image(texture,32,32);assertEquals(0,egg.getRGB(0,0)>>>24);assertEquals(255,egg.getRGB(15,15)>>>24);assertTrue(hashes.add(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes(texture)))));
   }
  }
  @Test void emissionHasTransparentBackgroundAndOnlySelectedPixels()throws Exception{

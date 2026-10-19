@@ -13,7 +13,9 @@ final class ZombieFactories {
         return switch(kind){
 
             // #4 block-modifying zombies
-            case MINERO, BOMBERO, GRANJERO -> new ConfiguredZombie(type,level,kind);
+            case MINERO -> new com.dolfin.zombies.kinds.MineroZombie(type,level);
+            case BOMBERO -> new com.dolfin.zombies.kinds.BomberoZombie(type,level);
+            case GRANJERO -> new com.dolfin.zombies.kinds.GranjeroZombie(type,level);
 
             // #5 combat zombies
             case ESCUDERO -> new com.dolfin.zombies.kinds.EscuderoZombie(type,level);

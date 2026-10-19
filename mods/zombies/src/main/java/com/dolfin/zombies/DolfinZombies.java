@@ -39,6 +39,7 @@ public final class DolfinZombies implements ModInitializer {
             }
         });
         SpawnRules.init(); BloodMoon.init();
+        com.dolfin.zombies.griefing.BlockGuard.init(); com.dolfin.zombies.griefing.CongeladoIce.register();
         CommandRegistrationCallback.EVENT.register((dispatcher,access,environment)->ZombieCommands.register(dispatcher));
         LOGGER.info("event=startup registeredEntities={} registeredEggs={} configRoot={} generation={} permissionProvider={} naturalSpawning=dynamic mechanics=deferred_issues_4_7",TYPES.size(),TYPES.size(),config.root().toAbsolutePath(),config.current().generation(),ZombiePermissions.provider());
     }

@@ -38,5 +38,9 @@
   "dolfinzombies.bloodmoon.stopped": "The blood moon has been stopped.",
   "dolfinzombies.bloodmoon.join": "A blood moon is in progress: sleeping is not possible.",
   "dolfinzombies.bloodmoon.sleep_active": "You cannot sleep during the blood moon.",
-  "dolfinzombies.bloodmoon.sleep_pending": "Tonight is a blood moon: you cannot sleep."
+  "dolfinzombies.bloodmoon.sleep_pending": "Tonight is a blood moon: you cannot sleep.",
+  "dolfinzombies.ability.romperBloques": "Break blocks",
+  "dolfinzombies.ability.quemarBloques": "Ignite blocks and players",
+  "dolfinzombies.ability.destruirCultivos": "Trample crops",
+  "dolfinzombies.ability.atacarAnimales": "Hunt farm animals"
 }

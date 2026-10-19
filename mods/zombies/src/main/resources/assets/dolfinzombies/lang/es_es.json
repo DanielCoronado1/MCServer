@@ -38,5 +38,9 @@
   "dolfinzombies.bloodmoon.stopped": "La luna de sangre ha sido detenida.",
   "dolfinzombies.bloodmoon.join": "Hay una luna de sangre en curso: no se puede dormir.",
   "dolfinzombies.bloodmoon.sleep_active": "No puedes dormir durante la luna de sangre.",
-  "dolfinzombies.bloodmoon.sleep_pending": "Esta noche hay luna de sangre: no puedes dormir."
+  "dolfinzombies.bloodmoon.sleep_pending": "Esta noche hay luna de sangre: no puedes dormir.",
+  "dolfinzombies.ability.romperBloques": "Romper bloques",
+  "dolfinzombies.ability.quemarBloques": "Quemar bloques y jugadores",
+  "dolfinzombies.ability.destruirCultivos": "Pisotear cultivos",
+  "dolfinzombies.ability.atacarAnimales": "Atacar animales de granja"
 }

@@ -33,6 +33,7 @@ public final class DolfinSpace implements ModInitializer {
         );
         SpaceContent.init();
         com.dolfin.space.oxygen.OxygenModule.init();
+        com.dolfin.space.planet.PlanetModule.init();
         SpaceModpackCheck.init();
         KeplerDimension.init();
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) ->

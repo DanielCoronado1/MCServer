@@ -1,0 +1,52 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.2,
+  "downfall": 0.0,
+  "attributes": {
+    "minecraft:visual/sky_color": "#072a38",
+    "minecraft:visual/fog_color": "#135563",
+    "minecraft:visual/water_fog_color": "#135563",
+    "minecraft:visual/ambient_particles": {
+      "modifier": "append",
+      "argument": [
+        {
+          "particle": {
+            "type": "minecraft:end_rod"
+          },
+          "probability": 0.015
+        }
+      ]
+    },
+    "minecraft:gameplay/natural_mob_spawns": {
+      "modifier": "overlay",
+      "argument": {
+        "spawn_costs": {},
+        "spawns_by_category": {
+          "monster": []
+        }
+      }
+    }
+  },
+  "effects": {
+    "water_color": "#40605a"
+  },
+  "carvers": [],
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "dolfinspace:mena_cristal_energia"
+    ],
+    [],
+    [],
+    [
+      "dolfinspace:crystal_spires",
+      "dolfinspace:glowing_fungi"
+    ],
+    []
+  ]
+}

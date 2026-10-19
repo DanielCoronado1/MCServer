@@ -31,8 +31,8 @@ def block(name,color,cross=False):
     loot(name,name)
 def loot(name,drop,fortune=False):
     entry={'type':'minecraft:item','name':f'dolfinspace:{drop}'}
-    if fortune:entry['functions']=[{'function':'minecraft:apply_bonus','enchantment':'minecraft:fortune','formula':'minecraft:ore_drops'}]
-    write(f'data/dolfinspace/loot_table/blocks/{name}.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[entry],'conditions':[{'condition':'minecraft:survives_explosion'}]}]})
+    if fortune:entry['modifier']=[{'type':'minecraft:apply_bonus','enchantment':'minecraft:fortune','formula':'minecraft:ore_drops'}]
+    write(f'data/dolfinspace/loot_table/blocks/{name}.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[entry],'condition':{'type':'minecraft:survives_explosion'}}]})
 def shaped(name,pattern,key,result=None,components=None):
     out={'id':f'dolfinspace:{result or name}','count':1}
     if components:out['components']=components

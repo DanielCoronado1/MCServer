@@ -1,61 +1,36 @@
-"""
-Arranca el servidor Fabric, espera a que termine de cargar, ejecuta unos comandos
-de comprobacion y lo apaga. Guarda toda la salida en runtime/server/prueba_arranque.log.
+"""Arranca el servidor Fabric, ejecuta comandos y guarda el log de comprobación.
 
 Uso: python tests/manual/arranque_fabric.py ["comando" ...]
 """
 
-import os
-import subprocess
 import sys
-import threading
-import time
 from pathlib import Path
 
+from tests.manual.servidor import ServidorFabric
+
 SERVIDOR = Path(__file__).resolve().parents[2] / "runtime" / "server"
-JAVA = (
-    str(Path(os.environ["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java"))
-    if "JAVA_HOME" in os.environ
-    else "java"
-)
-
-proceso = subprocess.Popen(
-    [JAVA, "-Xms4G", "-Xmx4G", "-jar", "fabric-server-launch.jar", "nogui"],
-    cwd=SERVIDOR,
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,
-    text=True,
-    encoding="utf-8",
-    errors="replace",
-)
-lineas = []
-listo = threading.Event()
 
 
-def leer():
-    for linea in proceso.stdout:
-        lineas.append(linea)
-        if "Done (" in linea:
-            listo.set()
+def main() -> None:
+    # Arranca la instancia real con 4 GB y vuelca el log directamente en el archivo esperado.
+    with ServidorFabric(
+        SERVIDOR,
+        memoria="4G",
+        log="prueba_arranque.log",
+        timeout_arranque=600.0,
+    ) as servidor:
+        for cmd in sys.argv[1:]:
+            servidor.comando(cmd, espera=2.0)
 
-
-threading.Thread(target=leer, daemon=True).start()
-if not listo.wait(600):
-    proceso.kill()
-    print("No termino de arrancar en 10 minutos")
-for comando in sys.argv[1:]:
-    proceso.stdin.write(comando + "\n")
-    proceso.stdin.flush()
-    time.sleep(2)
-proceso.stdin.write("stop\n")
-proceso.stdin.flush()
-proceso.wait(120)
-(SERVIDOR / "prueba_arranque.log").write_text("".join(lineas), encoding="utf-8")
-print(
-    "".join(
-        l
-        for l in lineas
-        if any(p in l for p in ("ERROR", "WARN", "Exception", "Done (", "Loading", "mods"))
+    # Imprime resumen de eventos relevantes y errores registrados durante el arranque.
+    print(
+        "".join(
+            linea
+            for linea in servidor.lineas
+            if any(p in linea for p in ("ERROR", "WARN", "Exception", "Done (", "Loading", "mods"))
+        )
     )
-)
+
+
+if __name__ == "__main__":
+    main()

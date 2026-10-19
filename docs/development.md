@@ -31,14 +31,17 @@ Ejecuta las pruebas aisladas de herramientas:
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-CI también compila todos los mods propios y genera los artefactos de las versiones. Los scripts de juego están en `tests/manual/` y `scripts/pruebas/`:
+CI también compila todos los mods propios y genera los artefactos de las versiones. Los scripts de juego están en `tests/manual/` y se apoyan en el arnés unificado `servidor.py`:
 
 | Script | Qué comprueba |
 | :--- | :--- |
 | `arranque_fabric.py ["comando" ...]` | Arranca el **servidor real** de `runtime/server/`, ejecuta comandos y lo detiene. Úsalo solo cuando esté detenido. |
 | `prueba_mod_servidor.py` | Variantes en `runtime/test-server/`, puerto 25570. |
 | `prueba_saltarin.py` | Lanzamientos del creeper saltarín en esa instancia de prueba. |
-| `scripts/pruebas/prueba_zombies.py` | Invoca las 16 variantes de zombis, verifica sus atributos y mide el presupuesto de MSPT. |
+| `prueba_zombies.py` | Smoke test de regresión, configuración, 16 tipos de zombis y recargas en `runtime/zombies-smoke/`. |
+| `prueba_zombies_presupuesto.py` | Invoca las 16 variantes de zombis, verifica sus atributos y mide el presupuesto de MSPT. |
+| `prueba_luna_sangre.py` | Regresión de luna de sangre, recargas dinámicas, biomas y persistencia en `runtime/zombies-smoke/`. |
+| `prueba_space_26_28.py` | Prueba sin ventanas de mods/space: máquinas, combustible, naves y dimensiones. |
 | `prueba_visual_mod.py` | Capturas de variantes con `runtime/test-server/` y `runtime/test-client/`. Requiere escritorio Windows y uso exclusivo del equipo. |
 | `hoja.py [directorio]` | Una hoja de contacto con las capturas. |
 

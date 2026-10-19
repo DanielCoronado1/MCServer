@@ -1,27 +1,24 @@
-"""
-Prueba visual del mod de creepers: arranca test-fabric (puerto 25570) y un Minecraft
-Fabric de pruebas con el mod, coloca a todas las variantes quietas y hace capturas.
+"""Prueba visual del mod de creepers: arranca test-server y cliente de pruebas.
 
+Coloca a todas las variantes quietas y hace capturas.
 Uso: python tests/manual/prueba_visual_mod.py
 Capturas en test-client/capturas/mod-<fecha>/  (necesita que nadie use el equipo)
 """
 
-import os
 import shutil
 import subprocess
 import sys
-import threading
 import time
 from datetime import datetime
 from pathlib import Path
 
-import banco
+from tests.manual import banco
+from tests.manual.servidor import ServidorFabric, buscar_java
 
 RAIZ = Path(__file__).resolve().parents[2]
 SERVIDOR = RAIZ / "runtime/test-server"
 CLIENTE = banco.CLIENTE
 PUERTO = 25570
-JAVA = Path(os.environ["JAVA_HOME"]) / "bin"
 
 # (variante, x, z) en fila delante del jugador; los grandes, mas atras.
 FILA = [
@@ -37,7 +34,7 @@ FILA = [
 ]
 
 
-def preparar():
+def preparar() -> None:
     jar = max(
         (RAIZ / "mods/creepers/build/libs").glob("dolfincreepers-*[0-9].jar"),
         key=lambda j: j.stat().st_mtime,
@@ -50,61 +47,16 @@ def preparar():
     # Cliente: solo Fabric API y nuestro mod.
     mods = CLIENTE / "mods"
     shutil.rmtree(mods, ignore_errors=True)
-    mods.mkdir()
+    mods.mkdir(parents=True, exist_ok=True)
     shutil.copy2(jar, mods / jar.name)
     for api in (RAIZ / "runtime/server/mods").glob("fabric-api-*.jar"):
         shutil.copy2(api, mods / api.name)
 
 
-class Servidor:
-    def __init__(self):
-        self.lineas = []
-        self.proceso = subprocess.Popen(
-            [
-                str(JAVA / "java.exe"),
-                "-Xms2G",
-                "-Xmx2G",
-                "-jar",
-                "fabric-server-launch.jar",
-                "nogui",
-            ],
-            cwd=SERVIDOR,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-        threading.Thread(target=self._leer, daemon=True).start()
-
-    def _leer(self):
-        for linea in self.proceso.stdout:
-            self.lineas.append(linea)
-
-    def esperar(self, texto, segundos):
-        limite = time.time() + segundos
-        while time.time() < limite:
-            if any(texto in l for l in self.lineas):
-                return True
-            time.sleep(1)
-        return False
-
-    def __call__(self, comando, espera=0.3):
-        self.proceso.stdin.write(comando + "\n")
-        self.proceso.stdin.flush()
-        time.sleep(espera)
-
-    def parar(self):
-        self("stop", 0)
-        self.proceso.wait(120)
-        (SERVIDOR / "prueba_visual.log").write_text("".join(self.lineas), encoding="utf-8")
-
-
-def lanzar_cliente():
+def lanzar_cliente() -> None:
     banco.cerrar_cliente()
     banco.preparar_cliente(PUERTO)
+    javaw = buscar_java().replace("java.exe", "javaw.exe").replace("/bin/java", "/bin/javaw")
     with open(CLIENTE / "lanzador.log", "w", encoding="utf-8") as log:
         subprocess.Popen(
             [
@@ -116,7 +68,7 @@ def lanzar_cliente():
                 "start",
                 "fabric:26.3",
                 "--jvm",
-                str(JAVA / "javaw.exe"),
+                javaw,
                 "-u",
                 "Tester",
                 "--resolution",
@@ -132,33 +84,42 @@ def lanzar_cliente():
         )
 
 
-if __name__ == "__main__":
+def main() -> None:
     carpeta = CLIENTE / "capturas" / ("mod-" + datetime.now().strftime("%Y%m%d-%H%M%S"))
-    carpeta.mkdir(parents=True)
+    carpeta.mkdir(parents=True, exist_ok=True)
     preparar()
-    servidor = Servidor()
-    if not servidor.esperar("Done (", 600):
-        raise SystemExit("El servidor no arranco")
+
+    servidor = ServidorFabric(
+        SERVIDOR,
+        memoria="2G",
+        log="prueba_visual.log",
+        timeout_arranque=600.0,
+    )
+    servidor.iniciar()
     print("Servidor listo. Lanzando el cliente con Fabric...")
     lanzar_cliente()
-    if not servidor.esperar("Tester joined the game", 600):
-        servidor.parar()
-        raise SystemExit("El cliente no se conecto (mira test-client/lanzador.log)")
+
+    try:
+        servidor.esperar("Tester joined the game", timeout=600.0)
+    except AssertionError:
+        servidor.detener()
+        raise SystemExit("El cliente no se conectó (mira test-client/lanzador.log)") from None
+
     time.sleep(12)
 
-    servidor("op Tester")
-    servidor("forceload add -32 -32 32 32", 1)
+    servidor.comando("op Tester")
+    servidor.comando("forceload add -32 -32 32 32", 1)
     for regla in ("advance_time false", "advance_weather false", "mob_griefing false"):
-        servidor(f"gamerule {regla}")
-    servidor("time set 6000")
-    servidor("weather clear")
-    servidor("difficulty normal")
-    servidor("gamemode creative Tester")
+        servidor.comando(f"gamerule {regla}")
+    servidor.comando("time set 6000")
+    servidor.comando("weather clear")
+    servidor.comando("difficulty normal")
+    servidor.comando("gamemode creative Tester")
     # Suelo de piedra pulida para que se vean bien.
-    servidor("fill -16 -61 -6 16 -61 30 minecraft:smooth_stone", 1)
+    servidor.comando("fill -16 -61 -6 16 -61 30 minecraft:smooth_stone", 1)
     for variante, x, z in FILA:
         # NoAI: se quedan quietos mirando al jugador (al norte).
-        servidor(
+        servidor.comando(
             f"summon dolfincreepers:{variante}_creeper {x} -60 {z} {{NoAI:1b,Rotation:[180f,0f],PersistenceRequired:1b}}"
         )
     time.sleep(2)
@@ -172,10 +133,14 @@ if __name__ == "__main__":
     vistas.append(("12_todos_espalda", "0 -57 38 180 15"))
 
     for nombre, posicion in vistas:
-        servidor(f"tp Tester {posicion}", 1.5)
+        servidor.comando(f"tp Tester {posicion}", 1.5)
         banco.foto(carpeta / f"{nombre}.jpg")
         print("  ", nombre)
 
-    servidor.parar()
+    servidor.detener()
     banco.cerrar_cliente()
     print(carpeta)
+
+
+if __name__ == "__main__":
+    main()

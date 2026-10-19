@@ -204,12 +204,12 @@ public final class FlightController {
           world.playSound(
               null,
               ship.blockPosition(),
-              SoundEvents.NOTE_BLOCK_PLING.value(),
+              com.dolfin.space.assets.SpaceSounds.BEEP,
               SoundSource.NEUTRAL,
               .4f,
               1.2f);
           pilot.sendOverlayMessage(
-              net.minecraft.network.chat.Component.literal("Despegue en " + j.ticks() / 20));
+              net.minecraft.network.chat.Component.translatable("space.ui.countdown",j.ticks()/20));
         }
         if (j.ticks() <= 60 && j.ticks() % 5 == 0) shake(ship, (60 - j.ticks()) / 60f * .45f);
         if (j.action(true) == FlightJournal.Action.LIFTOFF) {

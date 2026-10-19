@@ -38,7 +38,7 @@ public final class SafeLanding {
       for (int dz = -2; dz <= 2; dz++) {
         var floor = terrain.at(x + dx, y - 1, z + dz);
         if (!floor.solid() || floor.hazardous()) return false;
-        for (int dy = 0; dy < 4; dy++) {
+        for (int dy = 0; dy < 5; dy++) {
           var air = terrain.at(x + dx, y + dy, z + dz);
           if (!air.empty() || air.hazardous()) return false;
         }
@@ -96,7 +96,7 @@ public final class SafeLanding {
       for (int z = -1; z <= 1; z++) {
         var floor = cell(l, feet.getX() + x, feet.getY() - 1, feet.getZ() + z);
         if (!floor.solid() || floor.hazardous()) return false;
-        for (int y = 0; y < 4; y++) {
+        for (int y = 0; y < 5; y++) {
           var above = cell(l, feet.getX() + x, feet.getY() + y, feet.getZ() + z);
           if (above.hazardous()) return false;
         }
@@ -111,7 +111,7 @@ public final class SafeLanding {
             feet.getY(),
             feet.getZ() - 1,
             feet.getX() + 2,
-            feet.getY() + 4,
+            feet.getY() + 5,
             feet.getZ() + 2));
   }
 

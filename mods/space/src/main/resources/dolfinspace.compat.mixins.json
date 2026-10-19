@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.dolfin.space.compat.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ContainerAccessMixin",
+    "BlockPlacementMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

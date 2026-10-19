@@ -31,7 +31,12 @@ public final class SpacePermissions {
         if (!FabricLoader.getInstance().isModLoaded("luckperms") || source.getPlayer() == null) {
             return fallback;
         }
-        var user = LuckPermsProvider.get().getUserManager().getUser(source.getPlayer().getUUID());
+        net.luckperms.api.model.user.User user;
+        try { user = LuckPermsProvider.get().getUserManager().getUser(source.getPlayer().getUUID()); }
+        catch (IllegalStateException | LinkageError failure) {
+            DolfinSpace.LOGGER.warn("event=integration name=luckperms state=unavailable action=deny reason={}",failure.toString());
+            return false;
+        }
         if (user == null) {
             DolfinSpace.LOGGER.warn(
                     "event=permission_user_missing player={} node={} fallback={}",

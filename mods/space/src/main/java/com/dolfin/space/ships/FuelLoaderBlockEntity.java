@@ -15,7 +15,7 @@ public final class FuelLoaderBlockEntity extends BaseContainerBlockEntity implem
  private NonNullList<ItemStack> items=NonNullList.withSize(2,ItemStack.EMPTY);
  public FuelLoaderBlockEntity(BlockPos p,BlockState s){super(ShipsModule.LOADER_TYPE,p,s);}
  protected NonNullList<ItemStack> getItems(){return items;}protected void setItems(NonNullList<ItemStack> v){items=v;}
- public int getContainerSize(){return 2;}protected Component getDefaultName(){return Component.literal("Cargador de combustible");}
+ public int getContainerSize(){return 2;}protected Component getDefaultName(){return Component.translatable("block.dolfinspace.cargador_combustible");}
  protected AbstractContainerMenu createMenu(int id,Inventory i){return null;}
  public void serverTick(){
   if(level.getGameTime()%20!=0||getItem(0).isEmpty()||!DolfinSpace.config().current().general().activo())return;

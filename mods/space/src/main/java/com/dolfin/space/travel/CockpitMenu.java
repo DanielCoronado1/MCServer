@@ -47,6 +47,11 @@ public final class CockpitMenu extends AbstractContainerMenu {
                   case 8 -> journal == null ? 0 : journal.ticks();
                   case 9 -> check.allowed() ? 1 : 0;
                   case 10 -> ship.passengersAllowed ? 1 : 0;
+                  case 12 -> pilot.seconds();
+                  case 13 -> other.seconds();
+                  case 14 -> pilot.capacity();
+                  case 15 -> other.capacity();
+                  case 16 -> ship.tier().ordinal();
                   case 11 ->
                       com.dolfin.space.KeplerDimension.isKepler(ship.level().dimension()) ? 1 : 0;
                   default -> 0;
@@ -56,10 +61,10 @@ public final class CockpitMenu extends AbstractContainerMenu {
               public void set(int i, int v) {}
 
               public int getCount() {
-                return 12;
+                return 17;
               }
             }
-            : new SimpleContainerData(12);
+            : new SimpleContainerData(17);
     addDataSlots(data);
   }
 

@@ -19,11 +19,12 @@ public final class ShipItem extends Item {
   var level=c.getLevel();var player=c.getPlayer();if(player==null||c.getClickedFace()!=Direction.UP)return InteractionResult.FAIL;
   var pos=c.getClickedPos();boolean earth=level.dimension().equals(Level.OVERWORLD);boolean kepler=KeplerDimension.isKepler(level.dimension());
   boolean ground=level.getBlockState(pos).isFaceSturdy(level,pos,Direction.UP)&&level.getFluidState(pos).isEmpty();
-  var box=new AABB(pos.getX()-.75,pos.getY()+1,pos.getZ()-.75,pos.getX()+1.75,pos.getY()+4,pos.getZ()+1.75);
+  var design=ShipDesign.of(tier);double half=design.width()/2;var box=new AABB(pos.getX()+.5-half,pos.getY()+1,pos.getZ()+.5-half,pos.getX()+.5+half,pos.getY()+1+design.height(),pos.getZ()+.5+half);
   if((!earth&&!kepler)||!(earth?PlatformRules.valid(level,pos,tier):ground)||!level.noCollision(box)||!level.getEntitiesOfClass(SpaceshipEntity.class,box).isEmpty()){
    DolfinSpace.LOGGER.debug("event=ship_placement_rejected player={} pos={} reason=platform_or_clearance",player.getUUID(),pos);return InteractionResult.FAIL;
   }
   if(!level.isClientSide()){
+   if(!com.dolfin.space.compat.SpaceClaims.shipPlacement(player,(net.minecraft.server.level.ServerLevel)level,pos,tier))return InteractionResult.FAIL;
    var ship=new SpaceshipEntity(ShipsModule.SHIP,level);var saved=stored(c.getItemInHand());ship.apply(saved);ship.tier(tier);
    if(ship.owner==null)ship.owner=player.getUUID();
    if(!ShipAccess.allowed(ship.owner,player))return InteractionResult.FAIL;
@@ -33,5 +34,5 @@ public final class ShipItem extends Item {
    DolfinSpace.LOGGER.info("event=ship_placed ship={} owner={} tier={} fuel={}",ship.getUUID(),ship.owner,tier,ship.fuel());
   }return InteractionResult.SUCCESS;
  }
- public void appendHoverText(ItemStack s,TooltipContext c,TooltipDisplay d,Consumer<Component> out,TooltipFlag f){out.accept(Component.literal("Combustible: "+stored(s).fuel()+"%"));out.accept(Component.literal("Carga: clic con cofre. Recoger: agachado + clic."));}
+ public void appendHoverText(ItemStack s,TooltipContext c,TooltipDisplay d,Consumer<Component> out,TooltipFlag f){out.accept(Component.translatable("space.ui.fuel_tip",stored(s).fuel()));out.accept(Component.translatable("space.ui.ship_help"));}
 }

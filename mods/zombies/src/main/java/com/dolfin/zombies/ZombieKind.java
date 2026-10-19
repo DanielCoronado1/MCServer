@@ -58,10 +58,14 @@ public enum ZombieKind {
             case JINETE -> "{\"vidaMontura\":20}";
             case BILIOSO -> "{\"radioNube\":3,\"duracionNube\":100,\"resistenciaEmpuje\":0.8}";
             case ENANO -> "{}";
-            case CONTAGIADO -> "{\"probabilidadInfeccion\":0.25,\"duracionInfeccion\":6000}";
+            case CONTAGIADO -> "{\"probabilidadInfeccion\":0.25,\"duracionInfeccion\":6000,\"curas\":[\"minecraft:golden_apple\",\"minecraft:enchanted_golden_apple\",\"minecraft:milk_bucket\"],\"convertirAlMorir\":{\"activo\":true},\"cofre\":{\"activo\":true,\"minutosProteccion\":15,\"radioBusqueda\":5}}";
             case MIMO -> "{\"probabilidadAparecer\":0.30,\"minutosVentana\":10,\"copiarEncantamientos\":false}";
             case EXPLORADOR -> "{\"visibleAlRecibirDanio\":3,\"pasosSilenciosos\":true,\"revelarConLuz\":true}";
         }).getAsJsonObject();a.addProperty("activo",this!=GRANJERO);o.getAsJsonObject("habilidades").add(ability,a);
+        if(this==CONTAGIADO){
+            JsonObject inf=new JsonObject();inf.addProperty("activo",true);inf.addProperty("probabilidadInfeccion",a.get("probabilidadInfeccion").getAsDouble());inf.addProperty("duracionInfeccion",a.get("duracionInfeccion").getAsInt());inf.add("curas",a.get("curas").deepCopy());o.getAsJsonObject("habilidades").add("infeccion",inf);
+            o.getAsJsonObject("habilidades").add("cofre",a.getAsJsonObject("cofre").deepCopy());
+        }
         if(this==GRANJERO){JsonObject b=new JsonObject();b.addProperty("activo",false);o.getAsJsonObject("habilidades").add("atacarAnimales",b);}
         if(this==ENANO){o.addProperty("escala",.5);o.add("alturaY",JsonParser.parseString("[-64,39]"));}
         if(this==BOMBERO||this==CONGELADO||this==EXPLORADOR)o.addProperty("quemaConSol",false);

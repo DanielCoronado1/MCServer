@@ -26,7 +26,7 @@ public final class ZombieCommands {
             .then(Commands.literal("detener").executes(c->moon(c.getSource(),false))));
         root.then(Commands.literal("inspeccionar").requires(s->allowed(s,"admin.luna",false)).then(kindArgument().executes(c->{try{var result=SpawnRules.inspect(c.getSource().getLevel(),net.minecraft.core.BlockPos.containing(c.getSource().getPosition()),kind(c));c.getSource().sendSuccess(()->Component.literal(result),false);return 1;}catch(IllegalArgumentException e){c.getSource().sendFailure(Component.literal(e.getMessage()));return 0;}})));
         root.then(Commands.literal("diagnostico").requires(s->allowed(s,"admin.luna",false)).executes(c->{BloodMoon.report();c.getSource().sendSuccess(()->Component.literal(BloodMoon.status()+" counters="+SpawnRules.counters()+" report=config/dolfinzombies/diagnostics/runtime.json"),false);return 1;}));
-        root.then(Commands.literal("dondeesta").requires(s->allowed(s,"dondeesta",true)).executes(c->deferred(c.getSource(),7)));
+        root.then(Commands.literal("dondeesta").requires(s->allowed(s,"dondeesta",true)).executes(c->com.dolfin.zombies.custody.CustodyManager.whereIs(c.getSource())));
         var node=dispatcher.register(root);dispatcher.register(Commands.literal("zb").redirect(node));
     }
     private static boolean allowed(CommandSourceStack s,String node,boolean open){return ZombiePermissions.allowed(s,"dolfinzombies."+node,open);}

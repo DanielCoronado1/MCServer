@@ -30,5 +30,16 @@
   "entity.dolfinzombies.mimo_zombie": "Mimo",
   "item.dolfinzombies.mimo_zombie_spawn_egg": "Generador de Mimo",
   "entity.dolfinzombies.explorador_zombie": "Explorador nocturno",
-  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno"
+  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno",
+  "effect.dolfinzombies.infeccion": "Infección",
+  "container.dolfinzombies.player_chest": "Cofre de %s",
+  "message.dolfinzombies.ladron_stole": "§e¡Un Ladrón te robó %s en (%s, %s, %s)! Usá /zombies dondeesta para localizarlo.",
+  "message.dolfinzombies.ladron_dropped": "§aEl Ladrón dejó tu %s en el suelo en (%s, %s, %s).",
+  "message.dolfinzombies.contagiado_chest": "§aCofre de %s colocado en (%s, %s, %s) — protegido %s min.",
+  "message.dolfinzombies.chest_locked": "§cEste cofre pertenece a %s (protegido por %s min más).",
+  "message.dolfinzombies.custody_returned": "§aTus objetos recuperados de una muerte insegura fueron devueltos.",
+  "message.dolfinzombies.dondeesta_player_only": "Solo un jugador puede usar /zombies dondeesta.",
+  "message.dolfinzombies.dondeesta_empty": "§7Ningún Ladrón ni Contagiado activo lleva tus objetos.",
+  "message.dolfinzombies.dondeesta_ladron": "§eLadrón (%s): %s (%s, %s, %s) [%s objeto(s)]",
+  "message.dolfinzombies.dondeesta_contagiado": "§aContagiado (%s): %s (%s, %s, %s) [%s objeto(s)]"
 }

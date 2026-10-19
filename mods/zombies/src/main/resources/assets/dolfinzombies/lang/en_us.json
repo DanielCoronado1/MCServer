@@ -30,5 +30,16 @@
   "entity.dolfinzombies.mimo_zombie": "Mimic",
   "item.dolfinzombies.mimo_zombie_spawn_egg": "Mimic Spawn Egg",
   "entity.dolfinzombies.explorador_zombie": "Night explorer",
-  "item.dolfinzombies.explorador_zombie_spawn_egg": "Night explorer Spawn Egg"
+  "item.dolfinzombies.explorador_zombie_spawn_egg": "Night explorer Spawn Egg",
+  "effect.dolfinzombies.infeccion": "Infection",
+  "container.dolfinzombies.player_chest": "Cofre de %s",
+  "message.dolfinzombies.ladron_stole": "§eA Thief stole your %s at (%s, %s, %s)! Use /zombies dondeesta to track it.",
+  "message.dolfinzombies.ladron_dropped": "§aThe Thief dropped your %s at (%s, %s, %s).",
+  "message.dolfinzombies.contagiado_chest": "§aCofre de %s placed at (%s, %s, %s) — protected for %s min.",
+  "message.dolfinzombies.chest_locked": "§cThis chest belongs to %s (protected for %s more min).",
+  "message.dolfinzombies.custody_returned": "§aYour items recovered from an unsafe zombie death have been returned.",
+  "message.dolfinzombies.dondeesta_player_only": "Only players can use /zombies dondeesta.",
+  "message.dolfinzombies.dondeesta_empty": "§7No active Thief or Infected zombie is holding your items.",
+  "message.dolfinzombies.dondeesta_ladron": "§eThief (%s): %s (%s, %s, %s) [%s item(s)]",
+  "message.dolfinzombies.dondeesta_contagiado": "§aInfected zombie (%s): %s (%s, %s, %s) [%s item(s)]"
 }

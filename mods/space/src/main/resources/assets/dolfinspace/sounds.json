@@ -1,0 +1,47 @@
+{
+  "cockpit_hum": {
+    "subtitle": "space.sound.cockpit_hum",
+    "sounds": [
+      {
+        "name": "dolfinspace:cockpit_hum",
+        "stream": true
+      }
+    ]
+  },
+  "check_beep": {
+    "subtitle": "space.sound.check_beep",
+    "sounds": [
+      {
+        "name": "dolfinspace:check_beep",
+        "stream": false
+      }
+    ]
+  },
+  "fuel_alarm": {
+    "subtitle": "space.sound.fuel_alarm",
+    "sounds": [
+      {
+        "name": "dolfinspace:fuel_alarm",
+        "stream": false
+      }
+    ]
+  },
+  "engine": {
+    "subtitle": "space.sound.engine",
+    "sounds": [
+      {
+        "name": "dolfinspace:engine",
+        "stream": false
+      }
+    ]
+  },
+  "parasite": {
+    "subtitle": "space.sound.parasite",
+    "sounds": [
+      {
+        "name": "dolfinspace:parasite",
+        "stream": false
+      }
+    ]
+  }
+}

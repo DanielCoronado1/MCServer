@@ -19,7 +19,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 case 1 -> "Redstone + cuarzo + placa oro → básico; básico + diamante + cristal → avanzado.";
                 default -> "Lava + blaze + bidón vacío → combustible + cubeta. Carbón al costado.";
             };
-            g.setTooltipForNextFrame(Component.literal(guide),x,y);
+            g.setTooltipForNextFrame(Component.translatable("space.ui.guide"+menu.kind),x,y);
         }
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.storage.*;
 
 public final class Parasite extends Spider {
+    @Override protected net.minecraft.sounds.SoundEvent getAmbientSound(){return com.dolfin.space.assets.SpaceSounds.PARASITE;}
     private final ParasiteCycle cycle=new ParasiteCycle();
     private final SneakCounter sneaks=new SneakCounter();
     private int fleeing, leapCooldown;

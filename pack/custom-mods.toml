@@ -1,0 +1,11 @@
+# Local modules are built from source, never fake Modrinth downloads.
+# install_server.py/build_release.py discover mods/* automatically.
+[[mods]]
+id = "dolfinspace"
+source = "mods/space"
+side = "both"
+required-client = true
+minecraft = "26.3"
+java = 25
+dependencies = ["fabricloader", "fabric-api"]
+optional-server = ["openpartiesandclaims", "ledger", "luckperms"]

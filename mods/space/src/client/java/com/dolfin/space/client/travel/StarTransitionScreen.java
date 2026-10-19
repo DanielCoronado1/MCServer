@@ -8,7 +8,7 @@ public final class StarTransitionScreen extends Screen {
   private int ticks;
 
   public StarTransitionScreen() {
-    super(Component.literal("Tránsito estelar"));
+    super(Component.translatable("space.ui.transit"));
   }
 
   public boolean isPauseScreen() {

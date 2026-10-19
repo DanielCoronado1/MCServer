@@ -1,6 +1,8 @@
 package com.dolfin.space.client.ships;
-import com.dolfin.space.ships.SpaceshipEntity;
+import com.dolfin.space.DolfinSpace;
+import com.dolfin.space.ships.*;
 import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.EnumMap;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
@@ -9,15 +11,28 @@ import net.minecraft.client.renderer.entity.*;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.Identifier;
-/** Vanilla model, deliberately independent of GeckoLib. */
-public final class SpaceshipRenderer extends EntityRenderer<SpaceshipEntity,EntityRenderState> {
- private final EntityModel<EntityRenderState> model;
- private static final Identifier TEXTURE=Identifier.withDefaultNamespace("textures/block/iron_block.png");
- public SpaceshipRenderer(EntityRendererProvider.Context c){super(c);shadowRadius=1.3f;MeshDefinition mesh=new MeshDefinition();
-  mesh.getRoot().addOrReplaceChild("hull",CubeListBuilder.create().texOffs(0,0).addBox(-10,0,-10,20,32,20).addBox(-7,32,-7,14,8,14).addBox(-3,40,-3,6,8,6).addBox(-18,0,-2,8,12,4).addBox(10,0,-2,8,12,4).addBox(-2,0,10,4,12,8),PartPose.ZERO);
-  model=new EntityModel<>(LayerDefinition.create(mesh,64,64).bakeRoot()){};
+import com.mojang.math.Axis;
+
+/** Three original multipart vanilla models. Render snapshots never retain live entities. */
+public final class SpaceshipRenderer extends EntityRenderer<SpaceshipEntity,SpaceshipRenderer.State> {
+ public static final class State extends EntityRenderState {public ShipTier tier=ShipTier.BASICA;public boolean burning;public float yaw;}
+ private final EnumMap<ShipTier,EntityModel<State>> models=new EnumMap<>(ShipTier.class);
+ private final EntityModel<State> flame;
+ public SpaceshipRenderer(EntityRendererProvider.Context context){super(context);shadowRadius=1.5f;
+  for(var tier:ShipTier.values()){
+   var mesh=new MeshDefinition();
+   for(var part:ShipDesign.of(tier).parts())mesh.getRoot().addOrReplaceChild(part.name(),CubeListBuilder.create().texOffs(0,part.name().contains("window")?96:0).addBox(part.x(),part.y(),part.z(),part.w(),part.h(),part.d()),PartPose.ZERO);
+   models.put(tier,new EntityModel<>(LayerDefinition.create(mesh,128,128).bakeRoot()){});
+  }
+  var mesh=new MeshDefinition();mesh.getRoot().addOrReplaceChild("flame",CubeListBuilder.create().addBox(-4,-14,-4,8,14,8),PartPose.ZERO);
+  flame=new EntityModel<>(LayerDefinition.create(mesh,32,32).bakeRoot()){};
  }
- public EntityRenderState createRenderState(){return new EntityRenderState();}
- public void submit(EntityRenderState s,PoseStack p,SubmitNodeCollector c,CameraRenderState camera){p.pushPose();c.submitModel(model,s,p,TEXTURE,s.lightCoords,OverlayTexture.NO_OVERLAY,s.outlineColor);p.popPose();super.submit(s,p,c,camera);}
+ public State createRenderState(){return new State();}
+ public void extractRenderState(SpaceshipEntity ship,State s,float dt){super.extractRenderState(ship,s,dt);s.tier=ship.tier();s.burning=ship.burning();s.yaw=ship.getYRot();}
+ public void submit(State s,PoseStack pose,SubmitNodeCollector collector,CameraRenderState camera){
+  pose.pushPose();pose.rotateDegrees(Axis.YP,-s.yaw);
+  collector.submitModel(models.get(s.tier),s,pose,DolfinSpace.id("textures/entity/"+s.tier.itemId()+".png"),s.lightCoords,OverlayTexture.NO_OVERLAY,s.outlineColor);
+  if(s.burning){int engines=s.tier==ShipTier.CARGA?2:1;for(int i=0;i<engines;i++){pose.pushPose();pose.translate(engines==2?(i==0?-1.125:1.125):0,0,0);pose.scale(1,.8f+.25f*(float)Math.sin(s.ageInTicks*1.8),1);collector.submitModel(flame,s,pose,DolfinSpace.id("textures/entity/ship_flame.png"),15728880,OverlayTexture.NO_OVERLAY,0);pose.popPose();}}
+  pose.popPose();super.submit(s,pose,collector,camera);
+ }
 }

@@ -79,3 +79,7 @@ metafile = true
 file = "mods/vmp-fabric.pw.toml"
 hash = "5e4f565b61e14d9db3c9aee3a2bd329b9e9d6dced068e5e079f02077e9fc3670"
 metafile = true
+
+[[files]]
+file = "custom-mods.toml"
+hash = "04800415f5079cd0eb4a53df7c12d7821272fd2a60406cae6a14c2aad308ed22"

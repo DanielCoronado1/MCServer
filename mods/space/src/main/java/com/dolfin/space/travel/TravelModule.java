@@ -42,9 +42,9 @@ public final class TravelModule {
           Math.min(
               ship.level().getMaxY() - 1,
               floor.getY() + DolfinSpace.config().current().naves().alturaAscensoDespegue() + 4);
-      for (int y = floor.getY() + 4; y <= top && surface; y++)
-        for (int x = -1; x <= 1 && surface; x++)
-          for (int z = -1; z <= 1; z++)
+      for (int y = floor.getY() + 1; y <= top && surface; y++)
+        for (int x = -ship.tier().radius(); x <= ship.tier().radius() && surface; x++)
+          for (int z = -ship.tier().radius(); z <= ship.tier().radius(); z++)
             if (!ship.level()
                 .getBlockState(new BlockPos(floor.getX() + x, y, floor.getZ() + z))
                 .isAir()) {
@@ -73,7 +73,7 @@ public final class TravelModule {
             }
 
             public Component getDisplayName() {
-              return Component.literal("Panel de mando");
+              return Component.translatable("space.ui.cockpit");
             }
 
             public AbstractContainerMenu createMenu(

@@ -93,8 +93,8 @@ public final class TravelClientModule {
           .play(
               new SimpleSoundInstance(
                   alarm
-                      ? SoundEvents.NOTE_BLOCK_BASS.value()
-                      : SoundEvents.NOTE_BLOCK_PLING.value(),
+                      ? com.dolfin.space.assets.SpaceSounds.ALARM
+                      : com.dolfin.space.assets.SpaceSounds.BEEP,
                   SoundSource.NEUTRAL,
                   alarm ? .25f : .15f,
                   alarm ? .6f : 1.6f,
@@ -104,7 +104,7 @@ public final class TravelClientModule {
 
   private static final class CockpitHum extends AbstractTickableSoundInstance {
     CockpitHum() {
-      super(SoundEvents.BEACON_AMBIENT, SoundSource.NEUTRAL, RandomSource.create());
+      super(com.dolfin.space.assets.SpaceSounds.HUM, SoundSource.NEUTRAL, RandomSource.create());
       looping = true;
       volume = .12f;
       pitch = .7f;

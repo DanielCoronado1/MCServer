@@ -63,6 +63,8 @@ def crear_zip_servidor(version, pack, indice, propios):
     with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as zip_:
         for ruta in archivos_del_servidor():
             zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
+        zip_.write(PACK / "custom-mods.toml", f"{carpeta}/pack/custom-mods.toml")
+        zip_.write(RAIZ / "CREDITS.md", f"{carpeta}/CREDITS.md")
         zip_.write(PACK / "pack.toml", f"{carpeta}/pack/pack.toml")
         zip_.write(PACK / pack["index"]["file"], f"{carpeta}/pack/{pack['index']['file']}")
         for archivo in indice["files"]:

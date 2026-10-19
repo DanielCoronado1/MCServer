@@ -1,47 +1,21 @@
 package com.dolfin.space.travel;
 
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.dolfin.space.oxygen.*;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.component.CustomData;
 
-/** #29 can install a provider without either branch importing the other's implementation. */
+/** Exact, equipped-slot status shared by pilot/passenger cockpit telemetry. */
 public final class OxygenStatusBridge {
-  public record Status(boolean equipped, int percent) {
-    public Status {
-      percent = Math.clamp(percent, -1, 100);
-    }
+  public record Status(boolean equipped, int percent, int seconds, int capacity) {
+    public Status { percent=Math.clamp(percent,0,100); seconds=Math.max(0,seconds); capacity=Math.max(0,capacity); }
   }
-
-  private static volatile java.util.function.Function<Player, Status> provider =
-      OxygenStatusBridge::inventoryStatus;
-
-  public static void install(java.util.function.Function<Player, Status> statusProvider) {
-    provider = java.util.Objects.requireNonNull(statusProvider);
+  public static Status measure(boolean equipped,int seconds,int capacity) {
+    return new Status(equipped,capacity<=0?0:(int)(100L*Math.clamp(seconds,0,capacity)/capacity),seconds,capacity);
   }
-
-  public static Status status(Player p) {
-    return p == null ? new Status(false, -1) : provider.apply(p);
+  public static Status status(Player player) {
+    if (!(player instanceof TankAccess access)) return measure(false,0,0);
+    var tank=access.dolfinspace$tank().getItem(0);
+    if (!TankItem.isTank(tank)) return measure(false,0,0);
+    return measure(true,TankItem.remaining(tank),tank.getMaxDamage());
   }
-
-  private static Status inventoryStatus(Player p) {
-    Status best = new Status(false, -1);
-    for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
-      var stack = p.getInventory().getItem(i);
-      String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-      if (!id.startsWith("dolfinspace:tanque_oxigeno_")) continue;
-      var tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-      int percent = tag.getIntOr("oxygen_percent", -1);
-      if (percent < 0 && stack.isDamageableItem())
-        percent =
-            100
-                * (stack.getMaxDamage() - stack.getDamageValue())
-                / Math.max(1, stack.getMaxDamage());
-      // Unknown data must be displayed as unknown, never silently reported as a full tank.
-      best = new Status(true, Math.max(best.percent(), percent));
-    }
-    return best;
-  }
-
   private OxygenStatusBridge() {}
 }

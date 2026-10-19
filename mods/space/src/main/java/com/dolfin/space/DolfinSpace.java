@@ -32,6 +32,7 @@ public final class DolfinSpace implements ModInitializer {
                 LOGGER::warn
         );
         SpaceContent.init();
+        com.dolfin.space.assets.SpaceSounds.init();
         com.dolfin.space.planet.PlanetModule.init();
         com.dolfin.space.machines.MachinesModule.init();
         com.dolfin.space.ships.ShipsModule.init();

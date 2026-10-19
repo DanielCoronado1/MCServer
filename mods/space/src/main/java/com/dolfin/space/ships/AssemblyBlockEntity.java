@@ -18,7 +18,7 @@ public final class AssemblyBlockEntity extends BaseContainerBlockEntity implemen
  public int getContainerSize(){return 8;}
  protected NonNullList<ItemStack> getItems(){return items;}
  protected void setItems(NonNullList<ItemStack> v){items=v;}
- protected Component getDefaultName(){return Component.literal("Mesa de ensamblaje");}
+ protected Component getDefaultName(){return Component.translatable("block.dolfinspace.mesa_ensamblaje");}
  public Integer getScreenOpeningData(ServerPlayer p){return 0;}
  protected AbstractContainerMenu createMenu(int id,Inventory inv){return new AssemblyMenu(id,inv,this);}
  public boolean canPlaceItem(int slot,ItemStack stack){return ShipTier.safe(tier).accepts(slot,net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());}

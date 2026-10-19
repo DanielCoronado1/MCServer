@@ -11,8 +11,8 @@ class OxygenRulesTest {
         assertEquals(4.0,config.current().oxigeno().danioSinOxigenoPorSegundo());
     }
     @Test void onlyThreeTanksAllowed() {
-        for (var tier : new String[]{"chico","mediano","grande"}) assertTrue(OxygenRules.isTank("tanque_oxigeno_"+tier));
-        assertFalse(OxygenRules.isTank("stone")); assertFalse(OxygenRules.isTank("tanque_vacio"));
+        for (var tier : new String[]{"chico","mediano","grande"}) assertTrue(OxygenRules.isTank("dolfinspace:tanque_oxigeno_"+tier));
+        assertFalse(OxygenRules.isTank("stone")); assertFalse(OxygenRules.isTank("minecraft:tanque_oxigeno_chico")); assertFalse(OxygenRules.isTank("tanque_vacio"));
     }
     @Test void survivalExemptions() {
         assertTrue(OxygenRules.consumes(true,false,false,false));

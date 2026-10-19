@@ -30,7 +30,7 @@ def planet():
     feature('glowing_fungi',{'type':'minecraft:simple_block','to_place':{'id':'dolfinspace:hongo_bioluminiscente'}},surface_place(24))
     # Deeper layer placement reaches actual cave floors as well as the surface.
     feature('cave_fungi',{'type':'minecraft:simple_block','to_place':{'id':'dolfinspace:hongo_bioluminiscente'}},[{'type':'minecraft:count_on_every_layer','count':12},{'type':'minecraft:biome'}])
-    palettes=['regolito','roca_lunar','roca_lunar','lodo_acido','roca_lunar']
+    palettes=['regolito','roca_lunar','roca_lunar','lodo_acido','bloque_cristal_energia']
     sky=['#100e22','#27121b','#072a38','#243014','#080b24'];fog=['#403949','#503444','#135563','#506529','#171938']
     particles=['white_ash','ash','end_rod','spore_blossom_air','warped_spore']
     ores=[['mena_titanio'],['mena_hierro_meteorico'],['mena_cristal_energia'],['mena_titanio'],['mena_cristal_energia']]

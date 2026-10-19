@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.dolfin.space.mobs.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ParasiteHeadMixin",
+    "TerrainHistoryMixin",
+    "SpaceCreeperMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

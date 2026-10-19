@@ -24,3 +24,7 @@ Naves se reconocen por namespace `dolfinspace` y prefijo `nave`, `spaceship` o `
 Build Java 25 + 16 tests JUnit verdes. Pruebas puras cubren filtros de IDs, consumo, exenciones, umbral, saturación de recarga y alias config. Único smoke headless de #29 detectó un paquete de mixins demasiado amplio: se corrigió separando `.oxygen.mixin` de las clases normales y `.client.oxygen.mixin`. No se repitió para respetar el máximo de un smoke por ticket; #30 verificará el arranque integrado. No se inició cliente. Quedan para aceptación manual: clic/arrastre/shift-clic real con los mods del pack, creativo, muerte/reconexión/reinicio, automatización, HUD/sonido y apariencia. Los assets son placeholders deterministas generados por `tools/space/resources.py`, permitidos hasta #32.
 
 CI (`.github/workflows/release.yml`) y `scripts/build_release.py` descubren todos los proyectos `mods/*`.
+
+### Estado integrado después de #30–#31
+
+#30 confirmó arranque común y carga de mixins corregidos. #31 refuerza filtro con namespace/ID utilizado por TankItem, añade `oxygen_pulse` y plantas del planeta al compresor. Fixture de objetos reales compila pero no se cargó en el único smoke #31; véase issue-31.md para el límite exacto. Muerte/reinicio, interacciones cliente y compresor real siguen pendientes de aceptación.

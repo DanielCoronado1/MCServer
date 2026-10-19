@@ -6,7 +6,7 @@ import java.util.Set;
 public final class OxygenRules {
     private static final Set<String> TANKS = Set.of("tanque_oxigeno_chico", "tanque_oxigeno_mediano", "tanque_oxigeno_grande");
     private OxygenRules() {}
-    public static boolean isTank(String id) { return TANKS.contains(id); }
+    public static boolean isTank(String id) { return id != null && id.startsWith("dolfinspace:") && TANKS.contains(id.substring("dolfinspace:".length())); }
     public static boolean consumes(boolean kepler, boolean ship, boolean creative, boolean spectator) {
         return kepler && !ship && !creative && !spectator;
     }

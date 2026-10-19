@@ -21,7 +21,8 @@
   "mixins": [
     "dolfinspace.mixins.json",
     "dolfinspace.oxygen.mixins.json",
-    "dolfinspace.oxygen.client.mixins.json"
+    "dolfinspace.oxygen.client.mixins.json",
+    "dolfinspace.mobs.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.5",

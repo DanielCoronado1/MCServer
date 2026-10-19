@@ -46,7 +46,7 @@ def oxygen():
     block('compresor_oxigeno',(80,110,120))
     write('data/dolfinspace/damage_type/oxygen.json',{'message_id':'dolfinspace.oxygen','scaling':'never','exhaustion':0.0,'effects':'drowning'})
     write('data/minecraft/tags/damage_type/bypasses_armor.json',{'replace':False,'values':['dolfinspace:oxygen']})
-    write('data/dolfinspace/tags/item/plantas_compresor.json',{'replace':False,'values':['minecraft:short_grass','minecraft:tall_grass','minecraft:fern','minecraft:large_fern','minecraft:moss_block','minecraft:vine','minecraft:azalea','minecraft:flowering_azalea','minecraft:dandelion','minecraft:poppy']})
+    write('data/dolfinspace/tags/item/plantas_compresor.json',{'replace':False,'values':['minecraft:short_grass','minecraft:tall_grass','minecraft:fern','minecraft:large_fern','minecraft:moss_block','minecraft:vine','minecraft:azalea','minecraft:flowering_azalea','minecraft:dandelion','minecraft:poppy','#minecraft:flowers','minecraft:bamboo','minecraft:cactus','minecraft:sugar_cane','minecraft:kelp','minecraft:seagrass','minecraft:crimson_roots','minecraft:warped_roots','minecraft:nether_sprouts',{'id':'dolfinspace:hongo_bioluminiscente','required':False}]})
     # Optional external tags retain the machine-chain recipes after merge; vanilla iron is a usable standalone fallback.
     write('data/dolfinspace/tags/item/placas_tanque.json',{'values':['minecraft:iron_ingot',{'id':'dolfinspace:placas_acero','required':False},{'id':'dolfinspace:placa_acero','required':False}]})
     write('data/dolfinspace/tags/item/circuitos_compresor.json',{'values':['minecraft:redstone',{'id':'dolfinspace:circuito_basico','required':False}]})

@@ -47,6 +47,7 @@ public final class OxygenModule {
                 TankItem.normalize(tank);
                 boolean consume = OxygenRules.consumes(KeplerDimension.isKepler(player.level().dimension()), inShip(player), player.isCreative(), player.isSpectator());
                 int seconds = TankItem.remaining(tank);
+                DolfinSpace.LOGGER.debug("event=oxygen_pulse player={} consumes={} kepler={} ship={} creative={} spectator={} remaining={}",player.getUUID(),consume,KeplerDimension.isKepler(player.level().dimension()),inShip(player),player.isCreative(),player.isSpectator(),seconds);
                 if (consume) {
                     if (seconds > 0) { TankItem.remaining(tank, OxygenRules.consume(seconds)); container.setChanged(); }
                     else {

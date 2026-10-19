@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dolfinspace:item/centinela_spawn_egg"
+  }
+}

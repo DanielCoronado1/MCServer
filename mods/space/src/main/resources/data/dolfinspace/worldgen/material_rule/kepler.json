@@ -89,7 +89,7 @@
         "if_true": "minecraft:on_floor",
         "then_run": {
           "type": "minecraft:block",
-          "result_state": "dolfinspace:roca_lunar"
+          "result_state": "dolfinspace:bloque_cristal_energia"
         }
       }
     }

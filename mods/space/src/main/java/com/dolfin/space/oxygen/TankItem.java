@@ -12,7 +12,7 @@ public final class TankItem extends Item {
         var c = DolfinSpace.config().current().oxigeno();
         return switch (tier) { case 0 -> c.segundosTanqueChico(); case 1 -> c.segundosTanqueMediano(); default -> c.segundosTanqueGrande(); };
     }
-    public static boolean isTank(ItemStack stack) { return !stack.isEmpty() && stack.getItem() instanceof TankItem; }
+    public static boolean isTank(ItemStack stack) { return !stack.isEmpty() && stack.getItem() instanceof TankItem && OxygenRules.isTank(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()); }
     public static int remaining(ItemStack stack) { return isTank(stack) ? Math.max(0, stack.getMaxDamage() - stack.getDamageValue()) : 0; }
     public static void normalize(ItemStack stack) {
         if (!isTank(stack)) return;

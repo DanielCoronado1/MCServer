@@ -38,9 +38,12 @@ public final class DolfinZombies implements ModInitializer {
                 LOGGER.debug("event=zombie_disabled_discard id={} uuid={} dimension={} pos={}",zombie.kind().id(),zombie.getUUID(),level.dimension().identifier(),zombie.blockPosition());zombie.discard();
             }
         });
-        ZombieSounds.init(); SpawnRules.init(); BloodMoon.init();
+        ZombieSounds.init();
+        com.dolfin.zombies.custody.InfectionEffect.register();
+        com.dolfin.zombies.custody.CustodyManager.init();
+        SpawnRules.init(); BloodMoon.init();
         com.dolfin.zombies.griefing.BlockGuard.init(); com.dolfin.zombies.griefing.CongeladoIce.register();
         CommandRegistrationCallback.EVENT.register((dispatcher,access,environment)->ZombieCommands.register(dispatcher));
-        LOGGER.info("event=startup registeredEntities={} registeredEggs={} configRoot={} generation={} permissionProvider={} naturalSpawning=dynamic mechanics=deferred_issues_4_7",TYPES.size(),TYPES.size(),config.root().toAbsolutePath(),config.current().generation(),ZombiePermissions.provider());
+        LOGGER.info("event=startup registeredEntities={} registeredEggs={} configRoot={} generation={} permissionProvider={} naturalSpawning=dynamic mechanics=issue_7_custody",TYPES.size(),TYPES.size(),config.root().toAbsolutePath(),config.current().generation(),ZombiePermissions.provider());
     }
 }

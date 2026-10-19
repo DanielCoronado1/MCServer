@@ -32,7 +32,9 @@ final class ZombieFactories {
             case EXPLORADOR -> new com.dolfin.zombies.kinds.ExploradorZombie(type,level);
 
             // #7 inventory zombies
-            case LADRON, CONTAGIADO, MIMO -> new ConfiguredZombie(type,level,kind);
+            case LADRON -> new com.dolfin.zombies.kinds.LadronZombie(type,level);
+            case CONTAGIADO -> new com.dolfin.zombies.kinds.ContagiadoZombie(type,level);
+            case MIMO -> new com.dolfin.zombies.kinds.MimoZombie(type,level);
 
         };
     }

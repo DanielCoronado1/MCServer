@@ -1,5 +1,4 @@
-"""
-Crea los archivos de una release en dist/:
+"""Crea los archivos de una release en dist/:
 
   DolfinServer-servidor-<version>.zip   para el administrador: plantillas server/, docs y deploy/,
                                         pack/ (packwiz), nuestros mods y scripts/install_server.py, que
@@ -8,79 +7,53 @@ Crea los archivos de una release en dist/:
                                         de mods se lo envia el servidor al conectarse.
   notas.md                              texto de la release (instrucciones y lista de mods)
 
+Con --space crea el bundle independiente de DolfinSpace:
+  DolfinSpace-<version>.zip             jar del mod de espacio, manifiesto y documentacion.
+
 No incluye mods de terceros dentro de los archivos (el repositorio es publico): solo sus
 enlaces de descarga y huellas.
 
-Uso:  python scripts/build_release.py <version>   (antes: gradlew build en cada mods/*)
+Uso:  python scripts/build_release.py <version> [--space]
 """
 
+import hashlib
 import json
 import sys
-import tomllib
-import urllib.request
 import zipfile
 from pathlib import Path
+
+import proyecto
 
 RAIZ = Path(__file__).resolve().parent.parent
 PACK = RAIZ / "pack"
 DIST = RAIZ / "dist"
-CABECERAS = {"User-Agent": "DolfinServer-setup/1.0"}
-
-
-def pedir_json(url):
-    with urllib.request.urlopen(
-        urllib.request.Request(url, headers=CABECERAS), timeout=120
-    ) as respuesta:
-        return json.loads(respuesta.read())
-
-
-def leer_pack():
-    pack = tomllib.loads((PACK / "pack.toml").read_text(encoding="utf-8"))
-    indice = tomllib.loads((PACK / pack["index"]["file"]).read_text(encoding="utf-8"))
-    mods = [
-        tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
-        for f in indice["files"]
-        if f.get("metafile")
-    ]
-    return pack, indice, mods
-
-
-def mods_propios():
-    jars = []
-    for proyecto in sorted((RAIZ / "mods").iterdir()):
-        if not (proyecto / "build.gradle").is_file():
-            continue
-        candidatos = [
-            j
-            for j in (proyecto / "build" / "libs").glob("*.jar")
-            if not j.stem.endswith(("-sources", "-dev"))
-        ]
-        if not candidatos:
-            raise FileNotFoundError(f"Compila primero mods/{proyecto.name} (gradlew build)")
-        jars.append(max(candidatos, key=lambda j: j.stat().st_mtime))
-    return jars
-
-
-def archivos_del_servidor():
-    """Only templates are packaged; runtime state is never a release input."""
-    return sorted(p for p in (RAIZ / "server").rglob("*") if p.is_file())
+CABECERAS = proyecto.CABECERAS
 
 
 def crear_zip_servidor(version, pack, indice, propios):
     carpeta = f"DolfinServer-servidor-{version}"
     salida = DIST / f"{carpeta}.zip"
+    escritos = set()
+
     with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as zip_:
+
+        def escribir(origen, destino):
+            if destino not in escritos and origen.is_file():
+                escritos.add(destino)
+                zip_.write(origen, destino)
+
         for ruta in archivos_del_servidor():
-            zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
-        zip_.write(PACK / "custom-mods.toml", f"{carpeta}/pack/custom-mods.toml")
-        zip_.write(RAIZ / "CREDITS.md", f"{carpeta}/CREDITS.md")
-        zip_.write(PACK / "pack.toml", f"{carpeta}/pack/pack.toml")
-        zip_.write(PACK / pack["index"]["file"], f"{carpeta}/pack/{pack['index']['file']}")
+            escribir(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
+        escribir(PACK / "custom-mods.toml", f"{carpeta}/pack/custom-mods.toml")
+        escribir(RAIZ / "CREDITS.md", f"{carpeta}/CREDITS.md")
+        escribir(PACK / "pack.toml", f"{carpeta}/pack/pack.toml")
+        escribir(PACK / pack["index"]["file"], f"{carpeta}/pack/{pack['index']['file']}")
         for archivo in indice["files"]:
-            zip_.write(PACK / archivo["file"], f"{carpeta}/pack/{archivo['file']}")
+            escribir(PACK / archivo["file"], f"{carpeta}/pack/{archivo['file']}")
         for jar in propios:
-            zip_.write(jar, f"{carpeta}/custom-mods/{jar.name}")
-        zip_.write(RAIZ / "scripts" / "install_server.py", f"{carpeta}/scripts/install_server.py")
+            escribir(jar, f"{carpeta}/custom-mods/{jar.name}")
+        escribir(RAIZ / "scripts" / "install_server.py", f"{carpeta}/scripts/install_server.py")
+        escribir(RAIZ / "scripts" / "proyecto.py", f"{carpeta}/scripts/proyecto.py")
         for ruta in [
             RAIZ / "README.md",
             *sorted((RAIZ / "docs").rglob("*.md")),
@@ -90,7 +63,39 @@ def crear_zip_servidor(version, pack, indice, propios):
                 if p.suffix in {".yaml", ".py", ".ps1", ".sh"}
             ),
         ]:
-            zip_.write(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
+            escribir(ruta, f"{carpeta}/{ruta.relative_to(RAIZ).as_posix()}")
+    return salida
+
+
+def crear_bundle_space(version, raiz=None):
+    r = Path(raiz) if raiz is not None else RAIZ
+    jar = proyecto.jar_mod("space", raiz=r)
+    metadata = proyecto.metadatos_mod_jar(jar)
+    if metadata.get("id") != "dolfinspace":
+        raise ValueError(f"El jar {jar.name} no contiene el mod dolfinspace")
+
+    pack, _, mods = proyecto.leer_pack(r / "pack")
+    manifest = {
+        "version": version,
+        "mod": metadata,
+        "sha256": hashlib.sha256(jar.read_bytes()).hexdigest(),
+        "pack": pack,
+        "dependencies": mods,
+        "clientAcceptance": "pending clean-client and multiplayer acceptance; see docs/espacio/PRUEBAS.md",
+    }
+    salida = (r / "dist") / f"DolfinSpace-{version}.zip"
+    salida.parent.mkdir(exist_ok=True)
+    with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as z:
+        z.write(jar, f"custom-mods/{jar.name}")
+        z.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
+        for p in [
+            r / "CREDITS.md",
+            *sorted((r / "pack").rglob("*.toml")),
+            *sorted((r / "docs/space").glob("*")),
+            *sorted((r / "docs/espacio").glob("*")),
+        ]:
+            if p.is_file():
+                z.write(p, p.relative_to(r).as_posix())
     return salida
 
 
@@ -165,10 +170,43 @@ Necesita Java 25 y Python 3.11 o mas reciente.
     return salida
 
 
-def main():
-    if len(sys.argv) != 2:
+def archivos_del_servidor():
+    """Plantillas del servidor versionadas; delega en el módulo de proyecto."""
+    return proyecto.plantillas_servidor(RAIZ)
+
+
+def pedir_json(url):
+    """Consulta JSON HTTP utilizando User-Agent y timeout del proyecto."""
+    return proyecto.pedir_json(url)
+
+
+def leer_pack():
+    """Lee pack.toml, índice y metafiles desde pack/."""
+    return proyecto.leer_pack(PACK)
+
+
+def mods_propios():
+    """Descubre jars de mods propios compilados en mods/*/build/libs."""
+    return proyecto.mods_propios(RAIZ)
+
+
+def main(argv=None):
+    args = list(sys.argv[1:] if argv is None else argv)
+    if "-h" in args or "--help" in args:
         sys.exit(__doc__)
-    version = sys.argv[1]
+    es_space = "--space" in args
+    if es_space:
+        args.remove("--space")
+    if len(args) != 1:
+        sys.exit(__doc__)
+    version = args[0]
+
+    DIST.mkdir(exist_ok=True)
+    if es_space:
+        salida = crear_bundle_space(version)
+        print(salida.relative_to(RAIZ))
+        return
+
     pack, indice, mods = leer_pack()
     propios = mods_propios()
     amp = next(m for m in mods if m["filename"].startswith("automodpack-"))
@@ -176,7 +214,6 @@ def main():
         f"https://api.modrinth.com/v2/version/{amp['update']['modrinth']['version']}"
     )
 
-    DIST.mkdir(exist_ok=True)
     for salida in (
         crear_zip_servidor(version, pack, indice, propios),
         crear_mrpack(version, pack, automodpack),

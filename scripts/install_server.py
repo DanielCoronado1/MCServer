@@ -1,5 +1,4 @@
-"""
-Instala o actualiza el servidor Fabric a partir de pack/ (la lista de mods de packwiz):
+"""Instala o actualiza el servidor Fabric a partir de pack/ (la lista de mods de packwiz):
 descarga el lanzador de Fabric y las versiones exactas de cada mod, verificando su huella.
 
   - Mods con side "server" o "both"  -> mods/
@@ -23,41 +22,26 @@ import hashlib
 import json
 import re
 import shutil
-import tomllib
-import urllib.request
 import uuid
 from pathlib import Path
 
-INSTALADOR_FABRIC = "1.1.2"  # version del instalador de Fabric que genera el lanzador
-CABECERAS = {"User-Agent": "DolfinServer-setup/1.0"}
+import proyecto
+
+INSTALADOR_FABRIC = "1.1.2"
+CABECERAS = proyecto.CABECERAS
 
 RAIZ = Path(__file__).resolve().parent.parent
 PACK = RAIZ / "pack"
 PLANTILLAS = RAIZ / "server"
 SERVIDOR = RAIZ / "runtime" / "server"
 
-
-def mods_propios():
-    # Releases contain built jars; checkouts contain independent Gradle projects.
-    if (RAIZ / "custom-mods").is_dir():
-        return sorted((RAIZ / "custom-mods").glob("*.jar"))
-    jars = []
-    for proyecto in sorted((RAIZ / "mods").iterdir()):
-        if not (proyecto / "build.gradle").is_file():
-            continue
-        candidatos = [
-            j
-            for j in (proyecto / "build" / "libs").glob("*.jar")
-            if not j.stem.endswith(("-sources", "-dev"))
-        ]
-        if not candidatos:
-            raise FileNotFoundError(f"Compila primero {proyecto.relative_to(RAIZ)} (gradlew build)")
-        jars.append(max(candidatos, key=lambda j: j.stat().st_mtime))
-    return jars
+MODS_SERVIDOR = Path("mods")
+MODS_JUGADOR = Path("automodpack/host-modpack/main/mods")
+REGISTRO = SERVIDOR / ".dolfin-instalados.json"
 
 
 def preparar_servidor():
-    """Seed missing configuration only; preserve the operator's live settings."""
+    """Siembra configuración faltante; preserva ajustes locales del operador."""
     SERVIDOR.mkdir(parents=True, exist_ok=True)
     for origen in sorted(PLANTILLAS.rglob("*")):
         if not origen.is_file() or origen.name == "whitelist.txt":
@@ -72,26 +56,27 @@ def preparar_servidor():
 
 
 def sincronizar_whitelist():
-    """Merge names into Minecraft's UUID-based file without removing existing players."""
+    """Combina nombres en el whitelist.json preservando jugadores existentes."""
     propiedades = {}
-    for linea in (SERVIDOR / "server.properties").read_text(encoding="utf-8-sig").splitlines():
-        if "=" in linea and not linea.startswith("#"):
-            clave, valor = linea.split("=", 1)
-            propiedades[clave.strip()] = valor.strip()
+    archivo_prop = SERVIDOR / "server.properties"
+    if archivo_prop.exists():
+        for linea in archivo_prop.read_text(encoding="utf-8-sig").splitlines():
+            if "=" in linea and not linea.startswith("#"):
+                clave, valor = linea.split("=", 1)
+                propiedades[clave.strip()] = valor.strip()
     offline = propiedades.get("online-mode", "true").lower() == "false"
     ruta = SERVIDOR / "whitelist.json"
     entradas = json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else []
     nombres = (PLANTILLAS / "whitelist.txt").read_text(encoding="utf-8").splitlines()
     cache = SERVIDOR / "usercache.json"
     perfiles = json.loads(cache.read_text(encoding="utf-8")) if cache.exists() else []
-    for nombre in nombres:
-        nombre = nombre.strip()
+    for linea in nombres:
+        nombre = linea.strip()
         if not nombre or nombre.startswith("#"):
             continue
         if not re.fullmatch(r"[A-Za-z0-9_]{3,16}", nombre):
             raise ValueError(f"Nombre de Minecraft invalido: {nombre}")
         if offline:
-            # Java UUID.nameUUIDFromBytes uses MD5 with UUID version 3 bits.
             identificador = str(
                 uuid.UUID(bytes=hashlib.md5(f"OfflinePlayer:{nombre}".encode()).digest(), version=3)
             )
@@ -107,35 +92,8 @@ def sincronizar_whitelist():
     ruta.write_text(json.dumps(entradas, indent=2) + "\n", encoding="utf-8")
 
 
-MODS_SERVIDOR = Path("mods")
-MODS_JUGADOR = Path("automodpack/host-modpack/main/mods")
-REGISTRO = SERVIDOR / ".dolfin-instalados.json"
-
-
-def pedir(url):
-    with urllib.request.urlopen(
-        urllib.request.Request(url, headers=CABECERAS), timeout=120
-    ) as respuesta:
-        return respuesta.read()
-
-
-def leer_pack():
-    """Devuelve (pack.toml, [metadatos de cada mod])."""
-    pack = tomllib.loads((PACK / "pack.toml").read_text(encoding="utf-8"))
-    indice = tomllib.loads((PACK / pack["index"]["file"]).read_text(encoding="utf-8"))
-    mods = [
-        tomllib.loads((PACK / f["file"]).read_text(encoding="utf-8"))
-        for f in indice["files"]
-        if f.get("metafile")
-    ]
-    return pack, mods
-
-
-def huella_correcta(datos, descarga):
-    return hashlib.new(descarga["hash-format"], datos).hexdigest() == descarga["hash"]
-
-
 def instalar_mod(mod, destino):
+    """Instala un mod en destino si falta o su huella no coincide."""
     if destino.exists() and huella_correcta(destino.read_bytes(), mod["download"]):
         return
     datos = pedir(mod["download"]["url"])
@@ -146,6 +104,27 @@ def instalar_mod(mod, destino):
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_bytes(datos)
     print(f"  {destino.relative_to(SERVIDOR)}")
+
+
+def huella_correcta(datos, descarga):
+    """Comprueba si los datos coinciden con el hash esperado de la descarga."""
+    return hashlib.new(descarga["hash-format"], datos).hexdigest() == descarga["hash"]
+
+
+def leer_pack():
+    """Devuelve (pack.toml, [metadatos de cada mod])."""
+    datos = proyecto.leer_pack(PACK)
+    return datos.pack, datos.mods
+
+
+def mods_propios():
+    """Descubre jars de mods propios delegando en proyecto.py."""
+    return proyecto.mods_propios(RAIZ)
+
+
+def pedir(url):
+    """Descarga datos HTTP delegando en proyecto.py."""
+    return proyecto.pedir(url)
 
 
 def main():
@@ -174,7 +153,6 @@ def main():
         carpetas = []
         if mod["side"] in ("server", "both"):
             carpetas.append(MODS_SERVIDOR)
-        # AutoModpack nunca se envia dentro del pack: cada jugador lo instala por su cuenta.
         if mod["side"] in ("client", "both") and not mod["filename"].startswith("automodpack-"):
             carpetas.append(MODS_JUGADOR)
         for carpeta in carpetas:

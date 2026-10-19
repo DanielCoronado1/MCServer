@@ -4,16 +4,20 @@ import hashlib
 import importlib.util
 import json
 import shutil
+import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_script(name, path):
+    scripts_dir = str(Path(path).resolve().parent)
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -28,8 +32,10 @@ class ToolingTests(unittest.TestCase):
         for directory in ("server", "pack", "scripts", "docs", "deploy"):
             shutil.copytree(ROOT / directory, self.root / directory)
         shutil.copy2(ROOT / "README.md", self.root / "README.md")
+        shutil.copy2(ROOT / "CREDITS.md", self.root / "CREDITS.md")
         self.installer = load_script("installer", self.root / "scripts/install_server.py")
         self.release = load_script("release", self.root / "scripts/build_release.py")
+        self.proyecto = load_script("proyecto", self.root / "scripts/proyecto.py")
         self.installer.preparar_servidor()
 
     def test_crafty_eula_parser_requires_explicit_acceptance(self):
@@ -88,9 +94,11 @@ class ToolingTests(unittest.TestCase):
                 "url": "https://example.invalid/mod",
             },
         }
-        with patch.object(self.installer, "pedir", return_value=b"corrupt"):
-            with self.assertRaisesRegex(ValueError, "huella"):
-                self.installer.instalar_mod(mod, target)
+        with (
+            patch.object(self.installer, "pedir", return_value=b"corrupt"),
+            self.assertRaisesRegex(ValueError, "huella"),
+        ):
+            self.installer.instalar_mod(mod, target)
         self.assertEqual(b"previous jar", target.read_bytes())
 
     def test_release_roundtrip_installs_both_sides_and_keeps_manual_jars(self):
@@ -107,6 +115,8 @@ class ToolingTests(unittest.TestCase):
             self.assertTrue(any(n.endswith("docs/crafty.md") for n in names))
             self.assertTrue(any(n.endswith("deploy/windows/install-startup.ps1") for n in names))
             self.assertTrue(any(n.endswith("deploy/crafty/configure_server.py") for n in names))
+            self.assertTrue(any(n.endswith("CREDITS.md") for n in names))
+            self.assertTrue(any(n.endswith("scripts/proyecto.py") for n in names))
             self.assertFalse(
                 any(
                     "/runtime/" in n or n.endswith(("ops.json", "whitelist.json", "eula.txt"))
@@ -150,6 +160,75 @@ class ToolingTests(unittest.TestCase):
         )
         self.assertEqual(3, len(json.loads((installer.SERVIDOR / "whitelist.json").read_text())))
         self.assertTrue((installer.SERVIDOR / "fabric-server-launch.jar").exists())
+
+    def test_proyecto_leer_pack_and_metadata(self):
+        pack_datos = self.proyecto.leer_pack(self.root / "pack")
+        self.assertEqual("DolfinServer", pack_datos.nombre)
+        self.assertTrue(pack_datos.minecraft)
+        self.assertTrue(pack_datos.fabric)
+        self.assertIsNotNone(pack_datos.automodpack)
+        self.assertTrue(pack_datos.automodpack["filename"].startswith("automodpack-"))
+        pack, index, mods = pack_datos
+        self.assertEqual(pack_datos.pack, pack)
+        self.assertEqual(pack_datos.indice, index)
+        self.assertEqual(pack_datos.mods, mods)
+
+    def test_proyecto_mods_propios_and_jar_discovery(self):
+        custom_dir = self.root / "custom-mods"
+        custom_dir.mkdir()
+        custom_jar = custom_dir / "custom-1.0.jar"
+        custom_jar.write_bytes(b"custom")
+        self.assertEqual([custom_jar], self.proyecto.mods_propios(self.root))
+        shutil.rmtree(custom_dir)
+
+        sample_mod = self.root / "mods" / "sample"
+        sample_libs = sample_mod / "build" / "libs"
+        sample_libs.mkdir(parents=True)
+        (sample_mod / "build.gradle").write_text("// gradle\n")
+        (sample_libs / "sample-1.0.jar").write_bytes(b"mod")
+        (sample_libs / "sample-1.0-sources.jar").write_bytes(b"sources")
+        (sample_libs / "sample-1.0-dev.jar").write_bytes(b"dev")
+
+        jars = self.proyecto.mods_propios(self.root)
+        self.assertEqual([sample_libs / "sample-1.0.jar"], jars)
+        self.assertEqual(
+            sample_libs / "sample-1.0.jar", self.proyecto.jar_mod("sample", raiz=self.root)
+        )
+
+        with self.assertRaises(FileNotFoundError):
+            self.proyecto.jar_mod("inexistente", raiz=self.root)
+
+    def test_space_bundle_packaging(self):
+        space_mod = self.root / "mods" / "space"
+        space_libs = space_mod / "build" / "libs"
+        space_libs.mkdir(parents=True)
+        (space_mod / "build.gradle").write_text("// gradle\n")
+        space_jar = space_libs / "dolfinspace-1.1.0.jar"
+        with zipfile.ZipFile(space_jar, "w") as z:
+            z.writestr("fabric.mod.json", json.dumps({"id": "dolfinspace", "version": "1.1.0"}))
+
+        salida = self.release.crear_bundle_space("1.1.0", raiz=self.root)
+        self.assertTrue(salida.exists())
+        with zipfile.ZipFile(salida) as z:
+            self.assertIsNone(z.testzip())
+            nombres = z.namelist()
+            self.assertIn("custom-mods/dolfinspace-1.1.0.jar", nombres)
+            self.assertIn("manifest.json", nombres)
+            self.assertIn("CREDITS.md", nombres)
+            manifiesto = json.loads(z.read("manifest.json"))
+            self.assertEqual("1.1.0", manifiesto["version"])
+            self.assertEqual("dolfinspace", manifiesto["mod"]["id"])
+            self.assertEqual("DolfinServer", manifiesto["pack"]["name"])
+
+    def test_proyecto_pedir_json_and_pedir(self):
+        respuesta_mock = MagicMock()
+        respuesta_mock.read.return_value = b'{"status": "ok", "count": 42}'
+        respuesta_mock.__enter__.return_value = respuesta_mock
+        with patch("urllib.request.urlopen", return_value=respuesta_mock) as mock_urlopen:
+            datos = self.proyecto.pedir_json("https://example.invalid/api")
+            self.assertEqual({"status": "ok", "count": 42}, datos)
+            peticion = mock_urlopen.call_args[0][0]
+            self.assertEqual("DolfinServer-setup/1.0", peticion.headers["User-agent"])
 
 
 if __name__ == "__main__":

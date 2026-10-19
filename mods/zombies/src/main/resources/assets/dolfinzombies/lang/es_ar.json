@@ -30,5 +30,13 @@
   "entity.dolfinzombies.mimo_zombie": "Mimo",
   "item.dolfinzombies.mimo_zombie_spawn_egg": "Generador de Mimo",
   "entity.dolfinzombies.explorador_zombie": "Explorador nocturno",
-  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno"
+  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno",
+  "dolfinzombies.bloodmoon.title": "Luna de sangre",
+  "dolfinzombies.bloodmoon.subtitle": "Los muertos están inquietos",
+  "dolfinzombies.bloodmoon.start": "¡Empezó la luna de sangre! Los zombies son más fuertes y no se puede dormir.",
+  "dolfinzombies.bloodmoon.end": "Amanece: terminó la luna de sangre.",
+  "dolfinzombies.bloodmoon.stopped": "Se detuvo la luna de sangre.",
+  "dolfinzombies.bloodmoon.join": "Hay una luna de sangre en curso: no se puede dormir.",
+  "dolfinzombies.bloodmoon.sleep_active": "No podés dormir durante la luna de sangre.",
+  "dolfinzombies.bloodmoon.sleep_pending": "Esta noche hay luna de sangre: no podés dormir."
 }

@@ -24,8 +24,8 @@ Un único smoke headless arrancó y cerró limpiamente, sin ERROR. `/execute in 
 
 Esto también confirma carga común de los mixins de oxígeno tras separar paquetes. La colocación de compresor se rechazó por chunk sin cargar, no cuenta como prueba de funcionamiento. No se lanzó cliente ni Chunky. Queda sin verificar visualmente relieve/paletas/densidad de recursos, contacto con ácido, Fortuna en juego, pregeneración Chunky e interoperabilidad del pack. No se confunde resolución de biomas con generación de chunks.
 
-Eventos: `event=planet_registered` (INFO, manifiesto completo), `event=acid_poison` (DEBUG). Scripts `tools/space/planet_resources.py` y `resources.py` regeneran recursos; logs ignorados en `runtime/space/smoke.log`. También se migró el loot de regolito/compresor al formato de condición 26.3.
+Eventos: `event=planet_registered` (INFO, manifiesto completo), `event=acid_poison` (DEBUG). El script `tools/space/generate_assets.py` regenera recursos; logs ignorados en `runtime/space/smoke.log`. También se migró el loot de regolito/compresor al formato de condición 26.3.
 
 ### Integración #31
 
-Siete especies en cinco biomas. Chunks de cuatro regiones de superficie forzados a cargar/generar en smoke #31 sin errores; no equivale a Chunky/inspección visual. Paleta final de cavernas con suelo cristalino luminoso (retoque posterior al smoke, validado por recursos/build). Hongo también alimenta compresor. Tras regenerar biomas ejecutar `tools/space/mobs_resources.py` para conservar fauna.
+Siete especies en cinco biomas. Chunks de cuatro regiones de superficie forzados a cargar/generar en smoke #31 sin errores; no equivale a Chunky/inspección visual. Paleta final de cavernas con suelo cristalino luminoso (retoque posterior al smoke, validado por recursos/build). Hongo también alimenta compresor. Tras regenerar biomas `tools/space/generate_assets.py` conserva la fauna de forma integrada.

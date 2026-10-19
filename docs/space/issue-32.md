@@ -4,7 +4,7 @@ Tres diseños originales definidos en `ShipDesign`: BASICA, explorador turquesa 
 
 Iconos de inventario originales y modelos 3D en mano, atlas propios y tema de cabina por nave. La cabina lee exclusivamente `TankAccess.dolfinspace$tank()`: segundos y porcentaje exactos para piloto/pasajero, no tanques de reserva del inventario. No altera ni consume oxígeno al consultarlo.
 
-`tools/space/final_assets.py` genera assets reproducibles, audio Ogg Vorbis propio y `issue-32-assets.png`; `translations.py` mantiene paridad de cuatro idiomas, nombres ingleses, parámetros y UI traducible. `CREDITS.md` atribuye el arte/audio original CC0, padres/renderer vanilla referenciados y herramientas. El código conserva la licencia original. Sin dependencia de GeckoLib ni assets externos descargables.
+`tools/space/generate_assets.py` genera assets reproducibles, audio Ogg Vorbis propio y `issue-32-assets.png`, y mantiene paridad de cuatro idiomas, nombres ingleses, parámetros y UI traducible. `CREDITS.md` atribuye el arte/audio original CC0, padres/renderer vanilla referenciados y herramientas. El código conserva la licencia original. Sin dependencia de GeckoLib ni assets externos descargables.
 
 `SpaceAssetsAuditTest`: referencias de items/bloques/modelos/texturas, entidades con renderer de textura/item/partícula explícito, sonidos registrados/Ogg/Vorbis/subtítulos, claves y placeholders en cuatro idiomas, tags de integración y clases de todos los mixins fusionados, geometría dentro del hitbox, montaje y telemetría de oxígeno. La auditoría usa catálogos y fuentes de registro para evitar arrancar Minecraft sin mixins dentro de JUnit; no sustituye al resource reload real de cliente.
 

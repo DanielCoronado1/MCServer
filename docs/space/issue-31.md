@@ -24,7 +24,7 @@ EntityModel/EntityRenderer vanilla con animaciones y sonidos heredados, texturas
 
 Quitina+cristal → escudo vanilla; tres dientes+palos → pico de hierro vanilla; núcleo → ocho cristales. Todos los drops son útiles. Integración final: filtro puro de tanques verifica namespace/ID y se utiliza en TankItem; logs de pulsos/exenciones; hongo alimenta compresor; cavernas con suelo luminoso de cristal.
 
-Regenerar en orden: `tools/space/resources.py`, `planet_resources.py`, `mobs_resources.py`; el último restablece fauna al regenerar biomas.
+Regenerar con `tools/space/generate_assets.py` (regenera recursos, biomas y fauna de forma integrada).
 
 ## Observabilidad
 

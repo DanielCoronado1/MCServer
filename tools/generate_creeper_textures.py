@@ -151,131 +151,139 @@ TODO = CABEZA + CUERPO + PATAS
 
 
 def fuego():
-    l = Lienzo(1)
-    l.base(TODO, [(46, 10, 6), (70, 16, 8), (96, 24, 10), (58, 12, 6), (30, 6, 4)], [3, 3, 2, 3, 1])
-    l.grietas(TODO, [(255, 120, 20), (255, 210, 60)], 26, 6)  # grietas de lava
-    l.motas(TODO, (255, 90, 20), 0.05)
-    l.limpiar_cara([(46, 10, 6), (58, 12, 6), (30, 6, 4)])
-    l.cara((255, 200, 40), (255, 150, 20), brillo=(255, 250, 170))
-    return l
+    lienzo = Lienzo(1)
+    lienzo.base(
+        TODO, [(46, 10, 6), (70, 16, 8), (96, 24, 10), (58, 12, 6), (30, 6, 4)], [3, 3, 2, 3, 1]
+    )
+    lienzo.grietas(TODO, [(255, 120, 20), (255, 210, 60)], 26, 6)  # grietas de lava
+    lienzo.motas(TODO, (255, 90, 20), 0.05)
+    lienzo.limpiar_cara([(46, 10, 6), (58, 12, 6), (30, 6, 4)])
+    lienzo.cara((255, 200, 40), (255, 150, 20), brillo=(255, 250, 170))
+    return lienzo
 
 
 def hielo():
-    l = Lienzo(2)
-    l.base(TODO, [(176, 218, 240), (150, 198, 232), (206, 234, 250), (122, 170, 214)], [3, 3, 2, 1])
-    l.grietas(TODO, [(96, 140, 200), (230, 245, 255)], 14, 5)  # vetas de hielo
-    l.motas(TODO, (255, 255, 255), 0.07)  # escarcha
+    lienzo = Lienzo(2)
+    lienzo.base(
+        TODO, [(176, 218, 240), (150, 198, 232), (206, 234, 250), (122, 170, 214)], [3, 3, 2, 1]
+    )
+    lienzo.grietas(TODO, [(96, 140, 200), (230, 245, 255)], 14, 5)  # vetas de hielo
+    lienzo.motas(TODO, (255, 255, 255), 0.07)  # escarcha
     for x in range(0, 32, 2):  # carambanos bajo la cabeza
-        if l.img.getpixel((x, 15))[3]:
-            l.pintar(x, 15, (240, 250, 255))
-    l.cara((24, 44, 96), (34, 60, 120))
-    return l
+        if lienzo.img.getpixel((x, 15))[3]:
+            lienzo.pintar(x, 15, (240, 250, 255))
+    lienzo.cara((24, 44, 96), (34, 60, 120))
+    return lienzo
 
 
 def saltarin():
-    l = Lienzo(3)
-    l.base(TODO, [(140, 222, 60), (112, 192, 40), (172, 240, 92), (90, 160, 30)], [3, 3, 2, 2])
+    lienzo = Lienzo(3)
+    lienzo.base(TODO, [(140, 222, 60), (112, 192, 40), (172, 240, 92), (90, 160, 30)], [3, 3, 2, 2])
     for x, y in pixeles(PATAS):  # muelles en las patas
         if y >= 20 and y % 2 == 0:
-            l.pintar(x, y, (225, 225, 225) if x % 2 else (160, 160, 160))
-    l.cara((16, 40, 8), (16, 40, 8))
-    return l
+            lienzo.pintar(x, y, (225, 225, 225) if x % 2 else (160, 160, 160))
+    lienzo.cara((16, 40, 8), (16, 40, 8))
+    return lienzo
 
 
 def mini():
-    l = Lienzo(4)
-    l.base(TODO, [(96, 230, 96), (70, 200, 70), (140, 245, 140), (54, 170, 54)], [3, 3, 2, 1])
-    l.cara((10, 20, 10), (10, 20, 10), estilo="grande")
+    lienzo = Lienzo(4)
+    lienzo.base(TODO, [(96, 230, 96), (70, 200, 70), (140, 245, 140), (54, 170, 54)], [3, 3, 2, 1])
+    lienzo.cara((10, 20, 10), (10, 20, 10), estilo="grande")
     # Brillo en los ojos para que se vea "tierno".
-    l.pintar(CARA[0] + 1, CARA[1] + 1, (255, 255, 255))
-    l.pintar(CARA[0] + 5, CARA[1] + 1, (255, 255, 255))
-    return l
+    lienzo.pintar(CARA[0] + 1, CARA[1] + 1, (255, 255, 255))
+    lienzo.pintar(CARA[0] + 5, CARA[1] + 1, (255, 255, 255))
+    return lienzo
 
 
 def electrico():
-    l = Lienzo(5)
-    l.base(TODO, [(242, 212, 40), (222, 182, 20), (252, 232, 96), (200, 160, 16)], [3, 3, 2, 1])
-    l.zigzag(TODO, (34, 30, 24), 16, 8)  # rayos negros en zigzag
-    l.motas(TODO, (255, 255, 230), 0.04)
-    l.limpiar_cara([(242, 212, 40), (222, 182, 20), (252, 232, 96)])
-    l.cara((20, 20, 20), (20, 20, 20))
-    l.pintar(CARA[0] + 1, CARA[1] + 2, (120, 220, 255))  # chispas en los ojos
-    l.pintar(CARA[0] + 6, CARA[1] + 2, (120, 220, 255))
-    return l
+    lienzo = Lienzo(5)
+    lienzo.base(
+        TODO, [(242, 212, 40), (222, 182, 20), (252, 232, 96), (200, 160, 16)], [3, 3, 2, 1]
+    )
+    lienzo.zigzag(TODO, (34, 30, 24), 16, 8)  # rayos negros en zigzag
+    lienzo.motas(TODO, (255, 255, 230), 0.04)
+    lienzo.limpiar_cara([(242, 212, 40), (222, 182, 20), (252, 232, 96)])
+    lienzo.cara((20, 20, 20), (20, 20, 20))
+    lienzo.pintar(CARA[0] + 1, CARA[1] + 2, (120, 220, 255))  # chispas en los ojos
+    lienzo.pintar(CARA[0] + 6, CARA[1] + 2, (120, 220, 255))
+    return lienzo
 
 
 def multiplicador():
-    l = Lienzo(6)
-    l.base(
+    lienzo = Lienzo(6)
+    lienzo.base(
         TODO, [(80, 196, 150), (60, 170, 128), (110, 216, 172)], [3, 3, 2]
     )  # verde azulado, como slime
     todos = list(pixeles(TODO))
     validos = set(todos)
     for _ in range(22):  # celulas dividiendose
-        x, y = l.azar.choice(todos)
+        x, y = lienzo.azar.choice(todos)
         for dx, dy in [(0, 0), (1, 0), (0, 1), (1, 1)]:
             if (x + dx, y + dy) in validos:
-                l.pintar(x + dx, y + dy, (28, 110, 84) if (dx + dy) % 2 else (190, 250, 220))
-    l.limpiar_cara([(80, 196, 150), (60, 170, 128), (110, 216, 172)])
-    l.cara((16, 70, 50), (16, 70, 50))
-    return l
+                lienzo.pintar(x + dx, y + dy, (28, 110, 84) if (dx + dy) % 2 else (190, 250, 220))
+    lienzo.limpiar_cara([(80, 196, 150), (60, 170, 128), (110, 216, 172)])
+    lienzo.cara((16, 70, 50), (16, 70, 50))
+    return lienzo
 
 
 def gigante():
-    l = Lienzo(7)
-    l.base(TODO, [(92, 112, 80), (72, 92, 62), (112, 126, 96), (60, 76, 50)], [3, 3, 2, 2])
-    l.grietas(TODO, [(42, 48, 36), (30, 34, 26)], 20, 6)  # piedra agrietada
+    lienzo = Lienzo(7)
+    lienzo.base(TODO, [(92, 112, 80), (72, 92, 62), (112, 126, 96), (60, 76, 50)], [3, 3, 2, 2])
+    lienzo.grietas(TODO, [(42, 48, 36), (30, 34, 26)], 20, 6)  # piedra agrietada
     todos = list(pixeles(TODO))
     for _ in range(14):  # manchas de musgo
-        x, y = l.azar.choice(todos)
+        x, y = lienzo.azar.choice(todos)
         for dx in range(-1, 2):
             for dy in range(-1, 2):
-                if (x + dx, y + dy) in set(todos) and l.azar.random() < 0.7:
-                    l.pintar(x + dx, y + dy, l.azar.choice([(62, 140, 50), (80, 160, 60)]))
-    l.limpiar_cara([(92, 112, 80), (72, 92, 62), (112, 126, 96)])
-    l.cara((14, 16, 12), (14, 16, 12))
-    return l
+                if (x + dx, y + dy) in set(todos) and lienzo.azar.random() < 0.7:
+                    lienzo.pintar(
+                        x + dx, y + dy, lienzo.azar.choice([(62, 140, 50), (80, 160, 60)])
+                    )
+    lienzo.limpiar_cara([(92, 112, 80), (72, 92, 62), (112, 126, 96)])
+    lienzo.cara((14, 16, 12), (14, 16, 12))
+    return lienzo
 
 
 def toxico():
-    l = Lienzo(8)
-    l.base(TODO, [(72, 42, 92), (52, 30, 72), (92, 56, 112), (60, 80, 50)], [3, 3, 2, 1])
+    lienzo = Lienzo(8)
+    lienzo.base(TODO, [(72, 42, 92), (52, 30, 72), (92, 56, 112), (60, 80, 50)], [3, 3, 2, 1])
     todos = list(pixeles(TODO))
     for _ in range(30):  # burbujas toxicas
-        x, y = l.azar.choice(todos)
-        l.pintar(x, y, (130, 255, 80))
+        x, y = lienzo.azar.choice(todos)
+        lienzo.pintar(x, y, (130, 255, 80))
         if (x + 1, y) in set(todos):
-            l.pintar(x + 1, y, (80, 200, 50))
-    l.cara((150, 255, 90), (120, 230, 70), brillo=(220, 255, 180))
-    return l
+            lienzo.pintar(x + 1, y, (80, 200, 50))
+    lienzo.cara((150, 255, 90), (120, 230, 70), brillo=(220, 255, 180))
+    return lienzo
 
 
 def rey():
-    l = Lienzo(9)
-    l.base(TODO, [(34, 96, 34), (44, 116, 44), (26, 74, 26), (56, 132, 50)], [3, 3, 2, 1])
+    lienzo = Lienzo(9)
+    lienzo.base(TODO, [(34, 96, 34), (44, 116, 44), (26, 74, 26), (56, 132, 50)], [3, 3, 2, 1])
     oro, oro_oscuro, rubi = (236, 192, 40), (180, 132, 20), (210, 30, 40)
     # Corona: las dos filas de arriba de los cuatro lados de la cabeza, con picos y rubies.
     for x in range(0, 32):
-        l.pintar(x, 8, oro)
-        l.pintar(x, 9, oro_oscuro if x % 4 == 0 else oro)
+        lienzo.pintar(x, 8, oro)
+        lienzo.pintar(x, 9, oro_oscuro if x % 4 == 0 else oro)
     for x in range(0, 32, 4):
-        l.pintar(x + 1, 9, rubi)
+        lienzo.pintar(x + 1, 9, rubi)
     for x in range(8, 16):  # aro de la corona arriba
-        l.pintar(x, 0, oro)
-        l.pintar(x, 7, oro)
+        lienzo.pintar(x, 0, oro)
+        lienzo.pintar(x, 7, oro)
     for y in range(8):
-        l.pintar(8, y, oro)
-        l.pintar(15, y, oro)
+        lienzo.pintar(8, y, oro)
+        lienzo.pintar(15, y, oro)
     # Capa roja en la espalda del cuerpo, con borde dorado.
     ex, ey = ESPALDA
-    l.rectangulo(ex, ey, 8, 12, (150, 20, 32))
+    lienzo.rectangulo(ex, ey, 8, 12, (150, 20, 32))
     for y in range(ey, ey + 12):
-        l.pintar(ex, y, oro)
-        l.pintar(ex + 7, y, oro)
+        lienzo.pintar(ex, y, oro)
+        lienzo.pintar(ex + 7, y, oro)
     for x in range(ex + 1, ex + 7, 2):
-        l.pintar(x, ey + 11, (110, 12, 24))
-    l.cara((220, 30, 30), (16, 40, 16), estilo="enfadado")
-    return l
+        lienzo.pintar(x, ey + 11, (110, 12, 24))
+    lienzo.cara((220, 30, 30), (16, 40, 16), estilo="enfadado")
+    return lienzo
 
 
 VARIANTES = {

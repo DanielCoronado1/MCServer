@@ -17,8 +17,9 @@ run.mkdir(parents=True, exist_ok=True)
 )
 env = os.environ.copy()
 env["JAVA_TOOL_OPTIONS"] = "-Ddolfinspace.smoke=true"
-env["JAVA_HOME"] = (
-    "/Users/emi0x7d1/.gradle/jdks/eclipse_adoptium-25-aarch64-os_x.2/jdk-25.0.3+9/Contents/Home"
+env["JAVA_HOME"] = os.environ.get(
+    "JAVA_HOME",
+    "/Users/emi0x7d1/.gradle/jdks/eclipse_adoptium-25-aarch64-os_x.2/jdk-25.0.3+9/Contents/Home",
 )
 p = subprocess.Popen(
     ["./gradlew", "runServer", "--no-daemon", "--args=nogui"],

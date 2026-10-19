@@ -40,7 +40,8 @@ public final class CustodyState {
 
     /** Pending Mimo spawn window recorded when a player dies (unless killed by Contagiado). */
     public record PendingMimo<T>(UUID id,UUID player,String playerName,CustodyLedger.Position deathPos,
-                                 double playerMaxHealth,List<T> armor,long createdTick,long expiresAtTick){
+                                 double playerMaxHealth,List<T> armor,long createdTick,long expiresAtTick,String appearanceJson){
+        public PendingMimo(UUID id,UUID player,String playerName,CustodyLedger.Position deathPos,double health,List<T> armor,long created,long expires){this(id,player,playerName,deathPos,health,armor,created,expires,"");}
         public PendingMimo{armor=List.copyOf(armor);}
         public static <T> Codec<PendingMimo<T>> codec(Codec<T> itemCodec){
             return RecordCodecBuilder.create(i->i.group(
@@ -51,7 +52,8 @@ public final class CustodyState {
                 Codec.DOUBLE.fieldOf("playerMaxHealth").forGetter(PendingMimo<T>::playerMaxHealth),
                 itemCodec.listOf().fieldOf("armor").forGetter(PendingMimo<T>::armor),
                 Codec.LONG.fieldOf("createdTick").forGetter(PendingMimo<T>::createdTick),
-                Codec.LONG.fieldOf("expiresAtTick").forGetter(PendingMimo<T>::expiresAtTick)
+                Codec.LONG.fieldOf("expiresAtTick").forGetter(PendingMimo<T>::expiresAtTick),
+                Codec.STRING.optionalFieldOf("appearanceJson","").forGetter(PendingMimo<T>::appearanceJson)
             ).apply(i,PendingMimo::new));
         }
         public boolean expired(long nowTick){return nowTick>expiresAtTick;}

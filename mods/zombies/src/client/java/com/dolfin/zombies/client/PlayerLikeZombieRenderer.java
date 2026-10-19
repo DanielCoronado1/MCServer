@@ -1,9 +1,6 @@
 package com.dolfin.zombies.client;
 import com.dolfin.zombies.*;
-import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
-import java.util.*;
-import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -23,7 +20,6 @@ public final class PlayerLikeZombieRenderer extends HumanoidMobRenderer<Configur
  static final class State extends AvatarRenderState {boolean copied;boolean infected;}
  private final ZombieKind kind;
  private final PlayerModel wide,slim;
- private final Map<GameProfile,Supplier<PlayerSkin>> skins=new LinkedHashMap<>(128,.75f,true){@Override protected boolean removeEldestEntry(Map.Entry<GameProfile,Supplier<PlayerSkin>> entry){return size()>128;}};
  public PlayerLikeZombieRenderer(EntityRendererProvider.Context context,ZombieKind kind){
   super(context,new PlayerModel(context.bakeLayer(ModelLayers.PLAYER),false),.5f);this.kind=kind;wide=model;slim=new PlayerModel(context.bakeLayer(ModelLayers.PLAYER_SLIM),true);
   addArmor(context,false);addArmor(context,true);
@@ -44,7 +40,7 @@ public final class PlayerLikeZombieRenderer extends HumanoidMobRenderer<Configur
  @Override public AvatarRenderState createRenderState(){return new State();}
  @Override public void extractRenderState(ConfiguredZombie zombie,AvatarRenderState state,float partial){
   super.extractRenderState(zombie,state,partial);var s=(State)state;s.copied=zombie.hasPlayerAppearance();s.infected=kind==ZombieKind.CONTAGIADO;
-  if(s.copied){var profile=zombie.playerAppearance().partialProfile();s.skin=skins.computeIfAbsent(profile,p->Minecraft.getInstance().getSkinManager().createLookup(p,false)).get();}
+  if(s.copied){s.skin=Minecraft.getInstance().playerSkinRenderCache().getOrDefault(zombie.playerAppearance()).playerSkin();}
   else s.skin=DefaultPlayerSkin.getDefaultSkin();
   s.showHat=s.showJacket=s.showLeftPants=s.showRightPants=s.showLeftSleeve=s.showRightSleeve=true;
   s.showCape=false;s.isSpectator=false;

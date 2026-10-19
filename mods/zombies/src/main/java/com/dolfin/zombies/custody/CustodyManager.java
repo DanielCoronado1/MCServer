@@ -281,7 +281,8 @@ public final class CustodyManager extends SavedData {
         long now=player.level().getGameTime();
         long windowTicks=Math.max(1,cfg.get("minutosVentana").getAsInt())*1200L;
         var pending=new PendingMimo<>(UUID.randomUUID(),player.getUUID(),player.getGameProfile().name(),
-            posOf(player.level(),player.blockPosition()),player.getMaxHealth(),armor,now,now+windowTicks);
+            posOf(player.level(),player.blockPosition()),player.getMaxHealth(),armor,now,now+windowTicks,
+            net.minecraft.world.item.component.ResolvableProfile.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,net.minecraft.world.item.component.ResolvableProfile.createResolved(player.getGameProfile())).getOrThrow().toString());
         mimos.add(pending);
         setDirty();
         DolfinZombies.LOGGER.info("event=mimo_scheduled id={} player={} playerName={} pos={} expiresAt={}",
@@ -330,6 +331,10 @@ public final class CustodyManager extends SavedData {
             mimo.snapTo(spawnPos.getX()+.5,spawnPos.getY(),spawnPos.getZ()+.5,level.getRandom().nextFloat()*360f,0f);
             mimo.finalizeSpawn(level,level.getCurrentDifficultyAt(spawnPos),EntitySpawnReason.EVENT,null);
             mimo.configureFromDeath(pending.player(),pending.playerName(),pending.playerMaxHealth(),pending.armor());
+            if(!pending.appearanceJson().isEmpty()){
+                try{net.minecraft.world.item.component.ResolvableProfile.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,com.google.gson.JsonParser.parseString(pending.appearanceJson())).resultOrPartial(error->DolfinZombies.LOGGER.warn("event=mimo_profile_invalid id={} reason={}",pending.id(),error)).ifPresent(mimo::setPlayerAppearance);}
+                catch(RuntimeException error){DolfinZombies.LOGGER.warn("event=mimo_profile_invalid id={} reason={}",pending.id(),error.toString());}
+            }
             if(level.addFreshEntity(mimo)){
                 DolfinZombies.LOGGER.info("event=mimo_spawned id={} entity={} player={} playerName={} pos={} health={}",
                     pending.id(),mimo.getUUID(),pending.player(),pending.playerName(),spawnPos,mimo.getMaxHealth());

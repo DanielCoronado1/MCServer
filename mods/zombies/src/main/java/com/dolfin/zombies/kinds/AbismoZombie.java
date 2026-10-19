@@ -55,7 +55,7 @@ public class AbismoZombie extends ConfiguredZombie {
 
     private void serverTick(ServerLevel level) {
         if (grabbed != null) { hold(level); return; }
-        if (!isAlive() || (tickCount + getId()) % SCAN_PERIOD != 0 || !abilityEnabled(CombatParams.Abismo.ABILITY)) return;
+        if (!isAlive() || !com.dolfin.zombies.ZombieTickPolicy.scanDue(kind(),tickCount,getId()) || !abilityEnabled(CombatParams.Abismo.ABILITY)) return;
         if (getTarget() instanceof ServerPlayer player) tryGrab(level, player, "proximity");
     }
 
@@ -83,6 +83,7 @@ public class AbismoZombie extends ConfiguredZombie {
         grabbed = player;
         ticksLeft = p.duracionAgarre();
         heldTicks = 0;
+        playGrabSound();
         Abilities.debug(this, "abismo_grab_start", "trigger={} target={} depth={} ticks={} strength={} releaseDamage={}", trigger, player.getName().getString(), depth, ticksLeft, p.fuerzaArrastre(), p.danioParaSoltar());
     }
 

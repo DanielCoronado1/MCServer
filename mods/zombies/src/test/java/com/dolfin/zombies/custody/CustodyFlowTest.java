@@ -190,6 +190,14 @@ class CustodyFlowTest {
         assertTrue(CustodyState.findChestSite(0,64,0,5,false,(x,y,z)->false).isEmpty());
     }
 
+    @Test void pendingMimoPreservesAppearanceAcrossDelayedSpawnAndRestart(){
+        String profile="{\"name\":\"Steve\",\"properties\":[{\"name\":\"textures\",\"value\":\"signed-skin-property\"}]}";
+        var pending=roundTrip(CustodyState.PendingMimo.codec(S.CODEC),new CustodyState.PendingMimo<S>(UUID.randomUUID(),OWNER,"Steve",HERE,20,List.of(),100,12100,profile));
+        assertEquals(profile,pending.appearanceJson());
+        var legacy=roundTrip(CustodyState.PendingMimo.codec(S.CODEC),new CustodyState.PendingMimo<S>(UUID.randomUUID(),OWNER,"Steve",HERE,20,List.of(),100,12100));
+        assertEquals("",legacy.appearanceJson());
+    }
+
     @Test void pendingMimoRoundTripsAndChecksRadiusAndHealth(){
         var armor=List.of(new S("minecraft:diamond_helmet",1,false));
         var pending=roundTrip(CustodyState.PendingMimo.codec(S.CODEC),

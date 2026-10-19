@@ -111,6 +111,7 @@ public final class LadronZombie extends ConfiguredZombie {
         this.stealDeadlineTick=level.getGameTime()+minutes*1200L;
         equipVisualAndFleeSpeed(copy,cfg.get("velocidadHuida").getAsDouble());
         setTarget(null);
+        playStealSound();
         CustodyManager.notifyOwner(level.getServer(),player.getUUID(),
             Component.translatable("message.dolfinzombies.ladron_stole",copy.getHoverName(),blockPosition().getX(),blockPosition().getY(),blockPosition().getZ()));
     }

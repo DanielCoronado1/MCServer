@@ -24,7 +24,9 @@
     "fabric-api": "*"
   },
   "suggests": {
-    "luckperms": "*"
+    "luckperms": "*",
+    "openpartiesandclaims": "*",
+    "ledger": "*"
   },
   "mixins": [
     "dolfinzombies.mixins.json"

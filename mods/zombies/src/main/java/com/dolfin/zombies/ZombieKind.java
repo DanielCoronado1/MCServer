@@ -45,7 +45,7 @@ public enum ZombieKind {
         o.addProperty("vida",health);o.addProperty("danio",damage);o.addProperty("velocidad",speed);o.addProperty("peso",weight);
         o.add("grupo",JsonParser.parseString("["+min+","+max+"]"));o.addProperty("loot","dolfinzombies:entities/"+id());
         JsonObject a=JsonParser.parseString(switch(this){
-            case MINERO -> "{\"durezaMax\":3,\"tiempoPorBloque\":40,\"distanciaMaxRompiendo\":16,\"soltarBloques\":false,\"maxBloquesPorMinuto\":20}";
+            case MINERO -> "{\"durezaMax\":3,\"tiempoPorBloque\":40,\"distanciaMaxRompiendo\":16,\"soltarBloques\":false,\"maxBloquesPorMinuto\":20,\"listaNegra\":[\"minecraft:chest\",\"minecraft:trapped_chest\",\"minecraft:ender_chest\",\"#minecraft:copper_chests\",\"#minecraft:beds\",\"minecraft:barrel\",\"#minecraft:shulker_boxes\",\"minecraft:furnace\",\"minecraft:blast_furnace\",\"minecraft:smoker\",\"minecraft:crafting_table\",\"minecraft:enchanting_table\",\"minecraft:cartography_table\",\"minecraft:fletching_table\",\"minecraft:smithing_table\",\"minecraft:nether_portal\",\"minecraft:end_portal\",\"minecraft:end_portal_frame\",\"minecraft:end_gateway\"]}";
             case LADRON -> "{\"probabilidadRobo\":0.35,\"velocidadHuida\":1.6,\"listaNegra\":[],\"soloHotbar\":true,\"minutosParaSoltar\":10}";
             case BOMBERO -> "{\"probabilidadPorPaso\":0.08,\"quemarJugador\":4,\"segundosEnAgua\":3}";
             case ABISMO -> "{\"fuerzaArrastre\":0.12,\"duracionAgarre\":60,\"enfriamiento\":200,\"profundidadMinima\":5}";
@@ -53,7 +53,7 @@ public enum ZombieKind {
             case HAMBRIENTO -> "{\"hambrePorGolpe\":3,\"saturacionPorGolpe\":2,\"efectoHambre\":5,\"distraidoPorComida\":true}";
             case GRITON -> "{\"radioLlamada\":30,\"enfriamiento\":400,\"maxZombiesLlamados\":15,\"incluyeVanilla\":true,\"refuerzosLunaDeSangre\":2}";
             case BRUJA -> "{\"curacion\":6,\"radioCuracion\":8,\"enfriamientoPocion\":80,\"distanciaPreferida\":8}";
-            case GRANJERO -> "{\"radioBusqueda\":24}";
+            case GRANJERO -> "{\"radioBusqueda\":24,\"maxBloquesPorMinuto\":30}";
             case CONGELADO -> "{\"lentitudSegundos\":4,\"nivelLentitud\":1,\"congelacionPolvo\":true,\"bloqueAlMorir\":\"minecraft:ice\",\"radioHielo\":1}";
             case JINETE -> "{\"vidaMontura\":20}";
             case BILIOSO -> "{\"radioNube\":3,\"duracionNube\":100,\"resistenciaEmpuje\":0.8}";
@@ -62,7 +62,7 @@ public enum ZombieKind {
             case MIMO -> "{\"probabilidadAparecer\":0.30,\"minutosVentana\":10,\"copiarEncantamientos\":false}";
             case EXPLORADOR -> "{\"visibleAlRecibirDanio\":3,\"pasosSilenciosos\":true,\"revelarConLuz\":true}";
         }).getAsJsonObject();a.addProperty("activo",this!=GRANJERO);o.getAsJsonObject("habilidades").add(ability,a);
-        if(this==GRANJERO){JsonObject b=new JsonObject();b.addProperty("activo",false);o.getAsJsonObject("habilidades").add("atacarAnimales",b);}
+        if(this==GRANJERO){JsonObject b=new JsonObject();b.addProperty("activo",false);b.add("animales",JsonParser.parseString("[\"minecraft:cow\",\"minecraft:sheep\",\"minecraft:pig\",\"minecraft:chicken\"]"));o.getAsJsonObject("habilidades").add("atacarAnimales",b);}
         if(this==ENANO){o.addProperty("escala",.5);o.add("alturaY",JsonParser.parseString("[-64,39]"));}
         if(this==BOMBERO||this==CONGELADO||this==EXPLORADOR)o.addProperty("quemaConSol",false);
         String biomes=switch(this){

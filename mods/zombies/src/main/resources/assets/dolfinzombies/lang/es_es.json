@@ -30,5 +30,9 @@
   "entity.dolfinzombies.mimo_zombie": "Mimo",
   "item.dolfinzombies.mimo_zombie_spawn_egg": "Generador de Mimo",
   "entity.dolfinzombies.explorador_zombie": "Explorador nocturno",
-  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno"
+  "item.dolfinzombies.explorador_zombie_spawn_egg": "Generador de Explorador nocturno",
+  "dolfinzombies.ability.romperBloques": "Romper bloques",
+  "dolfinzombies.ability.quemarBloques": "Quemar bloques y jugadores",
+  "dolfinzombies.ability.destruirCultivos": "Pisotear cultivos",
+  "dolfinzombies.ability.atacarAnimales": "Atacar animales de granja"
 }

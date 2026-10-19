@@ -19,7 +19,9 @@ final class ZombieFactories {
             case ESCUDERO, HAMBRIENTO, CONGELADO, BILIOSO, ABISMO, JINETE, ENANO -> new ConfiguredZombie(type,level,kind);
 
             // #6 support and stealth zombies
-            case GRITON, BRUJA, EXPLORADOR -> new ConfiguredZombie(type,level,kind);
+            case GRITON -> new com.dolfin.zombies.kinds.GritonZombie(type,level);
+            case BRUJA -> new com.dolfin.zombies.kinds.BrujaZombie(type,level);
+            case EXPLORADOR -> new com.dolfin.zombies.kinds.ExploradorZombie(type,level);
 
             // #7 inventory zombies
             case LADRON, CONTAGIADO, MIMO -> new ConfiguredZombie(type,level,kind);

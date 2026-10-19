@@ -18,6 +18,7 @@ public final class DolfinSpaceClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         com.dolfin.space.client.machines.MachinesClientModule.init();
+        com.dolfin.space.client.ships.ShipsClientModule.init();
         ClientConfigurationNetworking.registerGlobalReceiver(
                 SpaceHandshakePayload.TYPE,
                 (payload, context) -> DolfinSpace.LOGGER.debug(

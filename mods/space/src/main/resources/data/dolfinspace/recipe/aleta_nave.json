@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_cobre"
+  ],
+  "result": {
+    "id": "dolfinspace:aleta_nave",
+    "count": 1
+  }
+}

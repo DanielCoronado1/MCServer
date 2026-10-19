@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:motor_nave",
+    "dolfinspace:circuito_avanzado",
+    "dolfinspace:placa_titanio"
+  ],
+  "result": {
+    "id": "dolfinspace:motor_avanzado",
+    "count": 1
+  }
+}

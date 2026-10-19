@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_titanio",
+    "dolfinspace:placa_titanio",
+    "dolfinspace:placa_titanio"
+  ],
+  "result": {
+    "id": "dolfinspace:punta_titanio",
+    "count": 1
+  }
+}

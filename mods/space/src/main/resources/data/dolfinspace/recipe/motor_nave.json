@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:placa_acero",
+    "dolfinspace:circuito_basico",
+    "minecraft:blaze_rod"
+  ],
+  "result": {
+    "id": "dolfinspace:motor_nave",
+    "count": 1
+  }
+}

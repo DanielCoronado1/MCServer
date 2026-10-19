@@ -18,5 +18,20 @@
   "block.dolfinspace.bloque_acero": "Bloque acero",
   "block.dolfinspace.compresor": "Compresor",
   "block.dolfinspace.fabricador_circuitos": "Fabricador circuitos",
-  "block.dolfinspace.refineria": "Refineria"
+  "block.dolfinspace.refineria": "Refineria",
+  "item.dolfinspace.punta_conica": "Punta conica",
+  "item.dolfinspace.punta_titanio": "Punta titanio",
+  "item.dolfinspace.placa_casco": "Placa casco",
+  "item.dolfinspace.placa_casco_titanio": "Placa casco titanio",
+  "item.dolfinspace.aleta_nave": "Aleta nave",
+  "item.dolfinspace.motor_nave": "Motor nave",
+  "item.dolfinspace.motor_avanzado": "Motor avanzado",
+  "item.dolfinspace.tanque_combustible_nave": "Tanque combustible nave",
+  "item.dolfinspace.asiento_piloto": "Asiento piloto",
+  "item.dolfinspace.nave_basica": "Nave basica",
+  "item.dolfinspace.nave_carga": "Nave carga",
+  "item.dolfinspace.nave_rapida": "Nave rapida",
+  "block.dolfinspace.bloque_plataforma": "Bloque plataforma",
+  "block.dolfinspace.mesa_ensamblaje": "Mesa ensamblaje",
+  "block.dolfinspace.cargador_combustible": "Cargador combustible"
 }

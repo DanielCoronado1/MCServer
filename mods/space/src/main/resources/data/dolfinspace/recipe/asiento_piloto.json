@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "dolfinspace:placa_acero",
+    "minecraft:leather"
+  ],
+  "result": {
+    "id": "dolfinspace:asiento_piloto",
+    "count": 1
+  }
+}

@@ -1,0 +1,116 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
+}
+
+subprojects {
+	if (path == ':mods') return
+
+	apply plugin: 'net.fabricmc.fabric-loom'
+
+	repositories {
+		mavenCentral()
+	}
+
+	// mods/<nombre> publica el mod dolfin<nombre>, con src/main (servidor y comun) y src/client
+	def modId = "dolfin${project.name}"
+	base {
+		archivesName = modId
+	}
+
+	loom {
+		splitEnvironmentSourceSets()
+		mods {
+			register(modId) {
+				sourceSet sourceSets.main
+				sourceSet sourceSets.client
+			}
+		}
+	}
+
+	// Dependencias base del ecosistema Fabric y librerias compartidas
+	dependencies {
+		minecraft "com.mojang:minecraft:${project.minecraft_version}"
+		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+		compileOnly 'net.luckperms:api:5.4'
+		testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	}
+
+	// Propaga la version del mod al manifiesto fabric.mod.json
+	processResources {
+		def modVersion = project.version
+		inputs.property "version", modVersion
+
+		filesMatching("fabric.mod.json") {
+			expand "version": modVersion
+		}
+	}
+
+	// Compilacion para Java 25 con avisos detallados de linting
+	tasks.withType(JavaCompile).configureEach {
+		it.options.release = 25
+		it.options.encoding = "UTF-8"
+		it.options.compilerArgs << "-Xlint:all,-processing,-serial"
+	}
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_25
+		targetCompatibility = JavaVersion.VERSION_25
+	}
+
+	// Ejecucion de pruebas unitarias con JUnit Platform
+	tasks.withType(Test).configureEach {
+		useJUnitPlatform()
+		testLogging {
+			events 'passed', 'skipped', 'failed'
+			exceptionFormat 'full'
+		}
+	}
+
+	tasks.named('check') {
+		dependsOn ':checkJavaFormat'
+	}
+}
+
+// google-java-format 1.37 (estilo AOSP) sobre todo el Java de mods/. Se invoca directamente
+// porque Spotless aun no soporta esta version. Un reflujo de cadenas largas puede requerir
+// ejecutar formatJava dos veces hasta que checkJavaFormat quede limpio.
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	googleJavaFormat {
+		attributes {
+			attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+			attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+					objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM))
+		}
+	}
+}
+
+dependencies {
+	googleJavaFormat 'com.google.googlejavaformat:google-java-format:1.37.0'
+}
+
+def javaSources = fileTree('mods') {
+	include '*/src/**/*.java'
+}
+
+def registerGoogleJavaFormat(String name, String description, List<String> mode, FileTree sources) {
+	tasks.register(name, JavaExec) {
+		group = 'formatting'
+		it.description = description
+		classpath = configurations.googleJavaFormat
+		mainClass = 'com.google.googlejavaformat.java.Main'
+		jvmArgs(['api', 'code', 'file', 'parser', 'tree', 'util'].collect {
+			"--add-exports=jdk.compiler/com.sun.tools.javac.${it}=ALL-UNNAMED".toString()
+		})
+		inputs.files(sources)
+		argumentProviders.add({ ['--aosp'] + mode + sources.files*.path } as CommandLineArgumentProvider)
+	}
+}
+
+registerGoogleJavaFormat('formatJava', 'Formatea el Java de mods/ con google-java-format.', ['--replace'], javaSources)
+registerGoogleJavaFormat('checkJavaFormat', 'Falla si algun archivo Java no esta formateado.', ['--dry-run', '--set-exit-if-changed'], javaSources)

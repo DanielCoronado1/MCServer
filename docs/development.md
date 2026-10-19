@@ -2,11 +2,11 @@
 
 [← Volver a DolfinServer](../README.md)
 
-Cada mod propio es un proyecto Gradle independiente en `mods/<nombre>/`, con su wrapper y las fuentes habituales `src/main` y `src/client`. Mantén binarios y cachés en `build/` y `.gradle/`, excluidos de Git. Usa JDK 25 mediante `JAVA_HOME`; no guardes rutas de un equipo concreto en las propiedades de Gradle.
+Cada mod propio es un subproyecto Gradle en `mods/<nombre>/` integrado en el proyecto multiproyecto raíz, compartiendo el wrapper de Gradle y las fuentes habituales `src/main` y `src/client`. Mantén binarios y cachés en `build/` y `.gradle/`, excluidos de Git. Usa JDK 25 mediante `JAVA_HOME`; no guardes rutas de un equipo concreto en las propiedades de Gradle.
 
 ## Creepers
 
-`mods/creepers/` añade creepers de fuego, hielo, eléctricos, saltarines, mini, multiplicadores, tóxicos, gigantes y el Rey Creeper. Compila con `./gradlew build` desde ese directorio. En Windows, `scripts/update_creepers.bat` compila e instala el mod; detén el servidor primero. Despliega mediante el instalador para sincronizar las copias del servidor y de AutoModpack. Actualiza `version` en `gradle.properties` al publicar cambios.
+`mods/creepers/` añade creepers de fuego, hielo, eléctricos, saltarines, mini, multiplicadores, tóxicos, gigantes y el Rey Creeper. Compila con `./gradlew build` (o `./gradlew :mods:creepers:build`) desde la raíz. En Windows, `scripts/update_creepers.bat` compila e instala el mod; detén el servidor primero. Despliega mediante el instalador para sincronizar las copias del servidor y de AutoModpack. Actualiza `version` en `mods/creepers/gradle.properties` al publicar cambios.
 
 Genera las texturas con `python3 tools/generate_creeper_textures.py`. Las texturas y su vista previa viven en el proyecto del mod. Instala `requirements-dev.txt` para usar las herramientas de recursos y comprobación visual.
 
@@ -31,6 +31,8 @@ Ejecuta las pruebas aisladas de herramientas:
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
+Formato y lint: `./gradlew formatJava` aplica google-java-format (AOSP) y `./gradlew check` lo verifica junto con `-Xlint:all`; para Python, `uvx ruff format .` y `uvx ruff check .` según `ruff.toml`.
+
 CI también compila todos los mods propios y genera los artefactos de las versiones. Los scripts de juego están en `tests/manual/` y se apoyan en el arnés unificado `servidor.py`:
 
 | Script | Qué comprueba |
@@ -49,7 +51,7 @@ Estos scripts requieren instancias Fabric de prueba ya preparadas; no forman par
 
 ## Zombis especiales (`mods/zombies/` — Épica #1)
 
-`mods/zombies/` (`dolfinzombies`) registra 16 tipos de entidad `Zombie` independientes, sus huevos de aparición, texturas 32x con capas emisivas y accesorios (#8), aparición natural y evento de luna de sangre (#3), modificadores de bloques con `BlockGuard`/OPAC/Ledger (#4), zombis de combate (#5), apoyo y sigilo (#6), custodia persistente de inventario (#7) y presupuesto de rendimiento (#9). Compila con `JAVA_HOME=<JDK25> mods/zombies/gradlew -p mods/zombies build --no-daemon`. Documentación detallada por issue en `docs/zombies/issue-03.md` a `docs/zombies/issue-09.md`.
+`mods/zombies/` (`dolfinzombies`) registra 16 tipos de entidad `Zombie` independientes, sus huevos de aparición, texturas 32x con capas emisivas y accesorios (#8), aparición natural y evento de luna de sangre (#3), modificadores de bloques con `BlockGuard`/OPAC/Ledger (#4), zombis de combate (#5), apoyo y sigilo (#6), custodia persistente de inventario (#7) y presupuesto de rendimiento (#9). Compila con `JAVA_HOME=<JDK25> ./gradlew :mods:zombies:build --no-daemon` (o `./gradlew build` para todos). Documentación detallada por issue en `docs/zombies/issue-03.md` a `docs/zombies/issue-09.md`.
 
 ### Configuración y comandos
 
@@ -59,5 +61,5 @@ El primer arranque crea `config/dolfinzombies/general.json` y `zombies/<id>.json
 
 ## Exploración espacial (`mods/space/` — Épica #24)
 
-`mods/space/` (`dolfinspace`) implementa la dimensión `dolfinspace:kepler` con gravedad al 40 % y la Tierra en el cielo (#25), la cadena industrial de acero, compresor, fabricador de circuitos y refinería (#26), ensamblaje de 3 naves, plataforma y cargador (#27), panel de cabina y viaje interdimensional (#28), sistema de oxígeno y compresor (#29), 5 biomas y menas espaciales (#30), fauna hostil del planeta (#31), modelos 3D, sonidos y texturas 32x (#32) e integración con OPAC, PvP, Ledger, LuckPerms y plan de pruebas en `docs/espacio/PRUEBAS.md` (#33). Compila con `JAVA_HOME=<JDK25> mods/space/gradlew -p mods/space build --no-daemon`.
+`mods/space/` (`dolfinspace`) implementa la dimensión `dolfinspace:kepler` con gravedad al 40 % y la Tierra en el cielo (#25), la cadena industrial de acero, compresor, fabricador de circuitos y refinería (#26), ensamblaje de 3 naves, plataforma y cargador (#27), panel de cabina y viaje interdimensional (#28), sistema de oxígeno y compresor (#29), 5 biomas y menas espaciales (#30), fauna hostil del planeta (#31), modelos 3D, sonidos y texturas 32x (#32) e integración con OPAC, PvP, Ledger, LuckPerms y plan de pruebas en `docs/espacio/PRUEBAS.md` (#33). Compila con `JAVA_HOME=<JDK25> ./gradlew :mods:space:build --no-daemon` (o `./gradlew build` para todos).
 

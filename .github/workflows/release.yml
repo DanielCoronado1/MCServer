@@ -37,10 +37,8 @@ jobs:
           git diff --exit-code -- . || { echo "::error::pack/index.toml no esta al dia: ejecuta 'packwiz refresh' en pack/"; exit 1; }
 
       - name: Compilar nuestros mods
-        run: |
-          for mod in mods/*/; do
-            (cd "$mod" && bash ./gradlew build --no-daemon "-Dorg.gradle.java.home=$JAVA_HOME")
-          done
+        run: ./gradlew build --no-daemon "-Dorg.gradle.java.home=$JAVA_HOME"
+
 
       - name: Test repository tooling
         run: python3 -m unittest discover -s tests -p 'test_*.py'

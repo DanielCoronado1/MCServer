@@ -2,7 +2,7 @@
 /runtime/
 /dist/
 
-# Gradle / Java (each custom mod is an independent project)
+# Gradle / Java (root multi-project build for custom mods)
 .gradle/
 build/
 out/

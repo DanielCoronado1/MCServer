@@ -127,8 +127,8 @@ def main() -> None:
     )
 
     cmd = [
-        "./gradlew",
-        "runServer",
+        str(ROOT / "gradlew"),
+        ":mods:space:runServer",
         "--no-daemon",
         "--no-configuration-cache",
         "--console=plain",

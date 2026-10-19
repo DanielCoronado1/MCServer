@@ -9,5 +9,9 @@ pluginManagement {
 	}
 }
 
-// Debe coincidir con el id del mod
-rootProject.name = 'dolfincreepers'
+rootProject.name = 'dolfinserver'
+
+// Subproyectos de mods propios
+include 'mods:creepers'
+include 'mods:zombies'
+include 'mods:space'

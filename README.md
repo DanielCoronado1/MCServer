@@ -57,11 +57,10 @@ Necesitas **Python 3.11+** y **JDK 25** en `PATH`. Para Gradle, configura tambi�
 **1 · Compila los mods propios** desde la raíz del repositorio:
 
 ```sh
-(cd mods/creepers && ./gradlew build)
-(cd mods/zombies && ./gradlew build)
+./gradlew build
 ```
 
-En Windows, ejecuta `gradlew.bat build` dentro de cada proyecto. Si usas un ZIP de una versión publicada que incluye `custom-mods/`, omite la compilación.
+En Windows, ejecuta `gradlew.bat build`. Si usas un ZIP de una versión publicada que incluye `custom-mods/`, omite la compilación.
 
 **2 · Instala el servidor:**
 

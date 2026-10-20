@@ -3,6 +3,7 @@ package com.dolfin.zombies.griefing;
 import com.dolfin.zombies.ConfiguredZombie;
 import com.dolfin.zombies.DolfinZombies;
 import com.dolfin.zombies.ZombieKind;
+import com.dolfin.zombies.kinds.CombatParams;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.core.BlockPos;
@@ -41,25 +42,18 @@ public final class CongeladoIce {
                     zombie, zombie.blockPosition(), "death_ice", GuardDecision.Reason.DISABLED);
             return;
         }
-        var a = zombie.settings().getAsJsonObject("habilidades").getAsJsonObject("congelar");
-        int radius =
-                Math.max(
-                        0,
-                        Math.min(
-                                MAX_RADIUS,
-                                a.has("radioHielo") ? a.get("radioHielo").getAsInt() : 1));
+        var params = CombatParams.Congelado.from(zombie.settings());
+        int radius = Math.min(MAX_RADIUS, params.radioHielo());
         BlockState ice = Blocks.ICE.defaultBlockState();
-        if (a.has("bloqueAlMorir")) {
-            var id = Identifier.tryParse(a.get("bloqueAlMorir").getAsString());
-            var block = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
-            if (block == null || block == Blocks.AIR)
-                DolfinZombies.LOGGER.warn(
-                        "event=config_invalid id={} field=habilidades.congelar.bloqueAlMorir"
-                                + " value={} fallback=minecraft:ice",
-                        zombie.kind().id(),
-                        a.get("bloqueAlMorir"));
-            else ice = block.defaultBlockState();
-        }
+        var id = Identifier.tryParse(params.bloqueAlMorir());
+        var block = id == null ? null : BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
+        if (block == null || block == Blocks.AIR)
+            DolfinZombies.LOGGER.warn(
+                    "event=config_invalid id={} field=habilidades.congelar.bloqueAlMorir"
+                            + " value={} fallback=minecraft:ice",
+                    zombie.kind().id(),
+                    params.bloqueAlMorir());
+        else ice = block.defaultBlockState();
         BlockPos base = zombie.blockPosition();
         int placed = 0;
         for (int[] o : disc(radius)) {

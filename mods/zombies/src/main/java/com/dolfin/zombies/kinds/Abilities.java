@@ -50,6 +50,18 @@ public final class Abilities {
                 : def;
     }
 
+    public static java.util.List<String> stringList(JsonObject o, String key) {
+        return stringList(o, key, java.util.List.of());
+    }
+
+    public static java.util.List<String> stringList(
+            JsonObject o, String key, java.util.List<String> def) {
+        if (o == null || !o.has(key) || !o.get(key).isJsonArray()) return def;
+        java.util.List<String> list = new java.util.ArrayList<>();
+        for (var e : o.getAsJsonArray(key)) if (e.isJsonPrimitive()) list.add(e.getAsString());
+        return java.util.List.copyOf(list);
+    }
+
     /** DEBUG event with kind/uuid prefilled: {@code event=<name> id=<kind> uuid=<uuid> <fmt>}. */
     public static void debug(ConfiguredZombie z, String event, String fmt, Object... args) {
         var log = DolfinZombies.LOGGER;

@@ -36,8 +36,8 @@ public final class ExternalIntegrations {
      */
     public static boolean blockedByForeignClaim(
             ServerLevel level, BlockPos pos, UUID allowedOwner) {
-        if (!DolfinZombies.config().current().general().get("respetarClaims").getAsBoolean()
-                || !opacLoaded()) return false;
+        if (!DolfinZombies.config().current().generalConfig().respetarClaims() || !opacLoaded())
+            return false;
         try {
             MinecraftServer server = level.getServer();
             Class<?> apiClass = Class.forName("xaero.pac.common.server.api.OpenPACServerAPI");

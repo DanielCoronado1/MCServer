@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.dolfin.zombies.ZombieConfig;
 import com.dolfin.zombies.ZombieKind;
+import com.dolfin.zombies.ZombieStats;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -262,5 +263,89 @@ class CombatKindsTest {
         assertEquals(0.9, enano.alto());
         assertEquals(0.5, enano.escala());
         assertTrue(enano.alto() < 1.0);
+
+        var minero = cfg.current().params(ZombieKind.MINERO, CombatParams.Minero::from);
+        assertEquals(3.0f, minero.durezaMax());
+        assertEquals(40, minero.tiempoPorBloque());
+        assertEquals(16.0, minero.distanciaMax());
+        assertFalse(minero.soltar());
+        assertEquals(20, minero.maxPorMinuto());
+
+        var bombero = cfg.current().params(ZombieKind.BOMBERO, CombatParams.Bombero::from);
+        assertEquals(0.08, bombero.probabilidadPorPaso());
+        assertEquals(4.0f, bombero.quemarJugador());
+        assertEquals(3, bombero.segundosEnAgua());
+
+        var bruja = cfg.current().params(ZombieKind.BRUJA, CombatParams.Bruja::from);
+        assertEquals(6.0f, bruja.curacion());
+        assertEquals(8.0, bruja.radioCuracion());
+        assertEquals(80, bruja.enfriamientoPocion());
+
+        var griton = cfg.current().params(ZombieKind.GRITON, CombatParams.Griton::from);
+        assertEquals(30.0, griton.radioLlamada());
+        assertEquals(400, griton.enfriamiento());
+        assertEquals(15, griton.maxZombiesLlamados());
+
+        var granjero = cfg.current().params(ZombieKind.GRANJERO, CombatParams.Granjero::from);
+        assertEquals(24, granjero.radioBusqueda());
+        assertEquals(30, granjero.maxBloquesPorMinuto());
+        assertTrue(granjero.animales().contains("minecraft:cow"));
+
+        var ladron = cfg.current().params(ZombieKind.LADRON, CombatParams.Ladron::from);
+        assertEquals(0.35, ladron.probabilidadRobo());
+        assertEquals(1.6, ladron.velocidadHuida());
+
+        var contagiado = cfg.current().params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from);
+        assertTrue(contagiado.conversionActivo());
+        assertTrue(contagiado.infectionActivo());
+        assertEquals(0.25, contagiado.probabilidadInfeccion());
+        assertEquals(6000, contagiado.duracionInfeccion());
+        assertTrue(contagiado.curas().contains("minecraft:golden_apple"));
+
+        var mimo = cfg.current().params(ZombieKind.MIMO, CombatParams.Mimo::from);
+        assertEquals(0.30, mimo.probabilidadAparecer());
+        assertEquals(10, mimo.minutosVentana());
+        assertFalse(mimo.copiarEncantamientos());
+
+        var explorador = cfg.current().params(ZombieKind.EXPLORADOR, CombatParams.Explorador::from);
+        assertEquals(3.0, explorador.visibleAlRecibirDanioSegundos());
+        assertEquals(60, explorador.visibleAlRecibirDanioTicks());
+        assertTrue(explorador.pasosSilenciosos());
+        assertTrue(explorador.revelarConLuz());
+
+        // Test KindConfig & GeneralConfig typed views
+        var gen = cfg.current().generalConfig();
+        assertTrue(gen.activo());
+        assertEquals(12, gen.maxZombiesEspecialesPorJugador());
+        assertTrue(gen.respetarClaims());
+        assertTrue(gen.mensajesChat());
+
+        var mineroKc = cfg.current().kindConfig(ZombieKind.MINERO);
+        assertEquals(24.0, mineroKc.vida());
+        assertEquals(3.0, mineroKc.danio());
+        assertEquals(0.9, mineroKc.velocidad());
+        assertEquals(8, mineroKc.peso());
+        assertEquals(new ZombieStats(24, 3, .23 * .9, mineroKc.armadura(), 1), mineroKc.stats());
+    }
+
+    @Test
+    void contagiadoKeepsLegacyPrecedenceBetweenAbilityBlocks() {
+        JsonObject s = ZombieKind.CONTAGIADO.defaults().deepCopy();
+        JsonObject hab = s.getAsJsonObject("habilidades");
+        hab.getAsJsonObject("infeccion").addProperty("probabilidadInfeccion", 0.9);
+        hab.getAsJsonObject("infeccion")
+                .add("curas", JsonParser.parseString("[\"minecraft:honey_bottle\"]"));
+        hab.getAsJsonObject("cofre").addProperty("activo", false);
+
+        var p = CombatParams.Contagiado.from(s);
+        assertEquals(0.25, p.probabilidadInfeccion());
+        assertEquals(List.of("minecraft:honey_bottle"), p.curas());
+        assertFalse(p.cofreActivo());
+        assertTrue(p.infectionActivo());
+
+        hab.remove("convertirAlMorir");
+        p = CombatParams.Contagiado.from(s);
+        assertFalse(p.conversionActivo());
+        assertFalse(p.infectionActivo());
     }
 }

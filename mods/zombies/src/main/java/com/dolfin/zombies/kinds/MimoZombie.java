@@ -102,11 +102,9 @@ public final class MimoZombie extends ConfiguredZombie {
             setCustomName(Component.literal(this.mimicPlayerName));
             setCustomNameVisible(true);
         }
-        double targetHealth =
-                CustodyState.mimoHealth(playerMaxHealth, settings().get("vida").getAsDouble());
+        double targetHealth = CustodyState.mimoHealth(playerMaxHealth, kindConfig().vida());
         if (BloodMoon.active() && level() instanceof ServerLevel sl && BloodMoon.active(sl)) {
-            targetHealth *=
-                    settings().getAsJsonObject("lunaDeSangre").get("bonusStats").getAsDouble();
+            targetHealth *= kindConfig().bloodMoonBonusStats();
         }
         var maxHealthAttr = getAttribute(Attributes.MAX_HEALTH);
         if (maxHealthAttr != null) maxHealthAttr.setBaseValue(targetHealth);
@@ -135,12 +133,7 @@ public final class MimoZombie extends ConfiguredZombie {
         if (mimicPlayerUuid == null) {
             var nearest = level.getNearestPlayer(getX(), getY(), getZ(), 64, p -> !p.isSpectator());
             if (nearest instanceof ServerPlayer sp) {
-                boolean copyEnch =
-                        settings()
-                                .getAsJsonObject("habilidades")
-                                .getAsJsonObject("aparicionPorMuerte")
-                                .get("copiarEncantamientos")
-                                .getAsBoolean();
+                boolean copyEnch = CombatParams.Mimo.from(settings()).copiarEncantamientos();
                 configureFromDeath(
                         sp.getUUID(),
                         sp.getGameProfile().name(),

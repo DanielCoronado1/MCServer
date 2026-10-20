@@ -3,7 +3,6 @@ package com.dolfin.zombies.kinds;
 import com.dolfin.zombies.*;
 import com.dolfin.zombies.custody.*;
 import com.dolfin.zombies.custody.CustodyLedger.Holder;
-import com.google.gson.JsonObject;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.*;
@@ -39,6 +38,13 @@ public final class ContagiadoZombie extends ConfiguredZombie {
     private UUID convertedOwner;
     private String convertedOwnerName = "";
     private boolean released;
+    private CombatParams.Contagiado params;
+
+    public CombatParams.Contagiado params() {
+        CombatParams.Contagiado p = params;
+        if (p == null) params = p = CombatParams.Contagiado.from(settings());
+        return p;
+    }
 
     public ContagiadoZombie(EntityType<? extends Zombie> type, Level level) {
         super(type, level, ZombieKind.CONTAGIADO);
@@ -98,7 +104,10 @@ public final class ContagiadoZombie extends ConfiguredZombie {
     }
 
     private void tryInfect(ServerLevel level, ServerPlayer player) {
-        if (!infectionEnabled()) {
+        var snap = DolfinZombies.config().current();
+        if (!snap.enabled(ZombieKind.CONTAGIADO)
+                || !snap.params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from)
+                        .infectionActivo()) {
             DolfinZombies.LOGGER.debug(
                     "event=contagiado_infect_skipped uuid={} player={} reason=ability_disabled",
                     getUUID(),
@@ -106,8 +115,8 @@ public final class ContagiadoZombie extends ConfiguredZombie {
             return;
         }
         if (player.isCreative() || player.isSpectator()) return;
-        JsonObject cfg = infectionConfig();
-        double chance = cfg.get("probabilidadInfeccion").getAsDouble();
+        var cfg = params();
+        double chance = cfg.probabilidadInfeccion();
         double roll = level.getRandom().nextDouble();
         if (roll >= chance) {
             DolfinZombies.LOGGER.debug(
@@ -119,8 +128,7 @@ public final class ContagiadoZombie extends ConfiguredZombie {
                     roll);
             return;
         }
-        int duration = cfg.get("duracionInfeccion").getAsInt();
-        InfectionEffect.infect(player, duration);
+        InfectionEffect.infect(player, cfg.duracionInfeccion());
     }
 
     /**
@@ -134,8 +142,8 @@ public final class ContagiadoZombie extends ConfiguredZombie {
         ServerLevel level = player.level();
         InfectionEffect.clearTracking(player.getUUID());
         var snap = DolfinZombies.config().current();
-        if (!snap.enabled(ZombieKind.CONTAGIADO)
-                || !conversionEnabled(snap.zombie(ZombieKind.CONTAGIADO))) {
+        var params = snap.params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from);
+        if (!snap.enabled(ZombieKind.CONTAGIADO) || !params.conversionActivo()) {
             DolfinZombies.LOGGER.info(
                     "event=contagiado_conversion_skipped player={} reason=ability_disabled",
                     player.getUUID());
@@ -310,13 +318,11 @@ public final class ContagiadoZombie extends ConfiguredZombie {
         var packet = this.custodyPacket;
         this.released = true;
         this.custodyPacket = null;
-        JsonObject chestCfg = chestConfig();
-        boolean chestActive = chestEnabled() && chestCfg.get("activo").getAsBoolean();
-        int protectMin =
-                chestCfg.has("minutosProteccion")
-                        ? chestCfg.get("minutosProteccion").getAsInt()
-                        : 15;
-        int radius = chestCfg.has("radioBusqueda") ? chestCfg.get("radioBusqueda").getAsInt() : 5;
+        var snap = DolfinZombies.config().current();
+        var chestCfg = snap.params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from);
+        boolean chestActive = snap.enabled(ZombieKind.CONTAGIADO) && chestCfg.cofreActivo();
+        int protectMin = chestCfg.minutosProteccion();
+        int radius = chestCfg.radioBusqueda();
         CustodyManager.get(level.getServer())
                 .releaseToChestOrFallback(
                         packet,
@@ -327,73 +333,6 @@ public final class ContagiadoZombie extends ConfiguredZombie {
                         protectMin,
                         unsafe,
                         reason);
-    }
-
-    private boolean infectionEnabled() {
-        var snap = DolfinZombies.config().current();
-        if (!snap.enabled(ZombieKind.CONTAGIADO)) return false;
-        var hab = snap.zombie(ZombieKind.CONTAGIADO).getAsJsonObject("habilidades");
-        if (hab.has("infeccion") && hab.get("infeccion").isJsonObject()) {
-            var inf = hab.getAsJsonObject("infeccion");
-            if (inf.has("activo") && !inf.get("activo").getAsBoolean()) return false;
-        }
-        return snap.abilityEnabled(ZombieKind.CONTAGIADO, "convertirAlMorir");
-    }
-
-    private static boolean conversionEnabled(JsonObject zombieJson) {
-        var hab = zombieJson.getAsJsonObject("habilidades");
-        if (!hab.has("convertirAlMorir") || !hab.get("convertirAlMorir").isJsonObject())
-            return false;
-        var conv = hab.getAsJsonObject("convertirAlMorir");
-        if (conv.has("activo") && !conv.get("activo").getAsBoolean()) return false;
-        if (conv.has("convertirAlMorir") && conv.get("convertirAlMorir").isJsonObject()) {
-            var nested = conv.getAsJsonObject("convertirAlMorir");
-            if (nested.has("activo") && !nested.get("activo").getAsBoolean()) return false;
-        }
-        return true;
-    }
-
-    private boolean chestEnabled() {
-        var snap = DolfinZombies.config().current();
-        if (!snap.enabled(ZombieKind.CONTAGIADO)) return false;
-        var hab = snap.zombie(ZombieKind.CONTAGIADO).getAsJsonObject("habilidades");
-        if (hab.has("cofre") && hab.get("cofre").isJsonObject()) {
-            var c = hab.getAsJsonObject("cofre");
-            if (c.has("activo") && !c.get("activo").getAsBoolean()) return false;
-        }
-        var conv = hab.getAsJsonObject("convertirAlMorir");
-        if (conv != null && conv.has("cofre") && conv.get("cofre").isJsonObject()) {
-            var c = conv.getAsJsonObject("cofre");
-            if (c.has("activo") && !c.get("activo").getAsBoolean()) return false;
-        }
-        return true;
-    }
-
-    private JsonObject infectionConfig() {
-        var hab = settings().getAsJsonObject("habilidades");
-        if (hab != null && hab.has("convertirAlMorir"))
-            return hab.getAsJsonObject("convertirAlMorir");
-        return ZombieKind.CONTAGIADO
-                .defaults()
-                .getAsJsonObject("habilidades")
-                .getAsJsonObject("convertirAlMorir");
-    }
-
-    private JsonObject chestConfig() {
-        var hab =
-                DolfinZombies.config()
-                        .current()
-                        .zombie(ZombieKind.CONTAGIADO)
-                        .getAsJsonObject("habilidades");
-        if (hab.has("cofre") && hab.get("cofre").isJsonObject())
-            return hab.getAsJsonObject("cofre");
-        var conv = hab.getAsJsonObject("convertirAlMorir");
-        if (conv != null && conv.has("cofre") && conv.get("cofre").isJsonObject())
-            return conv.getAsJsonObject("cofre");
-        return ZombieKind.CONTAGIADO
-                .defaults()
-                .getAsJsonObject("habilidades")
-                .getAsJsonObject("cofre");
     }
 
     @Override
@@ -411,6 +350,7 @@ public final class ContagiadoZombie extends ConfiguredZombie {
     @Override
     protected void readAdditionalSaveData(ValueInput in) {
         super.readAdditionalSaveData(in);
+        this.params = null;
         in.getString("DolfinConvertedOwner")
                 .ifPresent(
                         raw -> {

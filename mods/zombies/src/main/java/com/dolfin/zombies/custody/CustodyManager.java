@@ -3,6 +3,7 @@ package com.dolfin.zombies.custody;
 import com.dolfin.zombies.*;
 import com.dolfin.zombies.custody.CustodyLedger.*;
 import com.dolfin.zombies.custody.CustodyState.*;
+import com.dolfin.zombies.kinds.CombatParams;
 import com.dolfin.zombies.kinds.MimoZombie;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -526,8 +527,7 @@ public final class CustodyManager extends SavedData {
     public static void notifyOwner(MinecraftServer s, UUID owner, Component msg) {
         if (s == null
                 || owner == null
-                || !DolfinZombies.config().current().general().get("mensajesChat").getAsBoolean())
-            return;
+                || !DolfinZombies.config().current().generalConfig().mensajesChat()) return;
         ServerPlayer p = s.getPlayerList().getPlayer(owner);
         if (p != null) p.sendSystemMessage(msg);
     }
@@ -538,11 +538,8 @@ public final class CustodyManager extends SavedData {
         if (killedByContagiado
                 || !snap.abilityEnabled(ZombieKind.MIMO, "aparicionPorMuerte")
                 || !SpawnRules.worldAllowed(player.level())) return;
-        var cfg =
-                snap.zombie(ZombieKind.MIMO)
-                        .getAsJsonObject("habilidades")
-                        .getAsJsonObject("aparicionPorMuerte");
-        double chance = cfg.get("probabilidadAparecer").getAsDouble();
+        var params = snap.params(ZombieKind.MIMO, CombatParams.Mimo::from);
+        double chance = params.probabilidadAparecer();
         double roll = player.level().getRandom().nextDouble();
         if (roll >= chance) {
             DolfinZombies.LOGGER.debug(
@@ -552,10 +549,10 @@ public final class CustodyManager extends SavedData {
                     roll);
             return;
         }
-        boolean copyEnch = cfg.get("copiarEncantamientos").getAsBoolean();
+        boolean copyEnch = params.copiarEncantamientos();
         List<ItemStack> armor = MimoZombie.copyPlayerArmor(player, copyEnch);
         long now = player.level().getGameTime();
-        long windowTicks = Math.max(1, cfg.get("minutosVentana").getAsInt()) * 1200L;
+        long windowTicks = Math.max(1, params.minutosVentana()) * 1200L;
         var pending =
                 new PendingMimo<>(
                         UUID.randomUUID(),

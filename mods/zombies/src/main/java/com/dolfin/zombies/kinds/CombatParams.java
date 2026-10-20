@@ -3,6 +3,7 @@ package com.dolfin.zombies.kinds;
 import com.dolfin.zombies.ZombieKind;
 import com.google.gson.JsonObject;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -142,6 +143,199 @@ public final class CombatParams {
                     Abilities.num(a, "anchoHitbox", 0.5, 0.1, 4),
                     Abilities.num(a, "altoHitbox", 0.9, 0.1, 4),
                     escala);
+        }
+    }
+
+    public record Minero(
+            float durezaMax,
+            int tiempoPorBloque,
+            double distanciaMax,
+            boolean soltar,
+            int maxPorMinuto,
+            List<String> listaNegra) {
+        public static final String ABILITY = "romperBloques";
+
+        public static Minero from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Minero(
+                    (float) Abilities.num(a, "durezaMax", 3, 0, 1000),
+                    Abilities.integer(a, "tiempoPorBloque", 40, 1, 72000),
+                    Abilities.num(a, "distanciaMaxRompiendo", 16, 1, 64),
+                    Abilities.bool(a, "soltarBloques", false),
+                    Abilities.integer(a, "maxBloquesPorMinuto", 20, 1, 1000),
+                    Abilities.stringList(a, "listaNegra"));
+        }
+    }
+
+    public record Bombero(double probabilidadPorPaso, float quemarJugador, int segundosEnAgua) {
+        public static final String ABILITY = "quemarBloques";
+
+        public static Bombero from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Bombero(
+                    Abilities.num(a, "probabilidadPorPaso", 0.08, 0, 1),
+                    (float) Abilities.num(a, "quemarJugador", 4, 0, 1000),
+                    Abilities.integer(a, "segundosEnAgua", 3, 0, 600));
+        }
+    }
+
+    public record Bruja(
+            float curacion,
+            double radioCuracion,
+            int enfriamientoPocion,
+            double distanciaPreferida,
+            String efectoLanzado,
+            int duracionEfectoSegundos) {
+        public static final String ABILITY = "curacion";
+
+        public static Bruja from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Bruja(
+                    (float) Abilities.num(a, "curacion", 6, 0, 1000),
+                    Abilities.num(a, "radioCuracion", 8, 1, 32),
+                    Abilities.integer(a, "enfriamientoPocion", 80, 20, 72000),
+                    Abilities.num(a, "distanciaPreferida", 8, 1, 24),
+                    Abilities.str(a, "efectoLanzado", "minecraft:slowness"),
+                    Abilities.integer(a, "duracionEfecto", 6, 1, 600));
+        }
+    }
+
+    public record Griton(
+            double radioLlamada,
+            int enfriamiento,
+            int maxZombiesLlamados,
+            boolean incluyeVanilla,
+            int refuerzosLunaDeSangre) {
+        public static final String ABILITY = "llamada";
+
+        public static Griton from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Griton(
+                    Abilities.num(a, "radioLlamada", 30, 1, 64),
+                    Abilities.integer(a, "enfriamiento", 400, 20, 72000),
+                    Abilities.integer(a, "maxZombiesLlamados", 15, 1, 64),
+                    Abilities.bool(a, "incluyeVanilla", true),
+                    Abilities.integer(a, "refuerzosLunaDeSangre", 2, 0, 15));
+        }
+    }
+
+    public record Granjero(int radioBusqueda, int maxBloquesPorMinuto, List<String> animales) {
+        public static final String CROPS = "destruirCultivos";
+        public static final String ANIMALS = "atacarAnimales";
+
+        public static Granjero from(JsonObject settings) {
+            JsonObject c = Abilities.of(settings, CROPS);
+            JsonObject a = Abilities.of(settings, ANIMALS);
+            return new Granjero(
+                    Abilities.integer(c, "radioBusqueda", 24, 1, 32),
+                    Abilities.integer(c, "maxBloquesPorMinuto", 30, 1, 1000),
+                    Abilities.stringList(a, "animales"));
+        }
+    }
+
+    public record Ladron(
+            double probabilidadRobo,
+            double velocidadHuida,
+            List<String> listaNegra,
+            boolean soloHotbar,
+            int minutosParaSoltar) {
+        public static final String ABILITY = "robar";
+
+        public static Ladron from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Ladron(
+                    Abilities.num(a, "probabilidadRobo", 0.35, 0, 1),
+                    Abilities.num(a, "velocidadHuida", 1.6, 0.1, 10),
+                    Abilities.stringList(a, "listaNegra"),
+                    Abilities.bool(a, "soloHotbar", true),
+                    Abilities.integer(a, "minutosParaSoltar", 10, 1, 1000));
+        }
+    }
+
+    /**
+     * Contagiado's three cooperating abilities. Infection chance and duration come from {@code
+     * convertirAlMorir}; cures prefer the newer {@code infeccion} block; chest settings prefer the
+     * top-level {@code cofre} over the legacy one nested in {@code convertirAlMorir}, and either
+     * block can switch the chest off.
+     */
+    public record Contagiado(
+            boolean conversionActivo,
+            boolean infectionActivo,
+            double probabilidadInfeccion,
+            int duracionInfeccion,
+            List<String> curas,
+            boolean cofreActivo,
+            int minutosProteccion,
+            int radioBusqueda) {
+        public static final String CONVERSION = "convertirAlMorir";
+        public static final String INFECTION = "infeccion";
+        public static final String CHEST = "cofre";
+        static final List<String> DEFAULT_CURES =
+                List.of(
+                        "minecraft:golden_apple",
+                        "minecraft:enchanted_golden_apple",
+                        "minecraft:milk_bucket");
+
+        public static Contagiado from(JsonObject settings) {
+            JsonObject conv = Abilities.of(settings, CONVERSION);
+            JsonObject legacyChest = child(conv, CHEST);
+            JsonObject chest =
+                    present(settings, CHEST) ? Abilities.of(settings, CHEST) : legacyChest;
+            JsonObject cures =
+                    present(settings, INFECTION) ? Abilities.of(settings, INFECTION) : conv;
+            return new Contagiado(
+                    present(settings, CONVERSION)
+                            && Abilities.bool(conv, "activo", true)
+                            && Abilities.bool(child(conv, CONVERSION), "activo", true),
+                    Abilities.bool(conv, "activo", false)
+                            && Abilities.bool(Abilities.of(settings, INFECTION), "activo", true),
+                    Abilities.num(conv, "probabilidadInfeccion", 0.25, 0, 1),
+                    Abilities.integer(conv, "duracionInfeccion", 6000, 1, 1200000),
+                    Abilities.stringList(cures, "curas", DEFAULT_CURES),
+                    Abilities.bool(Abilities.of(settings, CHEST), "activo", true)
+                            && Abilities.bool(legacyChest, "activo", true),
+                    Abilities.integer(chest, "minutosProteccion", 15, 0, 10000),
+                    Abilities.integer(chest, "radioBusqueda", 5, 0, 32));
+        }
+
+        private static boolean present(JsonObject settings, String ability) {
+            return settings != null
+                    && settings.get("habilidades") instanceof JsonObject h
+                    && h.get(ability) instanceof JsonObject;
+        }
+
+        private static JsonObject child(JsonObject o, String key) {
+            return o.get(key) instanceof JsonObject c ? c : new JsonObject();
+        }
+    }
+
+    public record Mimo(
+            double probabilidadAparecer, int minutosVentana, boolean copiarEncantamientos) {
+        public static final String ABILITY = "aparicionPorMuerte";
+
+        public static Mimo from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Mimo(
+                    Abilities.num(a, "probabilidadAparecer", 0.30, 0, 1),
+                    Abilities.integer(a, "minutosVentana", 10, 1, 1000),
+                    Abilities.bool(a, "copiarEncantamientos", false));
+        }
+    }
+
+    public record Explorador(
+            double visibleAlRecibirDanioSegundos, boolean pasosSilenciosos, boolean revelarConLuz) {
+        public static final String ABILITY = "invisibilidad";
+
+        public static Explorador from(JsonObject settings) {
+            JsonObject a = Abilities.of(settings, ABILITY);
+            return new Explorador(
+                    Abilities.num(a, "visibleAlRecibirDanio", 3, 0, 600),
+                    Abilities.bool(a, "pasosSilenciosos", true),
+                    Abilities.bool(a, "revelarConLuz", true));
+        }
+
+        public long visibleAlRecibirDanioTicks() {
+            return (long) (visibleAlRecibirDanioSegundos * 20);
         }
     }
 }

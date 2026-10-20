@@ -5,7 +5,6 @@ import com.dolfin.zombies.DolfinZombies;
 import com.dolfin.zombies.ZombieKind;
 import com.dolfin.zombies.griefing.BlockGuard;
 import com.dolfin.zombies.griefing.GuardDecision.Reason;
-import com.google.gson.JsonObject;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,7 +25,7 @@ import net.minecraft.world.level.block.BaseFireBlock;
  */
 public class BomberoZombie extends ConfiguredZombie {
     static final String ABILITY = "quemarBloques";
-    private Params params;
+    private CombatParams.Bombero params;
     private BlockPos lastStep;
     private int wetTicks;
 
@@ -34,19 +33,8 @@ public class BomberoZombie extends ConfiguredZombie {
         super(type, level, ZombieKind.BOMBERO);
     }
 
-    record Params(double probabilidad, float quemarJugador, int segundosEnAgua) {}
-
-    private Params params() {
-        if (params == null) {
-            JsonObject a = settings().getAsJsonObject("habilidades").getAsJsonObject(ABILITY);
-            params =
-                    new Params(
-                            a.has("probabilidadPorPaso")
-                                    ? a.get("probabilidadPorPaso").getAsDouble()
-                                    : .08,
-                            a.has("quemarJugador") ? a.get("quemarJugador").getAsFloat() : 4,
-                            a.has("segundosEnAgua") ? a.get("segundosEnAgua").getAsInt() : 3);
-        }
+    private CombatParams.Bombero params() {
+        if (params == null) params = CombatParams.Bombero.from(settings());
         return params;
     }
 
@@ -72,7 +60,7 @@ public class BomberoZombie extends ConfiguredZombie {
     @Override
     protected void customServerAiStep(ServerLevel level) {
         super.customServerAiStep(level);
-        Params p = params();
+        CombatParams.Bombero p = params();
         boolean wet =
                 isInWater() || level.isThundering() && level.isRainingAt(blockPosition().above());
         wetTicks = wet ? wetTicks + 1 : 0;
@@ -90,7 +78,8 @@ public class BomberoZombie extends ConfiguredZombie {
         BlockPos here = blockPosition();
         if (here.equals(lastStep)) return;
         lastStep = here.immutable();
-        if (wet || !abilityEnabled(ABILITY) || getRandom().nextDouble() >= p.probabilidad()) return;
+        if (wet || !abilityEnabled(ABILITY) || getRandom().nextDouble() >= p.probabilidadPorPaso())
+            return;
         tryIgnite(level, here);
     }
 
@@ -141,5 +130,11 @@ public class BomberoZombie extends ConfiguredZombie {
                     params().quemarJugador());
         }
         return hit;
+    }
+
+    @Override
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
+        super.readAdditionalSaveData(in);
+        params = null;
     }
 }

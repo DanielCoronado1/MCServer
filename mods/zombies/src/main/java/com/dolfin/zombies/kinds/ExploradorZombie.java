@@ -47,17 +47,18 @@ public final class ExploradorZombie extends SupportZombie {
         super.setTarget(day() ? null : target);
     }
 
+    private CombatParams.Explorador params;
+
+    private CombatParams.Explorador params() {
+        if (params == null) params = CombatParams.Explorador.from(settings());
+        return params;
+    }
+
     @Override
     public boolean hurtServer(ServerLevel world, DamageSource source, float amount) {
         boolean hit = super.hurtServer(world, source, amount);
         if (hit && abilityEnabled("invisibilidad")) {
-            damagedUntil =
-                    world.getGameTime()
-                            + (long)
-                                    (ability("invisibilidad")
-                                                    .get("visibleAlRecibirDanio")
-                                                    .getAsDouble()
-                                            * 20);
+            damagedUntil = world.getGameTime() + params().visibleAlRecibirDanioTicks();
             reveal(true, "damage");
         }
         return hit;
@@ -87,7 +88,6 @@ public final class ExploradorZombie extends SupportZombie {
             return;
         }
         nextScan = now + 20;
-        var a = ability("invisibilidad");
         boolean enabled = abilityEnabled("invisibilidad"), day = day();
         int light =
                 Math.max(
@@ -97,8 +97,7 @@ public final class ExploradorZombie extends SupportZombie {
                                 world.getBrightness(LightLayer.SKY, blockPosition())
                                         - world.getSkyDarken()));
         ambientReveal =
-                SupportRules.revealed(
-                        enabled, day, light, a.get("revelarConLuz").getAsBoolean(), now, 0);
+                SupportRules.revealed(enabled, day, light, params().revelarConLuz(), now, 0);
         reveal(
                 ambientReveal || now < damagedUntil,
                 !enabled ? "disabled" : day ? "day" : "light_or_timeout");
@@ -131,8 +130,7 @@ public final class ExploradorZombie extends SupportZombie {
     protected void playStepSound(BlockPos pos, BlockState state) {
         if (level().isClientSide()
                 || !abilityEnabled("invisibilidad")
-                || !ability("invisibilidad").get("pasosSilenciosos").getAsBoolean())
-            super.playStepSound(pos, state);
+                || !params().pasosSilenciosos()) super.playStepSound(pos, state);
     }
 
     @Override
@@ -147,6 +145,7 @@ public final class ExploradorZombie extends SupportZombie {
     protected void readAdditionalSaveData(ValueInput in) {
         super.readAdditionalSaveData(in);
         damagedUntil = in.getLongOr("DolfinRevealUntil", 0);
+        params = null;
         DolfinZombies.LOGGER.debug(
                 "event=explorador_loaded uuid={} until={}", getUUID(), damagedUntil);
     }

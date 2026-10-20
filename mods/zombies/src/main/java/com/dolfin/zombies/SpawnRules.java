@@ -1,5 +1,6 @@
 package com.dolfin.zombies;
 
+import com.dolfin.zombies.kinds.CombatParams;
 import com.google.gson.*;
 
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -69,32 +70,26 @@ public final class SpawnRules {
             List<String> exclude,
             int waterDepth) {
         static Rule from(ZombieKind k, JsonObject j, boolean enabled) {
-            var g = j.getAsJsonArray("grupo");
-            var h = j.getAsJsonArray("alturaY");
-            int depth = MIN_WATER_DEPTH;
+            var kc = KindConfig.from(j);
             // Abismo may ask for deeper water through its grab ability setting, never shallower
             // than the ticket's 5 blocks.
-            if (k == ZombieKind.ABISMO) {
-                var a = j.getAsJsonObject("habilidades").getAsJsonObject("agarre");
-                if (a != null
-                        && a.has("profundidadMinima")
-                        && a.get("profundidadMinima").isJsonPrimitive())
-                    depth =
-                            Math.max(
+            int depth =
+                    k == ZombieKind.ABISMO
+                            ? Math.max(
                                     MIN_WATER_DEPTH,
-                                    Math.min(64, a.get("profundidadMinima").getAsInt()));
-            }
+                                    CombatParams.Abismo.from(j).profundidadMinima())
+                            : MIN_WATER_DEPTH;
             return new Rule(
                     enabled,
-                    j.get("peso").getAsInt(),
-                    j.getAsJsonObject("lunaDeSangre").get("pesoExtra").getAsDouble(),
-                    g.get(0).getAsInt(),
-                    g.get(1).getAsInt(),
-                    h.get(0).getAsInt(),
-                    h.get(1).getAsInt(),
-                    j.get("luzMax").getAsInt(),
-                    strings(j.getAsJsonArray("biomas")),
-                    strings(j.getAsJsonArray("biomasExcluidos")),
+                    kc.peso(),
+                    kc.bloodMoonPesoExtra(),
+                    kc.minGrupo(),
+                    kc.maxGrupo(),
+                    kc.minAlturaY(),
+                    kc.maxAlturaY(),
+                    kc.luzMax(),
+                    kc.biomas(),
+                    kc.biomasExcluidos(),
                     depth);
         }
     }
@@ -200,12 +195,6 @@ public final class SpawnRules {
     private static long capTick = Long.MIN_VALUE;
     private static final Map<EntityType<?>, ZombieKind> kinds = new IdentityHashMap<>();
 
-    private static List<String> strings(JsonArray a) {
-        return java.util.stream.StreamSupport.stream(a.spliterator(), false)
-                .map(JsonElement::getAsString)
-                .toList();
-    }
-
     private static void refresh() {
         var s = DolfinZombies.config().current();
         if (s.generation() == generation) return;
@@ -216,9 +205,8 @@ public final class SpawnRules {
         for (var row : poolCounts) Arrays.fill(row, 0);
         spawnCounts.clear();
         generation = s.generation();
-        var general = s.general();
-        worlds = strings(general.getAsJsonArray("mundosPermitidos"));
-        cap = general.get("maxZombiesEspecialesPorJugador").getAsInt();
+        worlds = s.generalConfig().mundosPermitidos();
+        cap = s.generalConfig().maxZombiesEspecialesPorJugador();
         var weights = new StringJoiner(",");
         for (var k : ZombieKind.values()) {
             var r = Rule.from(k, s.zombie(k), s.enabled(k));

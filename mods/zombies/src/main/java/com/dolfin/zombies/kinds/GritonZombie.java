@@ -13,6 +13,13 @@ import net.minecraft.world.level.storage.*;
 public final class GritonZombie extends SupportZombie {
     private long readyAt, fleeUntil;
     private LivingEntity fleeFrom;
+    private CombatParams.Griton params;
+
+    public CombatParams.Griton params() {
+        CombatParams.Griton p = params;
+        if (p == null) params = p = CombatParams.Griton.from(settings());
+        return p;
+    }
 
     public GritonZombie(EntityType<? extends Zombie> type, Level level) {
         super(type, level, ZombieKind.GRITON);
@@ -79,8 +86,8 @@ public final class GritonZombie extends SupportZombie {
             reject("cooldown");
             return;
         }
-        var a = ability("llamada");
-        double radius = Math.min(64, a.get("radioLlamada").getAsDouble());
+        var a = params();
+        double radius = a.radioLlamada();
         Player player =
                 world
                         .getEntitiesOfClass(
@@ -99,7 +106,7 @@ public final class GritonZombie extends SupportZombie {
             reject("no_visible_player");
             return;
         }
-        int count = 0, limit = Math.min(64, a.get("maxZombiesLlamados").getAsInt());
+        int count = 0, limit = a.maxZombiesLlamados();
         for (var z :
                 world.getEntitiesOfClass(
                         Zombie.class,
@@ -108,8 +115,7 @@ public final class GritonZombie extends SupportZombie {
                                 z != this
                                         && z.isAlive()
                                         && SupportRules.within(distanceToSqr(z), radius)
-                                        && (a.get("incluyeVanilla").getAsBoolean()
-                                                || z instanceof ConfiguredZombie))) {
+                                        && (a.incluyeVanilla() || z instanceof ConfiguredZombie))) {
             if (count >= limit) break;
             z.setTarget(player);
             z.getNavigation().moveTo(player, 1.1);
@@ -117,7 +123,7 @@ public final class GritonZombie extends SupportZombie {
         }
         int spawned = 0;
         if (BloodMoon.active(world))
-            for (int i = 0; i < Math.min(15, a.get("refuerzosLunaDeSangre").getAsInt()); i++) {
+            for (int i = 0; i < a.refuerzosLunaDeSangre(); i++) {
                 var pos = blockPosition().offset(random.nextInt(7) - 3, 0, random.nextInt(7) - 3);
                 var z = EntityTypes.ZOMBIE.create(world, EntitySpawnReason.REINFORCEMENT);
                 if (z == null) continue;
@@ -139,7 +145,7 @@ public final class GritonZombie extends SupportZombie {
         playSound(ZombieSounds.GRITON_SCREAM, 1.5f, 1);
         world.sendParticles(
                 ParticleTypes.ANGRY_VILLAGER, getX(), getEyeY(), getZ(), 12, .4, .4, .4, 0);
-        readyAt = now + Math.max(20, a.get("enfriamiento").getAsInt());
+        readyAt = now + a.enfriamiento();
         fleeUntil = now + 60;
         fleeFrom = player;
         setTarget(null);
@@ -164,6 +170,7 @@ public final class GritonZombie extends SupportZombie {
     @Override
     protected void readAdditionalSaveData(ValueInput in) {
         super.readAdditionalSaveData(in);
+        params = null;
         readyAt = in.getLongOr("DolfinCallReady", 0);
         DolfinZombies.LOGGER.debug("event=griton_loaded uuid={} readyAt={}", getUUID(), readyAt);
     }

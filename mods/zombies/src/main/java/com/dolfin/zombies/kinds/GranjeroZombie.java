@@ -6,7 +6,6 @@ import com.dolfin.zombies.ZombieKind;
 import com.dolfin.zombies.griefing.BlockGuard;
 import com.dolfin.zombies.griefing.GuardDecision.Reason;
 import com.dolfin.zombies.griefing.RateLimiter;
-import com.google.gson.JsonObject;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -47,34 +46,23 @@ public class GranjeroZombie extends ConfiguredZombie {
         super(type, level, ZombieKind.GRANJERO);
     }
 
-    record Params(int radio, int maxPorMinuto, Set<EntityType<?>> animales) {}
+    record Params(int radio, int maxPorMinuto, Set<EntityType<?>> animales) {
+        static Params from(CombatParams.Granjero p) {
+            Set<EntityType<?>> types = new HashSet<>();
+            for (String s : p.animales()) {
+                var id = Identifier.tryParse(s);
+                if (id != null) BuiltInRegistries.ENTITY_TYPE.getOptional(id).ifPresent(types::add);
+            }
+            return new Params(
+                    Math.min(MAX_RADIUS, p.radioBusqueda()),
+                    p.maxBloquesPorMinuto(),
+                    Set.copyOf(types));
+        }
+    }
 
     private Params params() {
         if (params == null) {
-            JsonObject h = settings().getAsJsonObject("habilidades");
-            JsonObject c = h.has(CROPS) ? h.getAsJsonObject(CROPS) : new JsonObject(),
-                    a = h.has(ANIMALS) ? h.getAsJsonObject(ANIMALS) : new JsonObject();
-            int radio =
-                    (int)
-                            Math.min(
-                                    MAX_RADIUS,
-                                    c.has("radioBusqueda")
-                                            ? c.get("radioBusqueda").getAsDouble()
-                                            : 24);
-            Set<EntityType<?>> types = new HashSet<>();
-            if (a.has("animales"))
-                for (var e : a.getAsJsonArray("animales")) {
-                    var id = Identifier.tryParse(e.getAsString());
-                    if (id != null)
-                        BuiltInRegistries.ENTITY_TYPE.getOptional(id).ifPresent(types::add);
-                }
-            params =
-                    new Params(
-                            Math.max(1, radio),
-                            c.has("maxBloquesPorMinuto")
-                                    ? c.get("maxBloquesPorMinuto").getAsInt()
-                                    : 30,
-                            Set.copyOf(types));
+            params = Params.from(CombatParams.Granjero.from(settings()));
         }
         return params;
     }
@@ -190,5 +178,11 @@ public class GranjeroZombie extends ConfiguredZombie {
             }
         }
         return null;
+    }
+
+    @Override
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
+        super.readAdditionalSaveData(in);
+        params = null;
     }
 }

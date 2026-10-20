@@ -25,6 +25,7 @@ public class ConfiguredZombie extends Zombie {
                     ConfiguredZombie.class,
                     net.minecraft.network.syncher.EntityDataSerializers.BOOLEAN);
     private final ZombieKind kind;
+    private KindConfig kindConfig;
     private JsonObject settings;
     private long configGeneration;
 
@@ -33,6 +34,7 @@ public class ConfiguredZombie extends Zombie {
         this.kind = kind;
         if (!level.isClientSide()) {
             var snapshot = DolfinZombies.config().current();
+            kindConfig = snapshot.kindConfig(kind);
             settings = snapshot.zombie(kind);
             configGeneration = snapshot.generation();
             applyStats();
@@ -124,6 +126,13 @@ public class ConfiguredZombie extends Zombie {
         return settings == null ? kind.defaults() : settings.deepCopy();
     }
 
+    public KindConfig kindConfig() {
+        if (kindConfig == null) {
+            kindConfig = KindConfig.from(settings == null ? kind.defaults() : settings);
+        }
+        return kindConfig;
+    }
+
     public boolean abilityEnabled(String id) {
         return DolfinZombies.config().current().abilityEnabled(kind, id);
     }
@@ -135,7 +144,7 @@ public class ConfiguredZombie extends Zombie {
                 .removeModifier(
                         net.minecraft.resources.Identifier.withDefaultNamespace(
                                 "leader_zombie_bonus"));
-        var stats = ZombieStats.from(settings);
+        var stats = kindConfig().stats();
         getAttribute(Attributes.MAX_HEALTH).setBaseValue(stats.health());
         getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(stats.damage());
         getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(stats.movementSpeed());
@@ -153,9 +162,12 @@ public class ConfiguredZombie extends Zombie {
         // Blood moon bonus is baked into this entity's persisted settings snapshot, so it survives
         // dawn, reloads and restarts.
         if (BloodMoon.active(level.getLevel())) {
-            double bonus = settings.getAsJsonObject("lunaDeSangre").get("bonusStats").getAsDouble();
-            for (var key : new String[] {"vida", "danio"})
-                settings.addProperty(key, settings.get(key).getAsDouble() * bonus);
+            double bonus = kindConfig().bloodMoonBonusStats();
+            kindConfig = kindConfig().withBloodMoonBonus(bonus);
+            if (settings != null) {
+                settings.addProperty("vida", kindConfig.vida());
+                settings.addProperty("danio", kindConfig.danio());
+            }
             DolfinZombies.LOGGER.debug(
                     "event=blood_moon_bonus id={} uuid={} bonusStats={}",
                     kind.id(),
@@ -177,7 +189,7 @@ public class ConfiguredZombie extends Zombie {
                 getMaxHealth(),
                 getAttributeValue(Attributes.ATTACK_DAMAGE),
                 getAttributeValue(Attributes.MOVEMENT_SPEED),
-                settings.get("loot").getAsString());
+                kindConfig().loot());
         SpawnRules.spawned(this, reason);
         return result;
     }
@@ -211,17 +223,13 @@ public class ConfiguredZombie extends Zombie {
 
     @Override
     protected boolean isSunSensitive() {
-        return settings == null
-                ? super.isSunSensitive()
-                : settings.get("quemaConSol").getAsBoolean();
+        return settings == null ? super.isSunSensitive() : kindConfig().quemaConSol();
     }
 
     @Override
     protected int getBaseExperienceReward(ServerLevel level) {
         return BloodMoonOptions.experience(
-                settings == null ? 5 : settings.get("xp").getAsInt(),
-                BloodMoon.options().xpMultiplier(),
-                BloodMoon.active(level));
+                kindConfig().xp(), BloodMoon.options().xpMultiplier(), BloodMoon.active(level));
     }
 
     @Override
@@ -232,8 +240,7 @@ public class ConfiguredZombie extends Zombie {
                 recentlyHit,
                 ResourceKey.create(
                         Registries.LOOT_TABLE,
-                        net.minecraft.resources.Identifier.parse(
-                                settings.get("loot").getAsString())));
+                        net.minecraft.resources.Identifier.parse(kindConfig().loot())));
     }
 
     @Override
@@ -268,6 +275,7 @@ public class ConfiguredZombie extends Zombie {
                         raw -> {
                             try {
                                 settings = DolfinZombies.config().validateSaved(kind, raw);
+                                kindConfig = KindConfig.from(settings);
                             } catch (RuntimeException e) {
                                 DolfinZombies.LOGGER.error(
                                         "event=entity_settings_invalid id={} uuid={} reason={}",

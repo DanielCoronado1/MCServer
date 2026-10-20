@@ -6,7 +6,6 @@ import com.dolfin.zombies.ZombieKind;
 import com.dolfin.zombies.griefing.BlockGuard;
 import com.dolfin.zombies.griefing.GuardDecision.Reason;
 import com.dolfin.zombies.griefing.RateLimiter;
-import com.google.gson.JsonObject;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -69,20 +68,11 @@ public class MineroZombie extends ConfiguredZombie {
             boolean soltar,
             int maxPorMinuto,
             Set<Block> ids,
-            List<TagKey<Block>> tags) {}
-
-    private Params params() {
-        if (params == null)
-            params = parse(settings().getAsJsonObject("habilidades").getAsJsonObject(ABILITY));
-        return params;
-    }
-
-    static Params parse(JsonObject a) {
-        Set<Block> ids = new HashSet<>();
-        List<TagKey<Block>> tags = new java.util.ArrayList<>();
-        if (a.has("listaNegra"))
-            for (var e : a.getAsJsonArray("listaNegra")) {
-                String s = e.getAsString();
+            List<TagKey<Block>> tags) {
+        static Params from(CombatParams.Minero p) {
+            Set<Block> ids = new HashSet<>();
+            List<TagKey<Block>> tags = new java.util.ArrayList<>();
+            for (String s : p.listaNegra()) {
                 if (s.startsWith("#")) {
                     var id = Identifier.tryParse(s.substring(1));
                     if (id != null) tags.add(TagKey.create(Registries.BLOCK, id));
@@ -91,18 +81,20 @@ public class MineroZombie extends ConfiguredZombie {
                     if (id != null) BuiltInRegistries.BLOCK.getOptional(id).ifPresent(ids::add);
                 }
             }
-        return new Params(
-                (float) num(a, "durezaMax", 3),
-                (int) num(a, "tiempoPorBloque", 40),
-                num(a, "distanciaMaxRompiendo", 16),
-                a.has("soltarBloques") && a.get("soltarBloques").getAsBoolean(),
-                (int) num(a, "maxBloquesPorMinuto", 20),
-                Set.copyOf(ids),
-                List.copyOf(tags));
+            return new Params(
+                    p.durezaMax(),
+                    p.tiempoPorBloque(),
+                    p.distanciaMax(),
+                    p.soltar(),
+                    p.maxPorMinuto(),
+                    Set.copyOf(ids),
+                    List.copyOf(tags));
+        }
     }
 
-    private static double num(JsonObject a, String k, double d) {
-        return a.has(k) ? a.get(k).getAsDouble() : d;
+    private Params params() {
+        if (params == null) params = Params.from(CombatParams.Minero.from(settings()));
+        return params;
     }
 
     @Override
@@ -275,5 +267,11 @@ public class MineroZombie extends ConfiguredZombie {
         if (miningPos != null && level() instanceof ServerLevel l)
             l.destroyBlockProgress(getId(), miningPos, -1);
         super.remove(reason);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
+        super.readAdditionalSaveData(in);
+        params = null;
     }
 }

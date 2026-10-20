@@ -44,12 +44,17 @@ public final class ZombieConfig {
         private final JsonObject general;
         private final Map<ZombieKind, JsonObject> zombies;
         private final long generation;
+        private final GeneralConfig generalConfig;
+        private final Map<ZombieKind, KindConfig> kindConfigs;
 
         Snapshot(JsonObject general, Map<ZombieKind, JsonObject> zombies, long generation) {
             this.general = general.deepCopy();
             this.zombies = new EnumMap<>(ZombieKind.class);
             zombies.forEach((k, v) -> this.zombies.put(k, v.deepCopy()));
             this.generation = generation;
+            this.generalConfig = GeneralConfig.from(this.general);
+            this.kindConfigs = new EnumMap<>(ZombieKind.class);
+            this.zombies.forEach((k, v) -> this.kindConfigs.put(k, KindConfig.from(v)));
         }
 
         public JsonObject general() {
@@ -64,9 +69,24 @@ public final class ZombieConfig {
             return generation;
         }
 
+        public GeneralConfig generalConfig() {
+            return generalConfig;
+        }
+
+        public KindConfig kindConfig(ZombieKind kind) {
+            return kindConfigs.get(kind);
+        }
+
+        /**
+         * Reads {@code kind}'s settings through a typed parser such as {@code
+         * CombatParams.Mimo::from}, without copying the JSON.
+         */
+        public <T> T params(ZombieKind kind, java.util.function.Function<JsonObject, T> parser) {
+            return parser.apply(zombies.get(kind));
+        }
+
         public boolean enabled(ZombieKind kind) {
-            return general.get("activo").getAsBoolean()
-                    && zombies.get(kind).get("activo").getAsBoolean();
+            return generalConfig.activo() && kindConfigs.get(kind).activo();
         }
 
         public boolean abilityEnabled(ZombieKind kind, String ability) {

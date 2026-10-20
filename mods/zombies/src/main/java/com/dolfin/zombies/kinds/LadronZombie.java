@@ -3,7 +3,6 @@ package com.dolfin.zombies.kinds;
 import com.dolfin.zombies.*;
 import com.dolfin.zombies.custody.*;
 import com.dolfin.zombies.custody.CustodyLedger.Holder;
-import com.google.gson.*;
 
 import net.minecraft.core.registries.*;
 import net.minecraft.network.chat.Component;
@@ -32,6 +31,13 @@ public final class LadronZombie extends ConfiguredZombie {
     private ItemAccounting.Packet<ItemStack> stolenPacket;
     private long stealDeadlineTick = -1;
     private boolean released;
+    private CombatParams.Ladron params;
+
+    public CombatParams.Ladron params() {
+        CombatParams.Ladron p = params;
+        if (p == null) params = p = CombatParams.Ladron.from(settings());
+        return p;
+    }
 
     public LadronZombie(EntityType<? extends Zombie> type, Level level) {
         super(type, level, ZombieKind.LADRON);
@@ -114,8 +120,8 @@ public final class LadronZombie extends ConfiguredZombie {
                     player.getUUID());
             return;
         }
-        JsonObject cfg = robarConfig();
-        double chance = cfg.get("probabilidadRobo").getAsDouble();
+        CombatParams.Ladron cfg = params();
+        double chance = cfg.probabilidadRobo();
         double roll = level.getRandom().nextDouble();
         if (roll >= chance) {
             DolfinZombies.LOGGER.debug(
@@ -126,8 +132,8 @@ public final class LadronZombie extends ConfiguredZombie {
                     roll);
             return;
         }
-        List<String> blacklist = blacklist(cfg);
-        boolean hotbarOnly = cfg.get("soloHotbar").getAsBoolean();
+        List<String> blacklist = cfg.listaNegra();
+        boolean hotbarOnly = cfg.soloHotbar();
         var inv = player.getInventory();
         int mainSize = inv.getNonEquipmentItems().size();
         List<Boolean> eligible = new ArrayList<>(mainSize);
@@ -187,9 +193,9 @@ public final class LadronZombie extends ConfiguredZombie {
         inv.setChanged();
         this.stolenPacket = packet;
         this.released = false;
-        int minutes = Math.max(1, cfg.get("minutosParaSoltar").getAsInt());
+        int minutes = Math.max(1, cfg.minutosParaSoltar());
         this.stealDeadlineTick = level.getGameTime() + minutes * 1200L;
-        equipVisualAndFleeSpeed(copy, cfg.get("velocidadHuida").getAsDouble());
+        equipVisualAndFleeSpeed(copy, cfg.velocidadHuida());
         setTarget(null);
         playStealSound();
         CustodyManager.notifyOwner(
@@ -259,7 +265,7 @@ public final class LadronZombie extends ConfiguredZombie {
         this.stolenPacket = null;
         this.stealDeadlineTick = -1;
         setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-        double normalSpeed = settings().get("velocidad").getAsDouble();
+        double normalSpeed = kindConfig().velocidad();
         var speedAttr = getAttribute(Attributes.MOVEMENT_SPEED);
         if (speedAttr != null) speedAttr.setBaseValue(.23 * normalSpeed);
         CustodyManager.get(level.getServer())
@@ -278,24 +284,6 @@ public final class LadronZombie extends ConfiguredZombie {
         }
     }
 
-    private JsonObject robarConfig() {
-        var hab = settings().getAsJsonObject("habilidades");
-        return hab != null && hab.has("robar")
-                ? hab.getAsJsonObject("robar")
-                : ZombieKind.LADRON
-                        .defaults()
-                        .getAsJsonObject("habilidades")
-                        .getAsJsonObject("robar");
-    }
-
-    private static List<String> blacklist(JsonObject cfg) {
-        if (!cfg.has("listaNegra") || !cfg.get("listaNegra").isJsonArray()) return List.of();
-        List<String> out = new ArrayList<>();
-        for (JsonElement e : cfg.getAsJsonArray("listaNegra"))
-            if (e.isJsonPrimitive()) out.add(e.getAsString());
-        return out;
-    }
-
     @Override
     protected void addAdditionalSaveData(ValueOutput out) {
         super.addAdditionalSaveData(out);
@@ -308,6 +296,7 @@ public final class LadronZombie extends ConfiguredZombie {
     @Override
     protected void readAdditionalSaveData(ValueInput in) {
         super.readAdditionalSaveData(in);
+        this.params = null;
         setCanBreakDoors(false);
         in.read("DolfinStolenPacket", CustodyManager.PACKET_CODEC)
                 .ifPresent(
@@ -317,8 +306,7 @@ public final class LadronZombie extends ConfiguredZombie {
                             this.stealDeadlineTick = in.getLongOr("DolfinStealDeadline", -1L);
                             if (!pkt.items().isEmpty()) {
                                 equipVisualAndFleeSpeed(
-                                        pkt.items().getFirst(),
-                                        robarConfig().get("velocidadHuida").getAsDouble());
+                                        pkt.items().getFirst(), params().velocidadHuida());
                             }
                             DolfinZombies.LOGGER.info(
                                     "event=ladron_custody_restored uuid={} custody={} owner={}"

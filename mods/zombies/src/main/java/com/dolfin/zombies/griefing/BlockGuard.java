@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gamerules.GameRules;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -52,11 +51,8 @@ public final class BlockGuard {
     private static void refresh() {
         var snapshot = DolfinZombies.config().current();
         if (snapshot.generation() == generation) return;
-        var general = snapshot.general();
-        Set<String> w = new HashSet<>();
-        general.getAsJsonArray("mundosPermitidos").forEach(e -> w.add(e.getAsString()));
-        worlds = Set.copyOf(w);
-        respetarClaims = general.get("respetarClaims").getAsBoolean();
+        worlds = Set.copyOf(snapshot.generalConfig().mundosPermitidos());
+        respetarClaims = snapshot.generalConfig().respetarClaims();
         generation = snapshot.generation();
         DolfinZombies.LOGGER.info(
                 "event=grief_guard_reloaded generation={} worlds={} respetarClaims={} providers={}",

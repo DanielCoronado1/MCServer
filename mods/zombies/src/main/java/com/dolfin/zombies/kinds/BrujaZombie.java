@@ -15,6 +15,13 @@ import net.minecraft.world.level.storage.*;
 
 public final class BrujaZombie extends SupportZombie {
     private long potionAt;
+    private CombatParams.Bruja params;
+
+    public CombatParams.Bruja params() {
+        CombatParams.Bruja p = params;
+        if (p == null) params = p = CombatParams.Bruja.from(settings());
+        return p;
+    }
 
     public BrujaZombie(EntityType<? extends Zombie> type, Level level) {
         super(type, level, ZombieKind.BRUJA);
@@ -34,12 +41,7 @@ public final class BrujaZombie extends SupportZombie {
                     public void tick() {
                         var target = getTarget();
                         if (target == null) return;
-                        double preferred =
-                                Math.min(
-                                        24,
-                                        ability("curacion")
-                                                .get("distanciaPreferida")
-                                                .getAsDouble());
+                        double preferred = params().distanciaPreferida();
                         getLookControl().setLookAt(target, 30, 30);
                         if (distanceToSqr(target) < preferred * preferred) {
                             if (ZombieTickPolicy.navigationDue(tickCount, getId()))
@@ -64,8 +66,8 @@ public final class BrujaZombie extends SupportZombie {
             reject("disabled");
             return;
         }
-        var a = ability("curacion");
-        double radius = Math.min(32, a.get("radioCuracion").getAsDouble());
+        var a = params();
+        double radius = a.radioCuracion();
         if (now < potionAt) {
             reject("potion_cooldown");
             return;
@@ -83,7 +85,7 @@ public final class BrujaZombie extends SupportZombie {
                                         z.getMaxHealth(),
                                         distanceToSqr(z),
                                         radius))) {
-            z.heal(a.get("curacion").getAsFloat());
+            z.heal(a.curacion());
             world.sendParticles(
                     ParticleTypes.HAPPY_VILLAGER,
                     z.getX(),
@@ -104,13 +106,10 @@ public final class BrujaZombie extends SupportZombie {
                 && !player.isSpectator()
                 && distanceToSqr(player) <= 1024
                 && getSensing().hasLineOfSight(player)) {
-            var effect =
-                    BuiltInRegistries.MOB_EFFECT.get(
-                            Identifier.parse(a.get("efectoLanzado").getAsString()));
+            var effect = BuiltInRegistries.MOB_EFFECT.get(Identifier.parse(a.efectoLanzado()));
             if (effect.isPresent()) {
                 player.addEffect(
-                        new MobEffectInstance(
-                                effect.get(), a.get("duracionEfecto").getAsInt() * 20, 0),
+                        new MobEffectInstance(effect.get(), a.duracionEfectoSegundos() * 20, 0),
                         this);
                 cast = true;
                 world.sendParticles(
@@ -126,7 +125,7 @@ public final class BrujaZombie extends SupportZombie {
             } else reject("unknown_effect");
         } else reject("no_visible_target");
         if (healed > 0 || cast) {
-            potionAt = now + Math.max(20, a.get("enfriamientoPocion").getAsInt());
+            potionAt = now + a.enfriamientoPocion();
             DolfinZombies.LOGGER.debug(
                     "event=bruja_potion uuid={} healed={} cast={} readyAt={}",
                     getUUID(),
@@ -146,6 +145,7 @@ public final class BrujaZombie extends SupportZombie {
     @Override
     protected void readAdditionalSaveData(ValueInput in) {
         super.readAdditionalSaveData(in);
+        params = null;
         potionAt = in.getLongOr("DolfinPotionReady", 0);
         DolfinZombies.LOGGER.debug("event=bruja_loaded uuid={} readyAt={}", getUUID(), potionAt);
     }

@@ -48,7 +48,7 @@ public final class BloodMoon {
         var s = DolfinZombies.config().current();
         if (s.generation() != generation || options == null) {
             generation = s.generation();
-            options = BloodMoonOptions.from(s.general());
+            options = s.generalConfig().lunaDeSangre();
             DolfinZombies.LOGGER.info(
                     "event=blood_moon_options generation={} {}", generation, options);
         }

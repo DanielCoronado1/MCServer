@@ -1,7 +1,7 @@
 package com.dolfin.zombies.custody;
 
 import com.dolfin.zombies.*;
-import com.google.gson.JsonElement;
+import com.dolfin.zombies.kinds.CombatParams;
 
 import net.minecraft.core.*;
 import net.minecraft.core.registries.*;
@@ -83,20 +83,7 @@ public final class InfectionEffect extends MobEffect {
                     "minecraft:golden_apple",
                     "minecraft:enchanted_golden_apple",
                     "minecraft:milk_bucket");
-        var hab = cfg.current().zombie(ZombieKind.CONTAGIADO).getAsJsonObject("habilidades");
-        var obj =
-                hab.has("infeccion")
-                        ? hab.getAsJsonObject("infeccion")
-                        : hab.getAsJsonObject("convertirAlMorir");
-        if (obj == null || !obj.has("curas") || !obj.get("curas").isJsonArray())
-            return List.of(
-                    "minecraft:golden_apple",
-                    "minecraft:enchanted_golden_apple",
-                    "minecraft:milk_bucket");
-        List<String> out = new ArrayList<>();
-        for (JsonElement e : obj.getAsJsonArray("curas"))
-            if (e.isJsonPrimitive()) out.add(e.getAsString());
-        return out;
+        return cfg.current().params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from).curas();
     }
 
     public static boolean isCureItem(ItemStack stack, List<String> selectors) {
@@ -133,10 +120,8 @@ public final class InfectionEffect extends MobEffect {
     private static int defaultDuration() {
         var cfg = DolfinZombies.config();
         if (cfg == null) return 6000;
-        var hab = cfg.current().zombie(ZombieKind.CONTAGIADO).getAsJsonObject("habilidades");
-        var obj = hab.has("convertirAlMorir") ? hab.getAsJsonObject("convertirAlMorir") : null;
-        return obj != null && obj.has("duracionInfeccion")
-                ? obj.get("duracionInfeccion").getAsInt()
-                : 6000;
+        return cfg.current()
+                .params(ZombieKind.CONTAGIADO, CombatParams.Contagiado::from)
+                .duracionInfeccion();
     }
 }

@@ -28,6 +28,12 @@
  *   <li>{@code mundo}: la dimensión {@code dolfincreepers:dungeons} (datapack en {@code
  *       data/dolfincreepers/dimension}), los tickets de chunks durante la partida ({@code
  *       CargaChunks}) y el {@code Reiniciador} de zonas.
+ *   <li>{@code muerte}: muerte, vidas, checkpoints, tumbas y hardcore (#16). {@code Muertes}
+ *       cancela la muerte vanilla de los miembros ({@code ALLOW_DEATH}, respetando el tótem) y
+ *       aplica {@code ReglasMuerte}: reaparecer en el checkpoint, tumba ({@code Tumbas}, bloque
+ *       {@code dolfincreepers:tumba}, contenido en {@code DatosMuerte}), espectador confinado o
+ *       {@code CastigosHardcore} (pérdida total y {@code BanHardcore} con fuente {@code
+ *       DolfinDungeons}). {@code FinPorBajas} termina en derrota la partida sin vivos.
  *   <li>{@link com.dolfin.creepers.dungeon.ServicioPartidas}: fachada para empezar, abandonar,
  *       terminar y reiniciar partidas con jugadores reales.
  *   <li>{@code mixin}: sin portales ni aparición natural de mobs en la dimensión.
@@ -44,11 +50,17 @@
  *   <li>#14 grupos y fila: {@code registro().entrarEnFila/salirDeFila}, {@code validarInicio} para
  *       comprobar antes del ready check, luego {@code partidas().iniciar}.
  *   <li>#15 reglas: {@code DimensionDungeons.es(level)} y {@code registro().partidaDe(uuid)}.
- *   <li>#16 muerte: {@code registro().registrarMuerte/pasarAEspectador/alcanzarCheckpoint}, y
- *       suscribirse a {@code JugadorMurio} (causa {@code DESCONEXION} = hardcore sin volver, el
- *       jugador está desconectado) y a {@code JugadorSalio} (motivo {@code ABANDONO} en hardcore).
+ *   <li>#16 muerte (hecho, paquete {@code muerte}): usa {@code
+ *       registro().registrarMuerte/pasarAEspectador/alcanzarCheckpoint} y castiga en hardcore
+ *       {@code JugadorMurio} con causa {@code DESCONEXION} (ban sin kick, vaciado al volver) y
+ *       {@code JugadorSalio} con motivo {@code ABANDONO} (ban y kick) o {@code AFK} (sin ban).
+ *       Basta con que {@code /dungeon leave} llame a {@code partidas().salir(jugador, ABANDONO)}.
+ *   <li>#13 {@code pardon}: quitar solo bans con {@code BanHardcore.esDeDungeon(entrada)} (fuente
+ *       {@code BanHardcore.FUENTE}); el nodo de bypass es {@code PermisoBypassBan.NODO}.
  *   <li>#17 fin: {@code partidas().terminar(...)}; {@code Partida.hayVivosOPorVolver()}; {@code
- *       partidas().salir(jugador, AFK)}.
+ *       partidas().salir(jugador, AFK)}. La derrota por bajas ya la detecta {@code FinPorBajas}
+ *       ({@code ReglasMuerte.derrotaPorBajas}) y llama a {@code terminar(…, DERROTA)}; las tumbas
+ *       se devuelven o pierden al publicarse {@code PartidaTerminada} según el resultado.
  *   <li>#18 escalado: {@code PartidaIniciada}, {@code Partida.jugadoresIniciales()} y {@code
  *       parametros()}.
  *   <li>#19 plantillas: {@code Dungeons.usarReiniciador(...)}; se llama al terminar, en {@code

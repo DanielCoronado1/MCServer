@@ -119,6 +119,20 @@ public final class EntradaSalida {
         bus.publicar(new JugadorRestaurado(jugador.getUUID(), retorno.isPresent()));
     }
 
+    /**
+     * Lleva a un miembro a su punto de reaparición (último checkpoint o entrada) con el modo dado:
+     * reaparición tras morir (#16) y confinamiento de espectadores.
+     *
+     * @return false si no se pudo teletransportar
+     */
+    public boolean llevarAReaparicion(ServerPlayer jugador, Partida partida, GameType modo) {
+        return llevarADungeon(
+                jugador.level().getServer(),
+                jugador,
+                partida.puntoDeReaparicion(jugador.getUUID()),
+                modo);
+    }
+
     /** Reconecta a un miembro desconectado o restaura a quien quedó dentro sin partida. */
     public void alConectarse(ServerPlayer jugador) {
         MinecraftServer server = jugador.level().getServer();

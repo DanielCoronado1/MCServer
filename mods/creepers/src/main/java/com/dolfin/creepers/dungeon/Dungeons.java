@@ -8,8 +8,11 @@ import com.dolfin.creepers.dungeon.eventos.BusEventos;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
+import com.dolfin.creepers.dungeon.modelo.ResultadoPartida;
 import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
 import com.dolfin.creepers.dungeon.muerte.CastigosHardcore;
+import com.dolfin.creepers.dungeon.muerte.FinPorBajas;
+import com.dolfin.creepers.dungeon.muerte.Muertes;
 import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
@@ -17,6 +20,7 @@ import com.dolfin.creepers.dungeon.mundo.Reiniciador;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -42,6 +46,8 @@ public final class Dungeons {
     private static ServicioPartidas partidas;
     private static Tumbas tumbas;
     private static CastigosHardcore castigos;
+    private static Muertes muertes;
+    private static FinPorBajas finPorBajas;
     private static Reiniciador reiniciador = Reiniciador.SIN_PLANTILLA;
     private static MinecraftServer server;
 
@@ -59,6 +65,10 @@ public final class Dungeons {
         BloqueTumba.registrar();
         tumbas = new Tumbas(registro, () -> server);
         castigos = new CastigosHardcore(entradaSalida, () -> server);
+        muertes = new Muertes(registro, entradaSalida, tumbas, castigos);
+        finPorBajas =
+                new FinPorBajas(
+                        registro, (s, id) -> partidas.terminar(s, id, ResultadoPartida.DERROTA));
         CargaChunks.registrar();
         suscribirModulos();
         registrarEventosFabric();
@@ -116,6 +126,7 @@ public final class Dungeons {
         new AvisosPartida(() -> server).suscribir(BUS);
         tumbas.suscribir(BUS);
         castigos.suscribir(BUS);
+        finPorBajas.suscribir(BUS);
         BUS.suscribir(
                 DungeonCambioEstado.class,
                 e -> {
@@ -158,14 +169,21 @@ public final class Dungeons {
                 });
         ServerPlayerEvents.AFTER_RESPAWN.register(
                 (anterior, nuevo, vivo) -> entradaSalida.alSalirDeLaDimension(nuevo));
+        ServerLivingEntityEvents.ALLOW_DEATH.register(muertes::permitirMuerte);
         ServerTickEvents.END_SERVER_TICK.register(Dungeons::tick);
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, acceso, entorno) -> ComandoDebug.registrar(dispatcher));
     }
 
-    /** Cada tick, desconexiones de castigo; una vez por segundo, plazos y partidas vacías. */
+    /**
+     * Cada tick: expulsiones de hardcore, checkpoints y espectadores, y derrota por bajas (antes de
+     * que {@code partidas.tick} dé por abandonada una partida vacía). Una vez por segundo: plazos
+     * de reconexión y partidas vacías.
+     */
     private static void tick(MinecraftServer s) {
         castigos.tick(s);
+        muertes.tick(s);
+        finPorBajas.tick(s);
         if (s.getTickCount() % RegistroDungeons.TICKS_POR_SEGUNDO != 0) {
             return;
         }

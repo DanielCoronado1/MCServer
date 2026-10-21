@@ -19,6 +19,7 @@ public final class Miembro {
     private EstadoMiembro estadoAlDesconectar = EstadoMiembro.VIVO;
     private int vidas;
     private int checkpoint = SIN_CHECKPOINT;
+    private int muertes;
     private long plazoReconexionTick;
 
     Miembro(UUID id, String nombre, int vidas) {
@@ -43,6 +44,11 @@ public final class Miembro {
     /** Vidas restantes, o {@link #VIDAS_ILIMITADAS}. */
     public int vidas() {
         return vidas;
+    }
+
+    /** Veces que murió en la partida, incluidas las que no restan vidas. */
+    public int muertes() {
+        return muertes;
     }
 
     /** Índice del último checkpoint alcanzado, o {@link #SIN_CHECKPOINT}. */
@@ -75,6 +81,7 @@ public final class Miembro {
     }
 
     int perderVida() {
+        muertes++;
         if (vidas > 0) {
             vidas--;
         }

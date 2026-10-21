@@ -2,6 +2,7 @@ package com.dolfin.creepers.dungeon.modelo;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -42,6 +43,12 @@ public record DefinicionDungeon(
         int cooldownMinutos,
         int limiteMinutos) {
 
+    /**
+     * Distancia en bloques (en cada eje) a un checkpoint a partir de la cual se considera
+     * alcanzado: cada checkpoint es una caja de 6×6×6 centrada en su punto.
+     */
+    public static final double RADIO_CHECKPOINT = 3;
+
     /** Si la dungeon se juega en solitario o en grupo. */
     public enum Modo {
         SOLO,
@@ -77,6 +84,22 @@ public record DefinicionDungeon(
                 requisitos,
                 cooldownMinutos,
                 limiteMinutos);
+    }
+
+    /**
+     * Checkpoint más avanzado cuya caja ({@link #RADIO_CHECKPOINT}) contiene la posición, si hay
+     * alguno.
+     */
+    public OptionalInt checkpointEn(double x, double y, double z) {
+        for (int i = checkpoints.size() - 1; i >= 0; i--) {
+            Punto p = checkpoints.get(i);
+            if (Math.abs(p.x() - x) <= RADIO_CHECKPOINT
+                    && Math.abs(p.y() - y) <= RADIO_CHECKPOINT
+                    && Math.abs(p.z() - z) <= RADIO_CHECKPOINT) {
+                return OptionalInt.of(i);
+            }
+        }
+        return OptionalInt.empty();
     }
 
     /**

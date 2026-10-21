@@ -22,6 +22,7 @@ import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.dolfin.creepers.dungeon.mundo.Reiniciador;
+import com.dolfin.creepers.dungeon.reglas.ReglasDungeon;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
@@ -217,12 +218,13 @@ public final class Dungeons {
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, acceso, entorno) -> ComandoDungeon.registrar(dispatcher));
         ComandoDungeon.registrarEventos();
+        ReglasDungeon.registrar();
     }
 
     /**
      * Cada tick: expulsiones de hardcore, checkpoints y espectadores, y derrota por bajas (antes de
      * que {@code partidas.tick} dé por abandonada una partida vacía). Una vez por segundo: plazos
-     * de reconexión y partidas vacías.
+     * de reconexión, partidas vacías y modo aventura.
      */
     private static void tick(MinecraftServer s) {
         castigos.tick(s);
@@ -233,5 +235,6 @@ public final class Dungeons {
         }
         registro.vencerDesconexiones(s.getTickCount());
         partidas.tick(s);
+        ReglasDungeon.cadaSegundo(s);
     }
 }

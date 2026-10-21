@@ -5,6 +5,8 @@
 	"mixins": [
 		"AparicionNaturalDungeonMixin",
 		"BanDungeonLoginMixin",
+		"EfectosDungeonMixin",
+		"ElitrosDungeonMixin",
 		"PortalesDungeonMixin"
 	],
 	"injectors": {

@@ -8,9 +8,10 @@ import net.minecraft.world.entity.player.Player;
 
 /**
  * Reglas de la dimensión de dungeons (#15): aventura ({@link ReglasModo}), sin PvP ({@link
- * ReglasDanio}), objetos y vuelo bloqueados ({@link ReglasObjetos}). Las decisiones puras están en
- * {@link DecisionesReglas}; los mixins de {@code dungeon.mixin} consultan {@link #permiteEfecto} y
- * {@link #permitePlaneo}.
+ * ReglasDanio}), objetos y vuelo bloqueados ({@link ReglasObjetos}) y comandos de teletransporte de
+ * EssentialCommands denegados ({@link BloqueoComandos}). Las decisiones puras están en {@link
+ * DecisionesReglas}; los mixins de {@code dungeon.mixin} consultan {@link #permiteEfecto} y {@link
+ * #permitePlaneo}.
  */
 public final class ReglasDungeon {
     private ReglasDungeon() {}
@@ -19,6 +20,7 @@ public final class ReglasDungeon {
     public static void registrar() {
         ReglasDanio.registrar();
         ReglasObjetos.registrar();
+        BloqueoComandos.registrar();
     }
 
     /**

@@ -25,6 +25,7 @@ import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.dolfin.creepers.dungeon.mundo.Reiniciador;
+import com.dolfin.creepers.dungeon.plantilla.ContenidoPlantillas;
 import com.dolfin.creepers.dungeon.reglas.ReglasDungeon;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -89,6 +90,7 @@ public final class Dungeons {
         fin = new FinDePartida(registro, partidas, historial, () -> server);
         finPorBajas = new FinPorBajas(registro, fin::derrota);
         CargaChunks.registrar();
+        ContenidoPlantillas.registrar();
         suscribirModulos();
         registrarEventosFabric();
         DolfinCreepers.LOGGER.info(

@@ -8,5 +8,6 @@
   "entity.dolfincreepers.gigante_creeper": "Giant Creeper",
   "entity.dolfincreepers.toxico_creeper": "Toxic Creeper",
   "entity.dolfincreepers.rey_creeper": "Creeper King",
-  "block.dolfincreepers.tumba": "Grave"
+  "block.dolfincreepers.tumba": "Grave",
+  "block.dolfincreepers.marcador_mob": "Dungeon Mob Marker"
 }

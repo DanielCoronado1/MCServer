@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 21040104,
+    "spacing": 28,
+    "separation": 10
+  },
+  "structures": [
+    {
+      "structure": "dolfincreepers:puesto_hundido",
+      "weight": 1
+    }
+  ]
+}

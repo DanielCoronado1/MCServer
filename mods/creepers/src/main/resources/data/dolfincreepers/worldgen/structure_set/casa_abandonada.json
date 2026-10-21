@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 21040101,
+    "spacing": 24,
+    "separation": 8
+  },
+  "structures": [
+    {
+      "structure": "dolfincreepers:casa_abandonada",
+      "weight": 1
+    }
+  ]
+}

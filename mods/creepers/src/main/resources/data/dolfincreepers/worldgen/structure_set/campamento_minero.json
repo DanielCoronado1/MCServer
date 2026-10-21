@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 21040103,
+    "spacing": 20,
+    "separation": 6
+  },
+  "structures": [
+    {
+      "structure": "dolfincreepers:campamento_minero",
+      "weight": 1
+    }
+  ]
+}

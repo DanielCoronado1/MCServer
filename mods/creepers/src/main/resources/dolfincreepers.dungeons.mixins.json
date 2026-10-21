@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "com.dolfin.creepers.dungeon.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"AparicionNaturalDungeonMixin",
+		"PortalesDungeonMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

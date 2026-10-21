@@ -1,0 +1,13 @@
+{
+  "type": "dolfincreepers:dungeons",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "dolfincreepers:dungeons",
+      "features": false,
+      "lakes": false,
+      "layers": [],
+      "structure_overrides": []
+    }
+  }
+}

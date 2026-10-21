@@ -43,7 +43,7 @@ light = "#c5d6f0"
 # Blacklists action types. Ex: "block-break", "entity-kill"
 typeBlacklist = []
 # Blacklists worlds/dimensions. Ex: "mincraft:the_end", "minecraft:overworld"
-worldBlacklist = []
+worldBlacklist = ["dolfincreepers:dungeons"]
 # Blacklists objects (Items, Mobs, Blocks). Ex: "minecraft:cobblestone", "minecraft:blaze"
 objectBlacklist = []
 # Blacklists sources. Ex: "lava", "gravity", "fire", "fall"

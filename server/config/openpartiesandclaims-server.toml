@@ -222,7 +222,7 @@
 		#Dimensions to include/exclude from being claimable, depending on the list type in "claimableDimensionsListType".
 		#For example ["minecraft:overworld", "minecraft:the_nether"].
 		#By default the list is empty and of type ALL_BUT, meaning that all dimensions are claimable.
-		claimableDimensionsList = []
+		claimableDimensionsList = ["dolfincreepers:dungeons"]
 		#Whether to allow existing player claims to stay active in unclaimable dimensions which were previously claimable.
 		allowExistingClaimsInUnclaimableDimensions = true
 		#Whether to allow existing player forceloads to stay active in unclaimable dimensions which were previously claimable. Only relevant if existing claims are allowed.

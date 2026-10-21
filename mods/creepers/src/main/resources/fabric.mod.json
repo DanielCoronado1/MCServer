@@ -11,7 +11,7 @@
 		"main": ["com.dolfin.creepers.DolfinCreepers"],
 		"client": ["com.dolfin.creepers.client.DolfinCreepersClient"]
 	},
-	"mixins": ["dolfincreepers.mixins.json"],
+	"mixins": ["dolfincreepers.mixins.json", "dolfincreepers.dungeons.mixins.json"],
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.3",

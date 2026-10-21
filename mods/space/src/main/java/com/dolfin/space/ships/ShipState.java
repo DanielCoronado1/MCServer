@@ -5,31 +5,47 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 /** Shared codec used by entities and portable items. */
 public record ShipState(
-        String owner, int tier, int fuel, long home, boolean hasHome, boolean passengersAllowed) {
+        String owner,
+        int tier,
+        int fuel,
+        long home,
+        boolean hasHome,
+        boolean passengersAllowed,
+        String homeDimension) {
     public static final Codec<ShipState> CODEC =
             RecordCodecBuilder.create(
                     i ->
                             i.group(
                                             Codec.STRING
-                                                            .fieldOf("owner")
-                                                            .forGetter(ShipState::owner),
-                                                    Codec.INT
-                                                            .fieldOf("tier")
-                                                            .forGetter(ShipState::tier),
+                                                    .fieldOf("owner")
+                                                    .forGetter(ShipState::owner),
+                                            Codec.INT.fieldOf("tier").forGetter(ShipState::tier),
                                             Codec.INT.fieldOf("fuel").forGetter(ShipState::fuel),
-                                                    Codec.LONG
-                                                            .fieldOf("home")
-                                                            .forGetter(ShipState::home),
+                                            Codec.LONG.fieldOf("home").forGetter(ShipState::home),
                                             Codec.BOOL
-                                                            .fieldOf("hasHome")
-                                                            .forGetter(ShipState::hasHome),
-                                                    Codec.BOOL
-                                                            .fieldOf("passengersAllowed")
-                                                            .forGetter(
-                                                                    ShipState::passengersAllowed))
+                                                    .fieldOf("hasHome")
+                                                    .forGetter(ShipState::hasHome),
+                                            Codec.BOOL
+                                                    .fieldOf("passengersAllowed")
+                                                    .forGetter(ShipState::passengersAllowed),
+                                            Codec.STRING
+                                                    .optionalFieldOf(
+                                                            "homeDimension", "minecraft:overworld")
+                                                    .forGetter(ShipState::homeDimension))
                                     .apply(i, ShipState::new));
 
+    public ShipState(
+            String owner,
+            int tier,
+            int fuel,
+            long home,
+            boolean hasHome,
+            boolean passengersAllowed) {
+        this(owner, tier, fuel, home, hasHome, passengersAllowed, "minecraft:overworld");
+    }
+
     public ShipState {
+        net.minecraft.resources.Identifier.parse(homeDimension);
         fuel = Math.clamp(fuel, 0, 100);
         tier = Math.clamp(tier, 0, 2);
     }

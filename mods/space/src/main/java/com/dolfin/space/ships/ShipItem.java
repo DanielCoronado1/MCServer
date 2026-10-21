@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.*;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 
 import java.util.function.Consumer;
@@ -37,7 +36,7 @@ public final class ShipItem extends Item {
         var player = c.getPlayer();
         if (player == null || c.getClickedFace() != Direction.UP) return InteractionResult.FAIL;
         var pos = c.getClickedPos();
-        boolean earth = level.dimension().equals(Level.OVERWORLD);
+        boolean earth = com.dolfin.space.travel.FlightController.launchWorld(level);
         boolean kepler = KeplerDimension.isKepler(level.dimension());
         boolean ground =
                 level.getBlockState(pos).isFaceSturdy(level, pos, Direction.UP)
@@ -73,7 +72,10 @@ public final class ShipItem extends Item {
             if (ship.owner == null) ship.owner = player.getUUID();
             if (!ShipAccess.allowed(ship.owner, player)) return InteractionResult.FAIL;
             if (earth) {
-                if (ship.home == null) ship.home = pos.immutable();
+                if (ship.home == null) {
+                    ship.home = pos.immutable();
+                    ship.homeDimension = level.dimension().identifier().toString();
+                }
                 level.setBlock(
                         pos, level.getBlockState(pos).setValue(PlatformBlock.CENTER, true), 3);
             }

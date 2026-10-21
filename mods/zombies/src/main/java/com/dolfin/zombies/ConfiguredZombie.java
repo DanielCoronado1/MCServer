@@ -134,6 +134,10 @@ public class ConfiguredZombie extends Zombie {
     }
 
     public boolean abilityEnabled(String id) {
+        // Controlled exhibit entities alone demonstrate the otherwise opt-in farmer mechanics.
+        if (kind == ZombieKind.GRANJERO
+                && entityTags().contains("dolfin_demo_mob")
+                && (id.equals("destruirCultivos") || id.equals("atacarAnimales"))) return true;
         return DolfinZombies.config().current().abilityEnabled(kind, id);
     }
 

@@ -70,4 +70,24 @@ class ShipRulesTest {
                         .getOrThrow());
         assertEquals(100, new ShipState("", 99, 999, 0, false, false).fuel());
     }
+
+    @Test
+    void homeDimensionMigratesOldSavesAndRoundTripsNewOrigins() {
+        var legacy =
+                JsonParser.parseString(
+                        "{\"owner\":\"\",\"tier\":0,\"fuel\":100,\"home\":42,\"hasHome\":true,\"passengersAllowed\":false}");
+        var old = ShipState.CODEC.parse(JsonOps.INSTANCE, legacy).getOrThrow();
+        assertEquals("minecraft:overworld", old.homeDimension());
+        var showcase =
+                new ShipState(
+                        old.owner(),
+                        old.tier(),
+                        old.fuel(),
+                        old.home(),
+                        old.hasHome(),
+                        old.passengersAllowed(),
+                        "dolfin:showcase");
+        var encoded = ShipState.CODEC.encodeStart(JsonOps.INSTANCE, showcase).getOrThrow();
+        assertEquals(showcase, ShipState.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
+    }
 }

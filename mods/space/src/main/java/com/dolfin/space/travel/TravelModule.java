@@ -14,7 +14,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.level.Level;
 
 public final class TravelModule {
     public static final MenuType<CockpitMenu> MENU =
@@ -24,7 +23,7 @@ public final class TravelModule {
                     new ExtendedMenuType<>(CockpitMenu::new, ByteBufCodecs.INT));
 
     public static LaunchRules.Checklist check(SpaceshipEntity ship, ServerPlayer pilot) {
-        boolean earth = ship.level().dimension().equals(Level.OVERWORLD),
+        boolean earth = FlightController.launchWorld(ship.level()),
                 kepler = KeplerDimension.isKepler(ship.level().dimension());
         var floor = ship.blockPosition().below();
         boolean surface =

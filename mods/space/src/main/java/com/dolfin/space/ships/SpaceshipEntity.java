@@ -30,6 +30,7 @@ public final class SpaceshipEntity extends Entity {
             SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
     public UUID owner;
     public BlockPos home;
+    public String homeDimension = "minecraft:overworld";
     public boolean passengersAllowed;
     public boolean inFlight;
     public final SimpleContainer cargo =
@@ -121,7 +122,8 @@ public final class SpaceshipEntity extends Entity {
                 fuel(),
                 home == null ? 0 : home.asLong(),
                 home != null,
-                passengersAllowed);
+                passengersAllowed,
+                homeDimension);
     }
 
     public void apply(ShipState s) {
@@ -134,6 +136,7 @@ public final class SpaceshipEntity extends Entity {
         fuel(s.fuel());
         home = s.hasHome() ? BlockPos.of(s.home()) : null;
         passengersAllowed = s.passengersAllowed();
+        homeDimension = s.homeDimension();
     }
 
     protected void readAdditionalSaveData(ValueInput in) {
@@ -207,7 +210,8 @@ public final class SpaceshipEntity extends Entity {
                     "event=ship_passenger_consent ship={} pilot={} allowed={}",
                     getUUID(),
                     player.getUUID(),
-                    passengersAllowed);
+                    passengersAllowed,
+                    homeDimension);
             return InteractionResult.SUCCESS;
         }
         if (player.isShiftKeyDown() && player.getUUID().equals(owner) && !inFlight) {

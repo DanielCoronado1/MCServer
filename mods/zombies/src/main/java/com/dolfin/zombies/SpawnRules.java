@@ -255,9 +255,12 @@ public final class SpawnRules {
         capCache.clear(); // the next candidate this tick must see this zombie
     }
 
+    public static String demonstrationWorld = "";
+
     public static boolean worldAllowed(ServerLevel l) {
         refresh();
-        return worlds.contains(l.dimension().identifier().toString());
+        return worlds.contains(l.dimension().identifier().toString())
+                || l.dimension().identifier().toString().equals(demonstrationWorld);
     }
 
     private static boolean matches(Holder<Biome> biome, List<String> selectors) {

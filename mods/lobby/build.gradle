@@ -14,3 +14,21 @@ dependencies {
         }.singleFile
     })
 }
+dependencies {
+    implementation project(':mods:space')
+    implementation project(':mods:creepers')
+    implementation project(':mods:zombies')
+}
+// Isolated runtime fixtures are built explicitly and never included in the production mod.
+sourceSets {
+    fixture {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+tasks.register('fixtureJar', Jar) {
+    dependsOn tasks.named('compileFixtureJava')
+    archiveClassifier = 'fixture'
+    destinationDirectory = layout.buildDirectory.dir('fixtures')
+    from sourceSets.fixture.output
+}

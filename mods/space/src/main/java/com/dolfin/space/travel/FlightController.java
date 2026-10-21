@@ -25,6 +25,62 @@ import java.util.*;
  * entity.
  */
 public final class FlightController {
+    public static java.util.function.BiPredicate<SpaceshipEntity, UUID> riderBlocked =
+            (ship, id) -> false;
+    public static java.util.function.BiFunction<SpaceshipEntity, ServerLevel, BlockPos>
+            demoLanding = (ship, world) -> null;
+    private static final Set<String> additionalLaunchWorlds = new HashSet<>();
+
+    public static void allowLaunchWorld(String id) {
+        Identifier.parse(id);
+        additionalLaunchWorlds.add(id);
+    }
+
+    public static boolean launchWorld(Level world) {
+        return world.dimension().equals(Level.OVERWORLD)
+                || additionalLaunchWorlds.contains(world.dimension().identifier().toString());
+    }
+
+    private static ServerLevel homeWorld(SpaceshipEntity ship) {
+        return ((ServerLevel) ship.level())
+                .getServer()
+                .getLevel(
+                        ResourceKey.create(
+                                Registries.DIMENSION, Identifier.parse(ship.homeDimension)));
+    }
+
+    /** Persist a cancellation tombstone before touching entities, including unloaded ships. */
+    public static void cancelDemo(MinecraftServer server, UUID shipId) {
+        DemoCancellations.get(server).cancel(shipId);
+        server.saveEverything(false, true, true);
+        var ledger = FlightLedger.get(server);
+        var entry = ledger.entries.get(shipId.toString());
+        if (entry != null) {
+            var world =
+                    server.getLevel(
+                            ResourceKey.create(
+                                    Registries.DIMENSION, Identifier.parse(entry.dimension())));
+            if (world != null) {
+                world.getChunkAt(BlockPos.of(entry.position()));
+                var entity = world.getEntityInAnyDimension(shipId);
+                if (entity != null) {
+                    entity.ejectPassengers();
+                    entity.discard();
+                }
+            }
+            ledger.entries.remove(shipId.toString());
+            ledger.setDirty();
+        }
+    }
+
+    private static boolean cancelled(SpaceshipEntity ship) {
+        if (!DemoCancellations.get(((ServerLevel) ship.level()).getServer())
+                .contains(ship.getUUID())) return false;
+        ship.ejectPassengers();
+        ship.discard();
+        return true;
+    }
+
     public static FlightJournal journal(SpaceshipEntity ship) {
         return FlightJournal.CODEC.parse(NbtOps.INSTANCE, ship.flight).result().orElse(null);
     }
@@ -61,14 +117,16 @@ public final class FlightController {
 
     private static BlockPos spawn(ServerLevel world, ServerPlayer pilot) {
         var config = pilot == null ? null : pilot.getRespawnConfig();
-        return config != null && config.respawnData().dimension().equals(Level.OVERWORLD)
+        return config != null && config.respawnData().dimension().equals(world.dimension())
                 ? config.respawnData().pos()
                 : world.getRespawnData().pos();
     }
 
     private static BlockPos destination(
             SpaceshipEntity ship, ServerPlayer pilot, ServerLevel world) {
-        if (world.dimension().equals(Level.OVERWORLD)) {
+        var demo = demoLanding.apply(ship, world);
+        if (demo != null) return demo;
+        if (world.dimension().identifier().toString().equals(ship.homeDimension)) {
             if (ship.home != null
                     && PlatformRules.valid(world, ship.home, ship.tier())
                     && SafeLanding.clear(world, ship.home.above())) return ship.home.above();
@@ -96,8 +154,15 @@ public final class FlightController {
             return false;
         }
         var world = (ServerLevel) ship.level();
-        boolean earth = world.dimension().equals(Level.OVERWORLD);
-        var target = world.getServer().getLevel(earth ? KeplerDimension.LEVEL : Level.OVERWORLD);
+        boolean earth = launchWorld(world);
+        var target =
+                world.getServer()
+                        .getLevel(
+                                earth
+                                        ? KeplerDimension.LEVEL
+                                        : ResourceKey.create(
+                                                Registries.DIMENSION,
+                                                Identifier.parse(ship.homeDimension)));
         if (target == null) {
             DolfinSpace.LOGGER.warn(
                     "event=ship_launch_rejected ship={} reason=missing_dimension", ship.getUUID());
@@ -113,7 +178,10 @@ public final class FlightController {
                     e.toString());
             return false;
         }
-        if (earth) ship.home = ship.blockPosition().below().immutable();
+        if (earth) {
+            ship.home = ship.blockPosition().below().immutable();
+            ship.homeDimension = world.dimension().identifier().toString();
+        }
         var cfg = DolfinSpace.config().current().naves();
         int seconds =
                 switch (ship.tier()) {
@@ -152,6 +220,7 @@ public final class FlightController {
     }
 
     public static void loaded(SpaceshipEntity ship) {
+        if (cancelled(ship)) return;
         var j = journal(ship);
         if (j == null) return;
         if (j.phase() == FlightJournal.Phase.COUNTDOWN) {
@@ -181,6 +250,7 @@ public final class FlightController {
     }
 
     public static void tick(SpaceshipEntity ship) {
+        if (cancelled(ship)) return;
         var world = (ServerLevel) ship.level();
         var ledger = FlightLedger.get(world.getServer());
         if (ship.tickCount % 20 == 0) ledger.track(ship);
@@ -267,7 +337,7 @@ public final class FlightController {
                     // surface.
                     if (!SafeLanding.surface(world, target))
                         target =
-                                world.dimension().equals(Level.OVERWORLD)
+                                world.dimension().identifier().toString().equals(ship.homeDimension)
                                         ? destination(
                                                 ship,
                                                 world.getServer()
@@ -308,7 +378,7 @@ public final class FlightController {
             return;
         }
         BlockPos landing =
-                target.dimension().equals(Level.OVERWORLD)
+                target.dimension().identifier().toString().equals(ship.homeDimension)
                         ? destination(ship, server.getPlayerList().getPlayer(ship.owner), target)
                         : BlockPos.of(j.target());
         if (!SafeLanding.surface(target, landing)) landing = SafeLanding.find(target, landing);
@@ -324,7 +394,7 @@ public final class FlightController {
         var occupants = new ArrayList<ServerPlayer>();
         for (String id : j.riders()) {
             var p = server.getPlayerList().getPlayer(UUID.fromString(id));
-            if (p != null) occupants.add(p);
+            if (p != null && !riderBlocked.test(ship, p.getUUID())) occupants.add(p);
         }
         Vec3 pos = new Vec3(landing.getX() + .5, landing.getY() + 20, landing.getZ() + .5);
         var arrival = teleportGroup(ship, target, pos, occupants, "ship_travel");
@@ -410,6 +480,11 @@ public final class FlightController {
         if (server.getTickCount() % 20 != 0) return;
         var ledger = FlightLedger.get(server);
         for (var entry : List.copyOf(ledger.entries.values())) {
+            if (DemoCancellations.get(server).contains(UUID.fromString(entry.ship()))) {
+                ledger.entries.remove(entry.ship());
+                ledger.setDirty();
+                continue;
+            }
             if (!entry.active()
                     && !entry.autoReturn()
                     && entry.pending().stream()
@@ -431,7 +506,8 @@ public final class FlightController {
             if (!(entity instanceof SpaceshipEntity ship)) continue;
             try {
                 if (entry.autoReturn()) {
-                    var target = server.overworld();
+                    var target = homeWorld(ship);
+                    if (target == null) continue;
                     var owner = server.getPlayerList().getPlayer(UUID.fromString(entry.owner()));
                     var landing = destination(ship, owner, target);
                     var passengers =
@@ -454,7 +530,7 @@ public final class FlightController {
                                 new FlightLedger.Entry(
                                         entry.ship(),
                                         entry.owner(),
-                                        Level.OVERWORLD.identifier().toString(),
+                                        target.dimension().identifier().toString(),
                                         returned.blockPosition().asLong(),
                                         false,
                                         false,
@@ -473,6 +549,14 @@ public final class FlightController {
                 // at
                 // altitude.
                 if (j != null
+                        && entry.pending().stream()
+                                .anyMatch(
+                                        id ->
+                                                !riderBlocked.test(ship, UUID.fromString(id))
+                                                        && server.getPlayerList()
+                                                                        .getPlayer(
+                                                                                UUID.fromString(id))
+                                                                != null)
                         && j.phase() != FlightJournal.Phase.COUNTDOWN
                         && entry.pending().stream()
                                 .anyMatch(
@@ -494,7 +578,7 @@ public final class FlightController {
                 var current = ledger.entries.get(entry.ship());
                 for (String id : entry.pending()) {
                     var player = server.getPlayerList().getPlayer(UUID.fromString(id));
-                    if (player == null) continue;
+                    if (player == null || riderBlocked.test(ship, player.getUUID())) continue;
                     SpaceTravelAccess.runAuthorized(
                             player,
                             "ship_reconnect",

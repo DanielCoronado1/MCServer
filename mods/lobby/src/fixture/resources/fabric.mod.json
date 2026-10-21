@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "dolfinlobbyfixture",
+  "version": "1.0.0",
+  "name": "Isolated Lobby Runtime Fixture",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "com.dolfin.lobby.fixture.LobbyFixture"
+    ]
+  },
+  "depends": {
+    "dolfinlobby": "*"
+  }
+}

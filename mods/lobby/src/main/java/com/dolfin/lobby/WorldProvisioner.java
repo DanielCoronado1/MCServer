@@ -100,7 +100,8 @@ public final class WorldProvisioner {
                 WorldFolderMode.VANILLA);
         level = server.getLevel(LobbyConfig.key(id));
         if (level == null) throw new IOException("Multiworld no cargó " + id);
-        build(level, id, showcase);
+        ServerLevel created = level;
+        StationProtection.edit(() -> build(created, id, showcase));
         SetspawnCommand.setSpawn(level, new BlockPos(0, FLOOR_Y + 1, 20));
         var worldConfig = Utils.getConfigOrNull(identifier);
         if (worldConfig == null)

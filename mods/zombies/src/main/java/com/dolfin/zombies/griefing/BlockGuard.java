@@ -25,6 +25,9 @@ import java.util.Set;
 public final class BlockGuard {
     private BlockGuard() {}
 
+    public static java.util.function.BiPredicate<ServerLevel, BlockPos> demonstrationArea =
+            (world, pos) -> false;
+
     private static long generation = -1;
     private static Set<String> worlds = Set.of();
     private static boolean respetarClaims = true;
@@ -76,6 +79,7 @@ public final class BlockGuard {
     }
 
     private static Reason decide(ServerLevel level, BlockPos pos, boolean block) {
+        if (demonstrationArea.test(level, pos)) return null;
         refresh();
         return GuardDecision.decide(
                 new GuardDecision.Env() {

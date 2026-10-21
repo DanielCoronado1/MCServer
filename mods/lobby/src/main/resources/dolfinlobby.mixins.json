@@ -1,0 +1,1 @@
+{"required":true,"package":"com.dolfin.lobby.mixin","compatibilityLevel":"JAVA_25","mixins":["PlayerStateAccess","LevelProtectionMixin","CommandIsolationMixin","ProgressIsolationMixin","AdvancementIsolationMixin","ItemIsolationMixin","NaturalSpawnMixin","SpecialSpawnMixin"],"injectors":{"defaultRequire":1}}

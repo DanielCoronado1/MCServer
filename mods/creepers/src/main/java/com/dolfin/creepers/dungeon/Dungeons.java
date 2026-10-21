@@ -9,6 +9,7 @@ import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
 import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
+import com.dolfin.creepers.dungeon.muerte.CastigosHardcore;
 import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
@@ -40,6 +41,7 @@ public final class Dungeons {
     private static EntradaSalida entradaSalida;
     private static ServicioPartidas partidas;
     private static Tumbas tumbas;
+    private static CastigosHardcore castigos;
     private static Reiniciador reiniciador = Reiniciador.SIN_PLANTILLA;
     private static MinecraftServer server;
 
@@ -56,6 +58,7 @@ public final class Dungeons {
         partidas = new ServicioPartidas(registro, entradaSalida, () -> reiniciador);
         BloqueTumba.registrar();
         tumbas = new Tumbas(registro, () -> server);
+        castigos = new CastigosHardcore(entradaSalida, () -> server);
         CargaChunks.registrar();
         suscribirModulos();
         registrarEventosFabric();
@@ -112,6 +115,7 @@ public final class Dungeons {
         new CargaChunks(() -> server).suscribir(BUS);
         new AvisosPartida(() -> server).suscribir(BUS);
         tumbas.suscribir(BUS);
+        castigos.suscribir(BUS);
         BUS.suscribir(
                 DungeonCambioEstado.class,
                 e -> {
@@ -141,6 +145,7 @@ public final class Dungeons {
         ServerPlayConnectionEvents.JOIN.register(
                 (handler, sender, s) -> {
                     entradaSalida.alConectarse(handler.getPlayer());
+                    castigos.alConectarse(handler.getPlayer());
                     tumbas.alConectarse(handler.getPlayer());
                 });
         ServerPlayConnectionEvents.DISCONNECT.register(
@@ -158,8 +163,9 @@ public final class Dungeons {
                 (dispatcher, acceso, entorno) -> ComandoDebug.registrar(dispatcher));
     }
 
-    /** Una vez por segundo: plazos de reconexión y partidas vacías. */
+    /** Cada tick, desconexiones de castigo; una vez por segundo, plazos y partidas vacías. */
     private static void tick(MinecraftServer s) {
+        castigos.tick(s);
         if (s.getTickCount() % RegistroDungeons.TICKS_POR_SEGUNDO != 0) {
             return;
         }

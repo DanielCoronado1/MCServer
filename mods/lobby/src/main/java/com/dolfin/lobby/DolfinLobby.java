@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.event.player.*;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -212,10 +211,7 @@ public final class DolfinLobby implements ModInitializer {
                     }
                 });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> sessions = null);
-        ServerPlayConnectionEvents.JOIN.register(
-                (handler, sender, server) -> {
-                    if (sessions != null) sessions.login(handler.player);
-                });
+        StationSessions.integrate(() -> sessions);
         ServerTickEvents.END_SERVER_TICK.register(
                 server -> {
                     if (sessions != null) sessions.tick();

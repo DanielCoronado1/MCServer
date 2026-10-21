@@ -130,6 +130,7 @@ final class VistaDungeon {
                     case JUGADOR_REPETIDO -> "jugador repetido";
                     case MODO_DE_JUEGO -> "hay que estar en supervivencia o aventura";
                     case JUGADOR_OCUPADO -> "ya está en una partida o en una fila";
+                    case JUGADOR_VETADO -> "ahora mismo no puede entrar en dungeons";
                 };
     }
 

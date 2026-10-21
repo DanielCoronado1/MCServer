@@ -46,8 +46,7 @@ public final class ExhibitCatalog {
             "Reduce hambre y persigue comida.",
             "Llama aliados próximos; hay un compañero en el circuito.",
             "Cura aliados y lanza pociones; tiene un compañero herido.",
-            "Cultivos y animales: habilidades desactivadas por defecto; esta estación respeta la"
-                    + " configuración.",
+            "Cultivos y animales: habilidades activas solo en esta demostración.",
             "Ralentiza y deja hielo al morir.",
             "Montura y movilidad.",
             "Nube nociva al morir.",

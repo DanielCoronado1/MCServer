@@ -1,14 +1,18 @@
 package com.dolfin.lobby;
 
+import com.dolfin.creepers.dungeon.Dungeons;
 import com.dolfin.lobby.mixin.PlayerStateAccess;
 import com.dolfin.space.KeplerDimension;
 import com.dolfin.space.oxygen.*;
 import com.dolfin.space.ships.*;
 import com.dolfin.space.travel.*;
 
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.*;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
 import net.minecraft.util.ProblemReporter;
@@ -32,6 +36,7 @@ public final class StationSessions {
     private final Map<UUID, Long> cooldown = new HashMap<>();
     private final Set<UUID> restoring = new HashSet<>();
     private final Set<UUID> loginPending = new HashSet<>();
+    private final Set<UUID> freshCapture = new HashSet<>();
     private final Map<UUID, Integer> movedAt = new HashMap<>();
     private final Map<UUID, Runnable> queued = new HashMap<>();
 
@@ -69,11 +74,39 @@ public final class StationSessions {
                 && StationLayout.ready(server);
     }
 
+    /**
+     * Registers the lobby join hook and the dungeon entry veto. The join hook runs in a phase after
+     * every default-phase listener, so dungeon restoration, hardcore wipes and tomb or reward
+     * deliveries have settled before the survival state is captured.
+     */
+    static void integrate(java.util.function.Supplier<StationSessions> current) {
+        Identifier late = Identifier.fromNamespaceAndPath("dolfinlobby", "after_dungeons");
+        ServerPlayConnectionEvents.JOIN.addPhaseOrdering(Event.DEFAULT_PHASE, late);
+        ServerPlayConnectionEvents.JOIN.register(
+                late,
+                (handler, sender, server) -> {
+                    var sessions = current.get();
+                    if (sessions != null) sessions.login(handler.player);
+                });
+        Dungeons.partidas()
+                .usarVeto(
+                        p -> {
+                            var sessions = current.get();
+                            return sessions != null && sessions.isolated(p.getUUID());
+                        });
+    }
+
+    private static boolean dungeonBusy(ServerPlayer p) {
+        return Dungeons.entradaSalida().ocupado(p);
+    }
+
     public void login(ServerPlayer p) {
         if (!ready()) return;
+        if (dungeonBusy(p)) return;
         try {
             // Fabric JOIN runs before vanilla adds the player to its original ServerLevel.
             // Escrow immediately pauses recovery, but dimension changes wait for registration.
+            if (!store.contains(p.getUUID())) freshCapture.add(p.getUUID());
             store.capture(p);
             loginPending.add(p.getUUID());
             queued.put(p.getUUID(), () -> lobby(p));
@@ -86,13 +119,21 @@ public final class StationSessions {
     }
 
     public void lobby(ServerPlayer p) {
+        if (!isolated(p.getUUID()) && dungeonBusy(p)) {
+            message(p, "Estás en una dungeon: sal con /dungeon leave antes de ir a la estación.");
+            return;
+        }
         if (defer(p, () -> lobby(p))) return;
         if (!ready()) {
             message(p, "La estación todavía no está preparada.");
             return;
         }
         try {
-            store.capture(p);
+            // A capture made at join may predate deliveries by other join hooks; refresh it only
+            // while the player is still in the world it was taken in.
+            if (freshCapture.remove(p.getUUID()) && !StationProtection.station(p.level()))
+                store.recapture(p);
+            else store.capture(p);
             cleanup(p.getUUID());
             clear(p);
             state(p, "LOBBY");

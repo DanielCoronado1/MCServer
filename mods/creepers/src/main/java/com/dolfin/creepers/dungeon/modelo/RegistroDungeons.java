@@ -63,7 +63,8 @@ public final class RegistroDungeons {
         TAMANIO_GRUPO,
         JUGADOR_REPETIDO,
         MODO_DE_JUEGO,
-        JUGADOR_OCUPADO
+        JUGADOR_OCUPADO,
+        JUGADOR_VETADO
     }
 
     /** Un motivo de rechazo; {@code jugador} es el nombre del culpable si lo hay. */

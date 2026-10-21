@@ -91,6 +91,7 @@ def main() -> None:
         fixture(s, "survival-returned")
         fixture(s, "survival-death")
         fixture(s, "recovery-pause")
+        fixture(s, "dungeon-compat")
         fixture(s, "phases")
         fixture(s, f"prepare-{PHASES[0]}")
     assert s.codigo_salida == 0

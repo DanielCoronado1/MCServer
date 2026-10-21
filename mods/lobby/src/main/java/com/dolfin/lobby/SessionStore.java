@@ -40,8 +40,21 @@ public final class SessionStore {
         return Set.copyOf(sessions.keySet());
     }
 
+    /**
+     * Replaces an existing snapshot with the player's current state. The old snapshot stays valid
+     * until the atomic write succeeds. Only for a login capture whose player has not left the
+     * survival world yet, so items delivered after the join hook are not lost.
+     */
+    public void recapture(ServerPlayer player) throws IOException {
+        put(player.getUUID(), snapshot(player));
+    }
+
     public void capture(ServerPlayer player) throws IOException {
         if (contains(player.getUUID())) return;
+        put(player.getUUID(), snapshot(player));
+    }
+
+    private static CompoundTag snapshot(ServerPlayer player) {
         // Return cursor and crafting contents to the survival inventory before taking escrow.
         player.closeContainer();
         player.inventoryMenu.removed(player);
@@ -59,7 +72,7 @@ public final class SessionStore {
         state.putFloat("yaw", player.getYRot());
         state.putFloat("pitch", player.getXRot());
         state.putString("phase", "LOBBY");
-        put(player.getUUID(), state);
+        return state;
     }
 
     public void put(UUID id, CompoundTag state) throws IOException {

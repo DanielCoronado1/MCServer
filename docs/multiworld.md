@@ -75,3 +75,22 @@ python3 -m tests.manual.prueba_lobby_funcional \
 ```
 
 Exige IP 127.0.0.1 y offline solo en esa instancia. El JAR fixture se genera fuera de `build/libs`, no forma parte de instalación/distribución normal. Usa dos `ServerPlayer` reales registrados por `PlayerList` con conexiones que absorben paquetes; entrega explícitamente el aviso PlayerLoaded cuando prueba daño. Verifica estado, comandos, activadores, inventarios, catálogo, vuelos reales y recuperación. Solo la matriz de fallos/reinicios inyecta journals de fase. El arnés reinicia para COUNTDOWN/ASCENT/TRANSITION/DESCENT y provoca un arranque rechazado por esquema incompatible, conservando los bytes originales. No sustituye renderizado real del cliente ni clics en cabina. La prueba base anterior describe la etapa fundacional y no pretende operar mapas funcionales protegidos.
+
+## Presentación final reproducible (trazado 3)
+
+`dolfinlobby instalar` también aplica `StationDecor`: ventanales transparentes con zócalo de pizarra, costillas de cuarzo iluminadas, circulación cian, marcos verde/azul y tres alas numeradas. Conserva suelo y llegadas y128/129, todos los botones y activadores descritos arriba. Las estaciones usan pedestales oscuros, borde verde para Creepers y ámbar para Zombies. Los rótulos de texto tienen fondo oscuro, sombra y luz fija; no se añaden partículas ni entidades decorativas con IA. Hay **35 rótulos propios** tras instalar, también después de una carga fría y reinstalación.
+
+La migración conserva el nombre compatible `layout-2.ready`, cuyo contenido pasa a `layoutVersion=3`. Conserva el esquema de resguardos, manifiesto y generación UUID. Es explícita: no se aplica automáticamente sobre mundos existentes al arrancar. Ejecutar los dos comandos anteriores basta tanto para mapas nuevos como para actualizar los de las etapas 1/2. Repetir `provisionar` nunca reconstruye un mapa existente.
+
+Las únicas nuevas zonas decorativas son el perímetro de cubierta, la espina aérea y carriles de circulación, bocas de los dos portales, contornos de alas y bases de los 25 botones, franjas de seguridad de lanzamiento y la reserva existente de Kepler. Los antiguos cuadrados de hormigón verde/lima/azul del constructor inicial se retiran por material únicamente dentro de sus tres reservas originales; otros bloques se conservan. No se repinta el resto de la cubierta. Respaldar las reservas antes de una migración si un administrador las decoró manualmente. La piscina, cultivos, madera, suelo y cama de bedrock se conservan en el circuito; la arena añade revestimiento interior y luminarias. Salir/reiniciar reconstruye inmediatamente su aspecto final, además de hacerlo al comenzar la siguiente prueba.
+
+La plataforma y el puesto comparten anillos amarillos y grafito empotrados en el suelo. No hay techos ni ornamentación en sus columnas de vuelo. La espina aérea solo sigue la circulación delantera, lejos de la nave. Todos los cambios entran mediante `StationProtection.edit` y las reservas de protección permanecen iguales.
+
+El fixture exporta `station-block-slices.json` desde los bloques reales del servidor durante ambas comprobaciones de instalación. Para revisar el plano diagnóstico:
+
+```sh
+uv run --with pillow python -m tests.manual.inspeccionar_estacion \
+  /ruta/al/servidor-aislado/station-block-slices.json
+```
+
+Produce `station-plan-inspection.png`: cortes de suelo y alturas de paso de ambas cubiertas y Kepler. **Es un plano de datos de bloques, no una captura de Minecraft**. El arnés comprueba accesos de los 25 botones, bocas de portales, pasillos de llegada/salida, columnas de vuelo, contención/piscina y apariencia tras reiniciar. El renderizado del cliente, superposición de textos a distancia y comodidad del combate requieren una visita real después del despliegue.

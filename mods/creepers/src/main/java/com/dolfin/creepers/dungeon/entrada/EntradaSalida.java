@@ -157,6 +157,19 @@ public final class EntradaSalida {
                 modo);
     }
 
+    /**
+     * Si el jugador pertenece al sistema de dungeons: miembro de una partida, con un retorno
+     * guardado o dentro de la dimensión. Otros mods lo consultan para no mover ni capturar a quien
+     * las dungeons aún gobiernan.
+     */
+    public boolean ocupado(ServerPlayer jugador) {
+        return registro.partidaDe(jugador.getUUID()).isPresent()
+                || DatosDungeons.de(jugador.level().getServer())
+                        .retorno(jugador.getUUID())
+                        .isPresent()
+                || DimensionDungeons.es(jugador.level());
+    }
+
     /** Reconecta a un miembro desconectado o restaura a quien quedó dentro sin partida. */
     public void alConectarse(ServerPlayer jugador) {
         MinecraftServer server = jugador.level().getServer();

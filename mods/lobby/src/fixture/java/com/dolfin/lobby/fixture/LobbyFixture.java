@@ -95,6 +95,7 @@ public final class LobbyFixture implements ModInitializer {
                     cases.put("recovery-pause", LobbyFixture::recoveryPause);
                     cases.put("phases", LobbyFixture::phases);
                     cases.put("portals", LobbyFixture::portals);
+                    cases.put("dungeon-compat", LobbyFixture::dungeonCompat);
                     cases.put("resume", LobbyFixture::resume);
                     for (var phase : FlightJournal.Phase.values())
                         cases.put(
@@ -279,7 +280,7 @@ public final class LobbyFixture implements ModInitializer {
                                 "real arrival floor " + worldId);
                         check(
                                 world.getBlockState(new BlockPos(48, 131, 0))
-                                        .is(net.minecraft.world.level.block.Blocks.TINTED_GLASS),
+                                        .is(net.minecraft.world.level.block.Blocks.GLASS),
                                 "real station perimeter " + worldId);
                     }
                     s.survival(a);
@@ -822,6 +823,167 @@ public final class LobbyFixture implements ModInitializer {
                 });
     }
 
+    private static void dungeonCompat(MinecraftServer server) {
+        var s = DolfinLobby.sessions();
+        var datos = com.dolfin.creepers.dungeon.entrada.DatosDungeons.de(server);
+        plan(
+                () -> {
+                    check(!s.isolated(A) && !s.isolated(B), "dungeon compat starts in survival");
+                    datos.guardarRetornoSiFalta(
+                            A,
+                            new com.dolfin.creepers.dungeon.entrada.RetornoGuardado(
+                                    Level.OVERWORLD, 10.5, 70, 10.5, 0, 0, GameType.SURVIVAL));
+                    check(
+                            com.dolfin.creepers.dungeon.Dungeons.entradaSalida().ocupado(a),
+                            "player A is occupied in dungeon");
+                    s.lobby(a);
+                    check(
+                            !s.isolated(A) && a.level().dimension().equals(Level.OVERWORLD),
+                            "lobby command blocked while player belongs to dungeon");
+                    datos.quitarRetorno(A);
+                    check(
+                            !com.dolfin.creepers.dungeon.Dungeons.entradaSalida().ocupado(a),
+                            "player A cleared from dungeon");
+                    s.lobby(a);
+                });
+        for (int i = 0; i < 10; i++) plan(() -> {});
+        plan(
+                () -> {
+                    check(s.isolated(A), "player A moved to lobby");
+                    var res =
+                            com.dolfin.creepers.dungeon.Dungeons.partidas()
+                                    .iniciar(
+                                            server,
+                                            "test_dungeon",
+                                            com.dolfin.creepers.dungeon.modelo.Dificultad.FACIL,
+                                            java.util.List.of(a));
+                    check(
+                            res
+                                            instanceof
+                                            com.dolfin.creepers.dungeon.modelo.RegistroDungeons
+                                                            .ResultadoInicio.Rechazada
+                                                    rechazada
+                                    && rechazada.rechazos().stream()
+                                            .anyMatch(
+                                                    r ->
+                                                            r.tipo()
+                                                                    == com.dolfin.creepers.dungeon
+                                                                            .modelo.RegistroDungeons
+                                                                            .TipoRechazo
+                                                                            .JUGADOR_VETADO),
+                            "isolated lobby player vetoed from dungeon match");
+                    s.survival(a);
+                });
+        for (int i = 0; i < 10; i++) plan(() -> {});
+        plan(
+                () -> {
+                    inventory(a, 11);
+                    check(!s.isolated(A), "player A safely returned to survival");
+                });
+    }
+
+    private static void presentation(MinecraftServer server) {
+        var s = DolfinLobby.sessions();
+        var show = server.getLevel(LobbyConfig.key(s.config.showcase()));
+        var lobby = server.getLevel(LobbyConfig.key(s.config.lobby()));
+        var kepler = server.getLevel(KeplerDimension.LEVEL);
+        for (int i = 0; i < 25; i++) {
+            boolean c = i < 9;
+            int j = c ? i : i - 9;
+            var p = new BlockPos((c ? -44 : -16) + j % 4 * 6, 130, -25 + j / 4 * 7);
+            check(
+                    show.getBlockState(p).is(net.minecraft.world.level.block.Blocks.STONE_BUTTON)
+                            && StationLayout.button(p) == i,
+                    "decorated button anchor " + i);
+            check(show.getBlockState(p.below()).isSolid(), "solid kiosk support " + i);
+            check(
+                    show.getBlockState(p.offset(0, -1, 1)).isAir()
+                            && show.getBlockState(p.offset(0, 0, 1)).isAir(),
+                    "kiosk approach clear " + i);
+        }
+        for (int x : new int[] {-20, 20}) {
+            boolean clear = true;
+            for (int dx = -2; dx <= 2; dx++)
+                for (int y = 129; y <= 133; y++)
+                    clear &= lobby.getBlockState(new BlockPos(x + dx, y, -3)).isAir();
+            check(clear, "portal opening and trigger clear " + x);
+        }
+        for (var world : List.of(lobby, show)) {
+            boolean clear = true;
+            for (int z = 8; z <= 31; z++)
+                for (int x = -2; x <= 2; x++)
+                    for (int y = 129; y <= 130; y++)
+                        clear &= world.getBlockState(new BlockPos(x, y, z)).isAir();
+            check(clear, "arrival and return circulation clear " + world.dimension());
+        }
+        for (var world : List.of(show, kepler)) {
+            int x = world == show ? 30 : 100000,
+                    y = world == show ? 129 : 201,
+                    z = world == show ? -14 : 100000;
+            boolean clear = true;
+            for (int dx = -3; dx <= 3; dx++)
+                for (int dz = -3; dz <= 3; dz++)
+                    for (int dy = 0; dy < 30; dy++)
+                        clear &= world.getBlockState(new BlockPos(x + dx, y + dy, z + dz)).isAir();
+            check(clear, "rocket vertical clearance " + world.dimension());
+        }
+        StationLayout.arena(server, show, 15);
+        var center = StationLayout.arenaCenter(15);
+        StationProtection.edit(
+                () ->
+                        show.setBlockAndUpdate(
+                                center.offset(0, 0, 7),
+                                net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()));
+        StationLayout.resetArena(server, 15);
+        check(
+                show.getBlockState(center.offset(0, 0, 7))
+                        .is(
+                                net.minecraft.world.level.block.Blocks.CONCRETE.pick(
+                                        net.minecraft.world.item.DyeColor.CYAN)),
+                "reset restores final arena appearance immediately");
+        check(
+                show.getBlockState(center.offset(12, 5, 0))
+                        .is(net.minecraft.world.level.block.Blocks.BEDROCK),
+                "arena outer containment preserved");
+        check(
+                show.getBlockState(center.offset(7, -6, -5))
+                        .is(net.minecraft.world.level.block.Blocks.WATER),
+                "arena deep-water circuit preserved");
+        var slices = new com.google.gson.JsonObject();
+        for (var world : List.of(lobby, show, kepler)) {
+            int ox = world == kepler ? 100000 : 0, oz = world == kepler ? 100000 : 0;
+            int radius = world == kepler ? 16 : 48,
+                    depth = world == kepler ? 16 : 32,
+                    base = world == kepler ? 200 : 128;
+            var layers = new com.google.gson.JsonObject();
+            for (int dy : new int[] {0, 1, 2, 6, 7}) {
+                var rows = new com.google.gson.JsonArray();
+                for (int z = -depth; z <= depth; z++) {
+                    var row = new com.google.gson.JsonArray();
+                    for (int x = -radius; x <= radius; x++)
+                        row.add(
+                                net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                                        .getKey(
+                                                world.getBlockState(
+                                                                new BlockPos(
+                                                                        ox + x, base + dy, oz + z))
+                                                        .getBlock())
+                                        .toString());
+                    rows.add(row);
+                }
+                layers.add(Integer.toString(base + dy), rows);
+            }
+            slices.add(world.dimension().identifier().toString(), layers);
+        }
+        try {
+            java.nio.file.Files.writeString(
+                    server.getServerDirectory().resolve("station-block-slices.json"),
+                    new com.google.gson.Gson().toJson(slices));
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void layout(MinecraftServer server, boolean seed) {
         var s = DolfinLobby.sessions();
         if (seed)
@@ -840,7 +1002,8 @@ public final class LobbyFixture implements ModInitializer {
                     for (var world : server.getAllLevels())
                         for (var entity : world.getAllEntities())
                             if (entity.entityTags().contains("dolfin_function_label")) labels++;
-                    check(labels == 32, "repeatable layout has exactly 32 owned Spanish labels");
+                    presentation(server);
+                    check(labels == 35, "repeatable layout has exactly 35 owned Spanish labels");
                     for (String id : java.util.List.of(s.config.lobby(), s.config.showcase()))
                         check(
                                 server.getLevel(LobbyConfig.key(id))

@@ -87,6 +87,8 @@ public final class StationLayout {
                                     || e.entityTags().contains("dolfin_function_label"))
                                 e.discard();
                     }
+                    StationDecor.deck(lobby, false);
+                    StationDecor.deck(show, true);
                     fill(lobby, -22, 129, -3, -18, 133, -3, Blocks.AIR);
                     fill(lobby, 18, 129, -3, 22, 133, -3, Blocks.AIR);
                     label(
@@ -123,13 +125,41 @@ public final class StationLayout {
                             "EXHIBICIÓN DOLFIN\n"
                                     + "Pulsa un botón para iniciar tu combate privado.\n"
                                     + "/exhibicion lista · /exhibicion volver · /lobby");
+                    label(
+                            server,
+                            show,
+                            -35,
+                            135,
+                            1,
+                            "01 · CREEPERS\n"
+                                    + "9 variantes · Botones verdes\n"
+                                    + "/exhibicion volver reinicia");
+                    label(
+                            server,
+                            show,
+                            -7,
+                            135,
+                            1,
+                            "02 · ZOMBIES\n"
+                                    + "16 variantes · Botones ámbar\n"
+                                    + "Sin progreso de supervivencia");
+                    label(
+                            server,
+                            show,
+                            30,
+                            135,
+                            1,
+                            "03 · ESPACIO\n"
+                                    + "Kepler original · Ida y vuelta\n"
+                                    + "Plataforma con franja amarilla");
                     for (int i = 0; i < ExhibitCatalog.ALL.size(); i++) {
                         boolean creeper = i < 9;
                         int j = creeper ? i : i - 9;
                         int x = (creeper ? -44 : -16) + (j % 4) * 6;
                         int z = -25 + (j / 4) * 7;
                         show.setBlockAndUpdate(
-                                new BlockPos(x, 129, z), Blocks.SMOOTH_QUARTZ.defaultBlockState());
+                                new BlockPos(x, 129, z),
+                                Blocks.POLISHED_DEEPSLATE.defaultBlockState());
                         show.setBlockAndUpdate(
                                 new BlockPos(x, 130, z),
                                 Blocks.STONE_BUTTON
@@ -174,7 +204,7 @@ public final class StationLayout {
                             30,
                             133,
                             -3,
-                            "SPACE · VIAJE REAL A KEPLER\n"
+                            "ESPACIO · VIAJE REAL A KEPLER\n"
                                     + "Pulsa para preparar nave y oxígeno.\n"
                                     + "Cabina: despegar / regresar · /lobby cancelar\n"
                                     + "Una nave de demostración a la vez.");
@@ -191,6 +221,7 @@ public final class StationLayout {
                             kepler.setBlockAndUpdate(
                                     new BlockPos(x, 200, z),
                                     Blocks.SEA_LANTERN.defaultBlockState());
+                    StationDecor.outpost(kepler);
                     for (var e : kepler.getAllEntities())
                         if (e.entityTags().contains("dolfin_outpost_label")) e.discard();
                     label(
@@ -210,7 +241,7 @@ public final class StationLayout {
         nativeConfig.save();
         MultiworldMod.get_world_creator().set_difficulty(config.showcase(), Difficulty.NORMAL);
         server.saveEverything(false, true, true);
-        Files.writeString(marker(server), "layoutVersion=2\n");
+        Files.writeString(marker(server), "layoutVersion=3\n");
     }
 
     public static int button(BlockPos pos) {
@@ -224,7 +255,7 @@ public final class StationLayout {
     }
 
     public static void arena(MinecraftServer server, ServerLevel world, int slot) {
-        resetArena(server, slot);
+        clearArena(server, slot);
         var c = arenaCenter(slot);
         StationProtection.edit(
                 () -> {
@@ -271,12 +302,20 @@ public final class StationLayout {
                                 new BlockPos(x, 129, -2),
                                 Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
                     }
+                    StationDecor.arena(world, c.getX());
                     world.setBlockAndUpdate(
                             c.offset(-7, 0, 7), Blocks.SEA_LANTERN.defaultBlockState());
                 });
     }
 
     public static void resetArena(MinecraftServer server, int slot) {
+        var sessions = DolfinLobby.sessions();
+        if (sessions == null) return;
+        var world = server.getLevel(LobbyConfig.key(sessions.config.showcase()));
+        if (world != null) arena(server, world, slot);
+    }
+
+    private static void clearArena(MinecraftServer server, int slot) {
         var sessions = DolfinLobby.sessions();
         if (sessions == null) return;
         var level = server.getLevel(LobbyConfig.key(sessions.config.showcase()));
@@ -312,6 +351,6 @@ public final class StationLayout {
                                         : "")
                                 + "],billboard:\"center\",text:"
                                 + new Gson().toJson(text)
-                                + ",line_width:220}");
+                                + ",line_width:180,background:-1442840576,default_background:0b,shadow:1b,brightness:{block:15,sky:15},view_range:0.65f}");
     }
 }

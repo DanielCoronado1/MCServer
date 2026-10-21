@@ -21,7 +21,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -34,6 +36,7 @@ public final class ServicioPartidas {
     private final RegistroDungeons registro;
     private final EntradaSalida entradaSalida;
     private final Supplier<Reiniciador> reiniciador;
+    private Predicate<ServerPlayer> veto = jugador -> false;
 
     ServicioPartidas(
             RegistroDungeons registro,
@@ -42,6 +45,15 @@ public final class ServicioPartidas {
         this.registro = registro;
         this.entradaSalida = entradaSalida;
         this.reiniciador = reiniciador;
+    }
+
+    /**
+     * Instala un veto de entrada: quien lo cumpla no puede empezar una partida (rechazo {@code
+     * JUGADOR_VETADO}). Lo usan otros mods que gestionan al jugador por su cuenta, como la estación
+     * Dolfin con su equipo en resguardo.
+     */
+    public void usarVeto(Predicate<ServerPlayer> nuevo) {
+        veto = Objects.requireNonNull(nuevo);
     }
 
     /**
@@ -55,6 +67,18 @@ public final class ServicioPartidas {
             String dungeonId,
             Dificultad dificultad,
             List<ServerPlayer> jugadores) {
+        List<Rechazo> vetados =
+                jugadores.stream()
+                        .filter(veto)
+                        .map(
+                                j ->
+                                        new Rechazo(
+                                                TipoRechazo.JUGADOR_VETADO,
+                                                Optional.of(j.getName().getString())))
+                        .toList();
+        if (!vetados.isEmpty()) {
+            return new ResultadoInicio.Rechazada(vetados);
+        }
         if (DimensionDungeons.nivel(server).isEmpty()) {
             DolfinCreepers.LOGGER.error("event=dungeon_dimension_missing dungeon={}", dungeonId);
             return new ResultadoInicio.Rechazada(

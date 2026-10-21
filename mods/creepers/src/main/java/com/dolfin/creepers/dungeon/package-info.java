@@ -34,6 +34,12 @@
  *       {@code dolfincreepers:tumba}, contenido en {@code DatosMuerte}), espectador confinado o
  *       {@code CastigosHardcore} (pérdida total y {@code BanHardcore} con fuente {@code
  *       DolfinDungeons}). {@code FinPorBajas} termina en derrota la partida sin vivos.
+ *   <li>{@code fin}: fin de partida y récords (#17, #22). {@code FinDePartida} muestra la bossbar
+ *       (nombre, dificultad y tiempo, cada segundo), avisa a 10/5/1 min del límite, expulsa por
+ *       AFK, declara la victoria o la derrota y, al terminar, guarda cooldowns. {@code
+ *       HistorialDungeons} guarda en JSON, en {@code <mundo>/dolfin-dungeons/}, los récords ({@code
+ *       TablaRecords}) y el progreso por jugador ({@code ProgresoJugadores}: cooldowns y dungeons
+ *       completadas). {@code JefeDungeon} es el enganche con el jefe (#20).
  *   <li>{@link com.dolfin.creepers.dungeon.ServicioPartidas}: fachada para empezar, abandonar,
  *       terminar y reiniciar partidas con jugadores reales.
  *   <li>{@code mixin}: sin portales ni aparición natural de mobs en la dimensión.
@@ -66,15 +72,39 @@
  *       Basta con que {@code /dungeon leave} llame a {@code partidas().salir(jugador, ABANDONO)}.
  *   <li>#13 {@code pardon}: quitar solo bans con {@code BanHardcore.esDeDungeon(entrada)} (fuente
  *       {@code BanHardcore.FUENTE}); el nodo de bypass es {@code PermisoBypassBan.NODO}.
- *   <li>#17 fin: {@code partidas().terminar(...)}; {@code Partida.hayVivosOPorVolver()}; {@code
- *       partidas().salir(jugador, AFK)}. La derrota por bajas ya la detecta {@code FinPorBajas}
- *       ({@code ReglasMuerte.derrotaPorBajas}) y llama a {@code terminar(…, DERROTA)}; las tumbas
- *       se devuelven o pierden al publicarse {@code PartidaTerminada} según el resultado.
+ *   <li>#17 fin (hecho, paquete {@code fin}): ver "Fin de partida" abajo.
  *   <li>#18 escalado: {@code PartidaIniciada}, {@code Partida.jugadoresIniciales()} y {@code
  *       parametros()}.
  *   <li>#19 plantillas: {@code Dungeons.usarReiniciador(...)}; se llama al terminar, en {@code
  *       reset} y al arrancar tras una caída.
- *   <li>#22 estadísticas: {@code PartidaTerminada}.
+ *   <li>#22 récords (hecho): {@code Dungeons.historial().records()} ({@code TablaRecords.top},
+ *       {@code mejoresTiempos}); los comandos {@code top} e {@code info} leen de ahí.
+ * </ul>
+ *
+ * <h2>Fin de partida</h2>
+ *
+ * <ul>
+ *   <li><b>Victoria</b>: {@code Dungeons.fin().declararVictoria(dungeonId)}. El jefe (#20) solo
+ *       tiene que llevar la etiqueta {@code JefeDungeon.ETIQUETA}, con {@code
+ *       JefeDungeon.marcar(entidad)} al invocarlo: al morir dentro de la zona de una partida activa
+ *       se declara sola. La victoria publica {@code VictoriaDeclarada}, guarda el récord, anuncia
+ *       miembros, dificultad y tiempo a todo el servidor y abre la ventana de botín ({@code
+ *       fin.ventanaBotinSegundos}, 60); después termina con {@code VICTORIA}. Con la victoria
+ *       declarada ({@code Partida.victoriaDeclarada()}) no hay derrota por bajas ni castigos de
+ *       hardcore.
+ *   <li><b>Derrota</b>: {@code FinPorBajas} llama a {@code FinDePartida.derrota}; el límite de
+ *       tiempo ({@code Partida.limiteMinutos()}) acaba con {@code TIEMPO_AGOTADO}, sin ban. En
+ *       ambos casos se avisa al grupo y se sale a los {@code fin.salidaDerrotaSegundos} (5).
+ *   <li><b>AFK</b>: sin cambiar de posición ni de orientación durante {@code afkSegundos}, sale con
+ *       {@code MotivoSalida.AFK} (en hardcore pierde sus objetos sin ban, #16). Solo se vigila a
+ *       los vivos y conectados.
+ *   <li><b>Al terminar</b> (cualquier resultado salvo {@code CANCELADA}): cooldown de {@code
+ *       cooldownMinutos} para cada jugador de la partida en {@code Dungeons.historial().progreso()}
+ *       ({@code cooldownRestanteMillis}, {@code completo}), que es lo que lee #14 para validar la
+ *       entrada; la dungeon pasa a {@code REINICIANDO} y llama al {@code Reiniciador}.
+ *   <li><b>Recompensas de la primera victoria</b> (por jugador, dungeon y dificultad): nodo de
+ *       LuckPerms {@code fin.tituloPlantilla} (o {@code fin.titulos}); la primera en hardcore da
+ *       además {@code fin.cabezaJefe}. Sin LuckPerms los títulos se omiten sin error.
  * </ul>
  *
  * <h2>Caídas</h2>

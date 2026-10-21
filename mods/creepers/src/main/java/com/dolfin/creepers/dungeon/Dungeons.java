@@ -12,8 +12,10 @@ import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
 import com.dolfin.creepers.dungeon.fila.EntradaDirecta;
 import com.dolfin.creepers.dungeon.fila.ServicioFila;
 import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
+import com.dolfin.creepers.dungeon.fin.FinDePartida;
+import com.dolfin.creepers.dungeon.fin.HistorialDungeons;
+import com.dolfin.creepers.dungeon.fin.JefeDungeon;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
-import com.dolfin.creepers.dungeon.modelo.ResultadoPartida;
 import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
 import com.dolfin.creepers.dungeon.muerte.CastigosHardcore;
 import com.dolfin.creepers.dungeon.muerte.FinPorBajas;
@@ -33,6 +35,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -57,6 +60,8 @@ public final class Dungeons {
     private static FinPorBajas finPorBajas;
     private static ServicioFila fila;
     private static Estadisticas estadisticas = Estadisticas.SIN_DATOS;
+    private static FinDePartida fin;
+    private static HistorialDungeons historial;
     private static Reiniciador reiniciador = Reiniciador.SIN_PLANTILLA;
     private static MinecraftServer server;
 
@@ -76,9 +81,11 @@ public final class Dungeons {
         tumbas = new Tumbas(registro, () -> server);
         castigos = new CastigosHardcore(entradaSalida, () -> server);
         muertes = new Muertes(registro, entradaSalida, tumbas, castigos);
-        finPorBajas =
-                new FinPorBajas(
-                        registro, (s, id) -> partidas.terminar(s, id, ResultadoPartida.DERROTA));
+        historial =
+                new HistorialDungeons(
+                        aviso -> DolfinCreepers.LOGGER.warn("event=dungeon_history {}", aviso));
+        fin = new FinDePartida(registro, partidas, historial, () -> server);
+        finPorBajas = new FinPorBajas(registro, fin::derrota);
         CargaChunks.registrar();
         suscribirModulos();
         registrarEventosFabric();
@@ -160,6 +167,21 @@ public final class Dungeons {
         estadisticas = Objects.requireNonNull(nuevas);
     }
 
+    /**
+     * Fin de partida (#17): bossbar, límite de tiempo, AFK y victoria ({@code declararVictoria}).
+     */
+    public static FinDePartida fin() {
+        return fin;
+    }
+
+    /**
+     * Récords (#22) y progreso por jugador: cooldowns y dungeons completadas, que lee la validación
+     * de entrada (#14). Disponible tras arrancar el servidor.
+     */
+    public static HistorialDungeons historial() {
+        return historial;
+    }
+
     /** Sustituye el reiniciador de zonas; #19 instala aquí el de plantillas. */
     public static void usarReiniciador(Reiniciador nuevo) {
         reiniciador = Objects.requireNonNull(nuevo);
@@ -171,6 +193,7 @@ public final class Dungeons {
         tumbas.suscribir(BUS);
         castigos.suscribir(BUS);
         finPorBajas.suscribir(BUS);
+        fin.suscribir(BUS);
         BUS.suscribir(
                 DungeonCambioEstado.class,
                 e -> {
@@ -188,6 +211,7 @@ public final class Dungeons {
                 s -> {
                     server = s;
                     registro.limpiar(config.actual());
+                    historial.cargar(s.getWorldPath(LevelResource.ROOT));
                     entradaSalida.alArrancar();
                 });
         ServerLifecycleEvents.SERVER_STARTED.register(
@@ -202,6 +226,7 @@ public final class Dungeons {
                     entradaSalida.alConectarse(handler.getPlayer());
                     castigos.alConectarse(handler.getPlayer());
                     tumbas.alConectarse(handler.getPlayer());
+                    fin.alConectarse(handler.getPlayer());
                 });
         ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, s) -> entradaSalida.alDesconectarse(handler.getPlayer()));
@@ -214,6 +239,7 @@ public final class Dungeons {
         ServerPlayerEvents.AFTER_RESPAWN.register(
                 (anterior, nuevo, vivo) -> entradaSalida.alSalirDeLaDimension(nuevo));
         ServerLivingEntityEvents.ALLOW_DEATH.register(muertes::permitirMuerte);
+        JefeDungeon.registrar(fin);
         ServerTickEvents.END_SERVER_TICK.register(Dungeons::tick);
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, acceso, entorno) -> ComandoDungeon.registrar(dispatcher));
@@ -224,7 +250,7 @@ public final class Dungeons {
     /**
      * Cada tick: expulsiones de hardcore, checkpoints y espectadores, y derrota por bajas (antes de
      * que {@code partidas.tick} dé por abandonada una partida vacía). Una vez por segundo: plazos
-     * de reconexión, partidas vacías y modo aventura.
+     * de reconexión, fin de partida (tiempo, AFK, cierres), partidas vacías y modo aventura.
      */
     private static void tick(MinecraftServer s) {
         castigos.tick(s);
@@ -234,6 +260,7 @@ public final class Dungeons {
             return;
         }
         registro.vencerDesconexiones(s.getTickCount());
+        fin.tick(s);
         partidas.tick(s);
         ReglasDungeon.cadaSegundo(s);
     }

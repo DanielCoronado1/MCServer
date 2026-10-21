@@ -7,7 +7,7 @@
  *   <li>{@link com.dolfin.creepers.dungeon.Dungeons}: punto de entrada. Crea y conecta los módulos
  *       y da acceso a ellos: {@code config()}, {@code registro()}, {@code partidas()}, {@code
  *       entradaSalida()}, {@code eventos()}, {@code plantillas()}, {@code recargarConfig()}, {@code
- *       usarReiniciador(...)}.
+ *       usarReiniciador(...)}, {@code usarAjusteAparicion(...)}.
  *   <li>{@code config}: {@code config/dolfin-dungeons.json} ({@link
  *       com.dolfin.creepers.dungeon.config.DungeonsConfig}), un record por sección y un {@code
  *       Snapshot} inmutable por recarga. {@code CodecDefinicion} lee/escribe la lista de dungeons;
@@ -33,8 +33,9 @@
  *       aire ({@code AlmacenPlantillas}, {@code Troceado}). {@code ReiniciadorPlantillas} es el
  *       {@code Reiniciador} por defecto; {@code ServicioPlantillas} guarda y reinicia para los
  *       comandos; todo el trabajo largo pasa por {@code EjecutorPorTicks} con un presupuesto de
- *       bloques por tick. {@code MarcadorMob} es el bloque invisible que marca
- *       dónde aparecen mobs.
+ *       bloques por tick. {@code MarcadorMob} es el bloque invisible que {@code
+ *       AparicionMarcadores} convierte en mobs al empezar cada partida, pasando por el {@code
+ *       AjusteAparicion} instalado.
  *   <li>{@code muerte}: muerte, vidas, checkpoints, tumbas y hardcore (#16). {@code Muertes}
  *       cancela la muerte vanilla de los miembros ({@code ALLOW_DEATH}, respetando el tótem) y
  *       aplica {@code ReglasMuerte}: reaparecer en el checkpoint, tumba ({@code Tumbas}, bloque
@@ -83,7 +84,9 @@
  *       {@code BanHardcore.FUENTE}); el nodo de bypass es {@code PermisoBypassBan.NODO}.
  *   <li>#17 fin (hecho, paquete {@code fin}): ver "Fin de partida" abajo.
  *   <li>#18 escalado: {@code PartidaIniciada}, {@code Partida.jugadoresIniciales()} y {@code
- *       parametros().
+ *       parametros()}; los mobs de los marcadores se ajustan con {@code
+ *       Dungeons.usarAjusteAparicion(...)} (cantidad y cada entidad, etiqueta {@code
+ *       dolfin_mob_dungeon}).
  *   <li>#19 plantillas: hecho en {@code plantilla}; el reinicio se lanza al terminar, en {@code
  *       reset} y al arrancar tras una caída.
  *   <li>#22 récords (hecho): {@code Dungeons.historial().records()} ({@code TablaRecords.top},

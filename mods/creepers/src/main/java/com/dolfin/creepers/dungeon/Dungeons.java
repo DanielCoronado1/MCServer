@@ -25,7 +25,9 @@ import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.dolfin.creepers.dungeon.mundo.Reiniciador;
+import com.dolfin.creepers.dungeon.plantilla.AjusteAparicion;
 import com.dolfin.creepers.dungeon.plantilla.AlmacenPlantillas;
+import com.dolfin.creepers.dungeon.plantilla.AparicionMarcadores;
 import com.dolfin.creepers.dungeon.plantilla.ContenidoPlantillas;
 import com.dolfin.creepers.dungeon.plantilla.EjecutorPorTicks;
 import com.dolfin.creepers.dungeon.plantilla.ReiniciadorPlantillas;
@@ -73,6 +75,7 @@ public final class Dungeons {
     private static ServicioPlantillas plantillas;
     private static EjecutorPorTicks ejecutor;
     private static AlmacenPlantillas almacen;
+    private static AjusteAparicion ajusteAparicion = AjusteAparicion.NINGUNO;
     private static MinecraftServer server;
 
     private Dungeons() {}
@@ -219,6 +222,11 @@ public final class Dungeons {
         reiniciador = Objects.requireNonNull(nuevo);
     }
 
+    /** Instala el ajuste de los mobs de los marcadores; #18 aplica aquí el escalado. */
+    public static void usarAjusteAparicion(AjusteAparicion nuevo) {
+        ajusteAparicion = Objects.requireNonNull(nuevo);
+    }
+
     private static void suscribirModulos() {
         new CargaChunks(() -> server).suscribir(BUS);
         new AvisosPartida(() -> server).suscribir(BUS);
@@ -226,6 +234,8 @@ public final class Dungeons {
         castigos.suscribir(BUS);
         finPorBajas.suscribir(BUS);
         fin.suscribir(BUS);
+        new AparicionMarcadores(() -> server, ejecutor, almacen, () -> ajusteAparicion)
+                .suscribir(BUS);
         BUS.suscribir(
                 DungeonCambioEstado.class,
                 e -> {

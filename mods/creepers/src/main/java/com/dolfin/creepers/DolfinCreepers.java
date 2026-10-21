@@ -1,5 +1,7 @@
 package com.dolfin.creepers;
 
+import com.dolfin.creepers.dungeon.Dungeons;
+
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
@@ -58,6 +60,7 @@ public class DolfinCreepers implements ModInitializer {
             }
         }
         LOGGER.info("DolfinCreepers: {} variantes de creeper registradas", TIPOS.size());
+        Dungeons.init();
     }
 
     public static EntityType<VarianteCreeper> tipo(Variante variante) {

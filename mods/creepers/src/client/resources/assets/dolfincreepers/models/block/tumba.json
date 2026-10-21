@@ -1,0 +1,33 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/stone_bricks",
+    "base": "minecraft:block/cobblestone",
+    "lapida": "minecraft:block/stone_bricks"
+  },
+  "elements": [
+    {
+      "from": [1, 0, 1],
+      "to": [15, 2, 15],
+      "faces": {
+        "down": {"texture": "#base", "cullface": "down"},
+        "up": {"texture": "#base"},
+        "north": {"texture": "#base"},
+        "south": {"texture": "#base"},
+        "west": {"texture": "#base"},
+        "east": {"texture": "#base"}
+      }
+    },
+    {
+      "from": [3, 2, 6],
+      "to": [13, 14, 10],
+      "faces": {
+        "up": {"texture": "#lapida"},
+        "north": {"texture": "#lapida"},
+        "south": {"texture": "#lapida"},
+        "west": {"texture": "#lapida"},
+        "east": {"texture": "#lapida"}
+      }
+    }
+  ]
+}

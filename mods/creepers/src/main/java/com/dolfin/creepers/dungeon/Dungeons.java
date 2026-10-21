@@ -8,6 +8,8 @@ import com.dolfin.creepers.dungeon.eventos.BusEventos;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
+import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
+import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.dolfin.creepers.dungeon.mundo.Reiniciador;
@@ -37,6 +39,7 @@ public final class Dungeons {
     private static RegistroDungeons registro;
     private static EntradaSalida entradaSalida;
     private static ServicioPartidas partidas;
+    private static Tumbas tumbas;
     private static Reiniciador reiniciador = Reiniciador.SIN_PLANTILLA;
     private static MinecraftServer server;
 
@@ -51,6 +54,8 @@ public final class Dungeons {
         registro = new RegistroDungeons(BUS, config.actual());
         entradaSalida = new EntradaSalida(registro, BUS);
         partidas = new ServicioPartidas(registro, entradaSalida, () -> reiniciador);
+        BloqueTumba.registrar();
+        tumbas = new Tumbas(registro, () -> server);
         CargaChunks.registrar();
         suscribirModulos();
         registrarEventosFabric();
@@ -93,6 +98,11 @@ public final class Dungeons {
         return entradaSalida;
     }
 
+    /** Tumbas de dificultad media (#16). */
+    public static Tumbas tumbas() {
+        return tumbas;
+    }
+
     /** Sustituye el reiniciador de zonas; #19 instala aquí el de plantillas. */
     public static void usarReiniciador(Reiniciador nuevo) {
         reiniciador = Objects.requireNonNull(nuevo);
@@ -101,6 +111,7 @@ public final class Dungeons {
     private static void suscribirModulos() {
         new CargaChunks(() -> server).suscribir(BUS);
         new AvisosPartida(() -> server).suscribir(BUS);
+        tumbas.suscribir(BUS);
         BUS.suscribir(
                 DungeonCambioEstado.class,
                 e -> {
@@ -120,11 +131,18 @@ public final class Dungeons {
                     registro.limpiar(config.actual());
                     entradaSalida.alArrancar();
                 });
-        ServerLifecycleEvents.SERVER_STARTED.register(partidas::recuperarTrasArranque);
+        ServerLifecycleEvents.SERVER_STARTED.register(
+                s -> {
+                    tumbas.recuperarTrasArranque(s);
+                    partidas.recuperarTrasArranque(s);
+                });
         ServerLifecycleEvents.SERVER_STOPPING.register(s -> entradaSalida.alDetenerse());
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
         ServerPlayConnectionEvents.JOIN.register(
-                (handler, sender, s) -> entradaSalida.alConectarse(handler.getPlayer()));
+                (handler, sender, s) -> {
+                    entradaSalida.alConectarse(handler.getPlayer());
+                    tumbas.alConectarse(handler.getPlayer());
+                });
         ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, s) -> entradaSalida.alDesconectarse(handler.getPlayer()));
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(

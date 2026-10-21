@@ -61,6 +61,10 @@
  *       com.dolfin.creepers.dungeon.estadisticas.Estadisticas}, tiempos para {@code info}/{@code
  *       top}, por defecto {@code fin.EstadisticasRecords} (#22). Ambos se sustituyen con {@code
  *       Dungeons.usarFila}/{@code usarEstadisticas}.
+ *   <li>{@code escalado}: escalado de vida y daño por dificultad y jugadores (#18).
+ *   <li>{@code botin}: botín individual por cofre y contenedor aislado por jugador (#18).
+ *   <li>{@code cripta}: primera dungeon jugable con 3 pisos y elementos de acertijos/trampas (#20).
+ *   <li>{@code jefe}: {@link com.dolfin.creepers.dungeon.jefe.ReyZombie}, jefe de dos fases (#20).
  * </ul>
  *
  * <h2>Dónde se engancha cada issue</h2>
@@ -70,10 +74,8 @@
  *       {@code Dungeons.guardarDungeon(...)}, {@code Dungeons.recargarConfig()} y {@code
  *       Dungeons.plantillas()} ({@code admin save}: {@code guardarPlantilla}, {@code admin reset}:
  *       {@code reiniciar}).
- *   <li>#14 grupos y fila: implementar {@code ServicioFila} e instalarlo con {@code
- *       Dungeons.usarFila} ({@code join}, {@code leave}, {@code queue}, {@code list} y {@code
- *       status} ya lo consultan); por debajo {@code registro().entrarEnFila/salirDeFila}, {@code
- *       validarInicio} antes del ready check, luego {@code partidas().iniciar}.
+ *   <li>#14 grupos y fila (hecho, paquete {@code grupo} y {@code fila}): {@code /party}, fila y
+ *       ready check.
  *   <li>#15 reglas: {@code DimensionDungeons.es(level)} y {@code registro().partidaDe(uuid)}.
  *   <li>#16 muerte (hecho, paquete {@code muerte}): usa {@code
  *       registro().registrarMuerte/pasarAEspectador/alcanzarCheckpoint} y castiga en hardcore
@@ -83,12 +85,12 @@
  *   <li>#13 {@code pardon}: quitar solo bans con {@code BanHardcore.esDeDungeon(entrada)} (fuente
  *       {@code BanHardcore.FUENTE}); el nodo de bypass es {@code PermisoBypassBan.NODO}.
  *   <li>#17 fin (hecho, paquete {@code fin}): ver "Fin de partida" abajo.
- *   <li>#18 escalado: {@code PartidaIniciada}, {@code Partida.jugadoresIniciales()} y {@code
- *       parametros()}; los mobs de los marcadores se ajustan con {@code
- *       Dungeons.usarAjusteAparicion(...)} (cantidad y cada entidad, etiqueta {@code
- *       dolfin_mob_dungeon}).
+ *   <li>#18 escalado y botín (hecho, paquetes {@code escalado} y {@code botin}): modificador {@code
+ *       dolfincreepers:dungeon_escala}, vida del jefe según jugadores, botín por cofre por jugador.
  *   <li>#19 plantillas: hecho en {@code plantilla}; el reinicio se lanza al terminar, en {@code
  *       reset} y al arrancar tras una caída.
+ *   <li>#20 primera dungeon (hecho, paquetes {@code cripta} y {@code jefe}): 3 pisos, acertijos,
+ *       trampas, checkpoints y jefe {@code ReyZombie}.
  *   <li>#22 récords (hecho): {@code Dungeons.historial().records()} ({@code TablaRecords.top},
  *       {@code mejoresTiempos}); los comandos {@code top} e {@code info} leen de ahí.
  * </ul>

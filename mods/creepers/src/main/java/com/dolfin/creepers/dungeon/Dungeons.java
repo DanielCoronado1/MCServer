@@ -1,11 +1,14 @@
 package com.dolfin.creepers.dungeon;
 
 import com.dolfin.creepers.DolfinCreepers;
+import com.dolfin.creepers.dungeon.botin.AlmacenBotin;
+import com.dolfin.creepers.dungeon.botin.BotinDungeon;
 import com.dolfin.creepers.dungeon.comando.ComandoDungeon;
 import com.dolfin.creepers.dungeon.comando.PermisosDungeon;
 import com.dolfin.creepers.dungeon.config.DungeonsConfig;
 import com.dolfin.creepers.dungeon.entrada.DatosDungeons;
 import com.dolfin.creepers.dungeon.entrada.EntradaSalida;
+import com.dolfin.creepers.dungeon.escalado.EscaladoDungeon;
 import com.dolfin.creepers.dungeon.estadisticas.Estadisticas;
 import com.dolfin.creepers.dungeon.eventos.BusEventos;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
@@ -84,6 +87,7 @@ public final class Dungeons {
     private static EjecutorPorTicks ejecutor;
     private static AlmacenPlantillas almacen;
     private static AjusteAparicion ajusteAparicion = AjusteAparicion.NINGUNO;
+    private static BotinDungeon botin;
     private static MinecraftServer server;
 
     private Dungeons() {}
@@ -123,6 +127,8 @@ public final class Dungeons {
                 new ReiniciadorPlantillas(
                         ejecutor, almacen, ServicioPlantillas.PRESUPUESTO_BLOQUES_POR_TICK);
         plantillas = new ServicioPlantillas(registro, partidas, ejecutor, almacen);
+        ajusteAparicion = new EscaladoDungeon();
+        botin = new BotinDungeon(registro, new AlmacenBotin(), () -> server);
         CargaChunks.registrar();
         ContenidoPlantillas.registrar();
         suscribirModulos();
@@ -240,6 +246,11 @@ public final class Dungeons {
         ajusteAparicion = Objects.requireNonNull(nuevo);
     }
 
+    /** Botín individual por cofre (#18). */
+    public static BotinDungeon botin() {
+        return botin;
+    }
+
     /** Crea la fila con grupos y ready check, y sus avisos y comandos {@code /party}. */
     private static void crearGrupos() {
         FilaGrupos filaGrupos =
@@ -264,6 +275,7 @@ public final class Dungeons {
         castigos.suscribir(BUS);
         finPorBajas.suscribir(BUS);
         fin.suscribir(BUS);
+        botin.registrar(BUS);
         new AparicionMarcadores(() -> server, ejecutor, almacen, () -> ajusteAparicion)
                 .suscribir(BUS);
         BUS.suscribir(

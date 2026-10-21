@@ -15,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -40,8 +42,9 @@ public final class DungeonsConfig {
     private static final Gson GSON =
             new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Set<String> SECCIONES =
-            Set.of("general", "partida", "dificultades", "dungeons");
+            Set.of("general", "partida", "dificultades", "fin", "dungeons");
     private static final String PATRON_ID_OBJETO = "[a-z0-9_.-]+:[a-z0-9/._-]+";
+    private static final String PATRON_NODO = "[A-Za-z0-9_.%-]+";
 
     /** Un campo rechazado; siempre se usa su valor por defecto. */
     public record Problema(String campo, String motivo) {
@@ -156,15 +159,77 @@ public final class DungeonsConfig {
         }
     }
 
+    /**
+     * Fin de partida y recompensas (#17, #22).
+     *
+     * @param ventanaBotinSegundos tras la victoria, tiempo para recoger el botín antes de que todos
+     *     salgan, 60
+     * @param salidaDerrotaSegundos tras la derrota o el tiempo agotado, espera antes de salir, 5
+     * @param tituloPlantilla nodo de LuckPerms que da la primera victoria en cada dificultad;
+     *     {@code %dungeon%} y {@code %dificultad%} se sustituyen, {@code
+     *     dolfin.titulo.%dungeon%.%dificultad%}
+     * @param titulos nodos propios que sustituyen a la plantilla, con clave {@code
+     *     <dungeon>.<dificultad>}; un valor vacío desactiva ese título
+     * @param cabezaJefe id del objeto que da la primera victoria en hardcore de cada dungeon,
+     *     {@code minecraft:creeper_head}
+     * @param cabezaJefeNombre nombre de ese objeto; {@code %dungeon%} se sustituye
+     */
+    public record Fin(
+            int ventanaBotinSegundos,
+            int salidaDerrotaSegundos,
+            String tituloPlantilla,
+            Map<String, String> titulos,
+            String cabezaJefe,
+            String cabezaJefeNombre) {
+        public Fin {
+            titulos = Map.copyOf(titulos);
+        }
+
+        public static Fin porDefecto() {
+            return new Fin(
+                    60,
+                    5,
+                    "dolfin.titulo.%dungeon%.%dificultad%",
+                    Map.of(),
+                    "minecraft:creeper_head",
+                    "Cabeza del jefe de %dungeon%");
+        }
+
+        /**
+         * Nodo de LuckPerms del título de {@code dungeon} en {@code dificultad}; vacío si no hay.
+         */
+        public Optional<String> nodoTitulo(String dungeon, Dificultad dificultad) {
+            String clave = dungeon + "." + dificultad.id();
+            String nodo =
+                    titulos.getOrDefault(
+                            clave,
+                            tituloPlantilla
+                                    .replace("%dungeon%", dungeon)
+                                    .replace("%dificultad%", dificultad.id()));
+            return nodo.isBlank() ? Optional.empty() : Optional.of(nodo);
+        }
+    }
+
     /** Configuración completa e inmutable de una generación. */
     public record Snapshot(
             General general,
             ReglasPartida partida,
             Dificultades dificultades,
             List<DefinicionDungeon> dungeons,
-            long generacion) {
+            long generacion,
+            Fin fin) {
         public Snapshot {
             dungeons = List.copyOf(dungeons);
+        }
+
+        /** Con la sección {@code fin} por defecto. */
+        public Snapshot(
+                General general,
+                ReglasPartida partida,
+                Dificultades dificultades,
+                List<DefinicionDungeon> dungeons,
+                long generacion) {
+            this(general, partida, dificultades, dungeons, generacion, Fin.porDefecto());
         }
 
         public static Snapshot porDefecto(long generacion) {
@@ -239,6 +304,7 @@ public final class DungeonsConfig {
         raiz.add("general", GSON.toJsonTree(snapshot.general()));
         raiz.add("partida", GSON.toJsonTree(snapshot.partida()));
         raiz.add("dificultades", GSON.toJsonTree(snapshot.dificultades()));
+        raiz.add("fin", GSON.toJsonTree(snapshot.fin()));
         JsonArray dungeons = new JsonArray();
         snapshot.dungeons().forEach(d -> dungeons.add(CodecDefinicion.aJson(d)));
         raiz.add("dungeons", dungeons);
@@ -257,7 +323,8 @@ public final class DungeonsConfig {
                 leerPartida(LectorSeccion.de(raiz, "partida", problemas)),
                 leerDificultades(LectorSeccion.de(raiz, "dificultades", problemas), problemas),
                 CodecDefinicion.leerTodas(raiz.get("dungeons"), problemas),
-                generacion);
+                generacion,
+                leerFin(LectorSeccion.de(raiz, "fin", problemas)));
     }
 
     private Snapshot cargar(long siguiente, List<Problema> problemas, boolean[] creado) {
@@ -310,6 +377,43 @@ public final class DungeonsConfig {
                         r.textos("objetosProhibidos", d.objetosProhibidos(), PATRON_ID_OBJETO));
         r.terminar();
         return seccion;
+    }
+
+    private static Fin leerFin(LectorSeccion r) {
+        Fin d = Fin.porDefecto();
+        Fin seccion =
+                new Fin(
+                        r.entero("ventanaBotinSegundos", d.ventanaBotinSegundos(), 5, 600),
+                        r.entero("salidaDerrotaSegundos", d.salidaDerrotaSegundos(), 0, 60),
+                        nodo(r, "tituloPlantilla", d.tituloPlantilla()),
+                        leerTitulos(r),
+                        r.texto("cabezaJefe", d.cabezaJefe()),
+                        r.texto("cabezaJefeNombre", d.cabezaJefeNombre()));
+        r.terminar();
+        return seccion;
+    }
+
+    private static String nodo(LectorSeccion r, String clave, String porDefecto) {
+        String valor = r.texto(clave, porDefecto);
+        return valor.matches(PATRON_NODO)
+                ? valor
+                : r.rechazar(clave, "nodo inválido, formato " + PATRON_NODO, porDefecto);
+    }
+
+    /** Nodos por {@code <dungeon>.<dificultad>}; una entrada inválida se descarta sola. */
+    private static Map<String, String> leerTitulos(LectorSeccion r) {
+        Map<String, String> titulos = new LinkedHashMap<>();
+        for (var entrada : r.objeto("titulos").map(JsonObject::entrySet).orElse(Set.of())) {
+            JsonElement valor = entrada.getValue();
+            if (valor.isJsonPrimitive()
+                    && valor.getAsJsonPrimitive().isString()
+                    && valor.getAsString().matches("|" + PATRON_NODO)) {
+                titulos.put(entrada.getKey(), valor.getAsString());
+            } else {
+                r.rechazar("titulos." + entrada.getKey(), "se esperaba un nodo o \"\"", null);
+            }
+        }
+        return titulos;
     }
 
     private static Dificultades leerDificultades(LectorSeccion r, List<Problema> problemas) {

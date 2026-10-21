@@ -55,6 +55,43 @@ class DungeonsConfigTest {
     }
 
     @Test
+    void laSeccionFinTieneValoresPorDefectoYNodosDeTitulo() {
+        DungeonsConfig.Fin fin = config.actual().fin();
+        assertEquals(60, fin.ventanaBotinSegundos());
+        assertEquals(5, fin.salidaDerrotaSegundos());
+        assertEquals(
+                "dolfin.titulo.cripta.hardcore",
+                fin.nodoTitulo("cripta", Dificultad.HARDCORE).orElseThrow());
+    }
+
+    @Test
+    void finLeeTitulosPropiosYDescartaLosInvalidos() throws IOException {
+        editar(
+                raiz -> {
+                    JsonObject fin = new JsonObject();
+                    JsonObject titulos = new JsonObject();
+                    titulos.addProperty("cripta.hardcore", "rango.cripta.maestro");
+                    titulos.addProperty("cripta.facil", "");
+                    titulos.addProperty("cripta.medio", "con espacios");
+                    fin.add("titulos", titulos);
+                    fin.addProperty("ventanaBotinSegundos", 90);
+                    raiz.add("fin", fin);
+                });
+        DungeonsConfig.Informe informe = config.recargar();
+        assertEquals(1, informe.problemas().size());
+        assertEquals("fin.titulos.cripta.medio", informe.problemas().getFirst().campo());
+        DungeonsConfig.Fin fin = config.actual().fin();
+        assertEquals(90, fin.ventanaBotinSegundos());
+        assertEquals(
+                "rango.cripta.maestro",
+                fin.nodoTitulo("cripta", Dificultad.HARDCORE).orElseThrow());
+        assertTrue(fin.nodoTitulo("cripta", Dificultad.FACIL).isEmpty());
+        assertEquals(
+                "dolfin.titulo.cripta.medio",
+                fin.nodoTitulo("cripta", Dificultad.MEDIO).orElseThrow());
+    }
+
+    @Test
     void errorDeSintaxisAvisaConArchivoYLineaYNoTocaElArchivo() throws IOException {
         String roto = "{\n  \"partida\": {\n    \"afkSegundos\": 300,,\n  }\n}";
         Files.writeString(archivo, roto);

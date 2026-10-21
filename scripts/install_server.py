@@ -4,7 +4,7 @@ descarga el lanzador de Fabric y las versiones exactas de cada mod, verificando 
   - Mods con side "server" o "both"  -> mods/
   - Mods con side "client" o "both"  -> automodpack/host-modpack/main/mods/
     (AutoModpack se los envia a los jugadores al conectarse)
-  - Nuestros mods                    -> a las dos carpetas
+  - Nuestros mods                    -> según environment de fabric.mod.json
 
 Uso:
   python3 scripts/install_server.py [--server-dir /path/to/server]
@@ -161,7 +161,15 @@ def main():
 
     print("Nuestros mods:")
     for jar in propios:
-        for carpeta in (MODS_SERVIDOR, MODS_JUGADOR):
+        entorno = proyecto.metadatos_mod_jar(jar).get("environment", "*")
+        carpetas = (
+            [MODS_SERVIDOR]
+            if entorno == "server"
+            else [MODS_JUGADOR]
+            if entorno == "client"
+            else [MODS_SERVIDOR, MODS_JUGADOR]
+        )
+        for carpeta in carpetas:
             (SERVIDOR / carpeta).mkdir(parents=True, exist_ok=True)
             shutil.copy2(jar, SERVIDOR / carpeta / jar.name)
             instalados.append((carpeta / jar.name).as_posix())

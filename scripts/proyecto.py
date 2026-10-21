@@ -83,7 +83,10 @@ def mods_propios(raiz: Path | None = None) -> list[Path]:
     # Recorre proyectos Gradle bajo mods/
     jars = []
     for proyecto in sorted(mods_dir.iterdir()):
-        if not (proyecto / "build.gradle").is_file():
+        if not (
+            (proyecto / "build.gradle").is_file()
+            or (proyecto / "src/main/resources/fabric.mod.json").is_file()
+        ):
             continue
         jars.append(jar_mod(proyecto, raiz=r))
     return jars

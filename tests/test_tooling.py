@@ -103,10 +103,16 @@ class ToolingTests(unittest.TestCase):
 
     def test_release_roundtrip_installs_both_sides_and_keeps_manual_jars(self):
         custom = self.root / "fixture-custom.jar"
-        custom.write_bytes(b"custom mod fixture")
+        with zipfile.ZipFile(custom, "w") as zipped:
+            zipped.writestr("fabric.mod.json", json.dumps({"id": "fixture", "environment": "*"}))
+        server_custom = self.root / "fixture-server.jar"
+        with zipfile.ZipFile(server_custom, "w") as zipped:
+            zipped.writestr(
+                "fabric.mod.json", json.dumps({"id": "fixture_server", "environment": "server"})
+            )
         self.release.DIST.mkdir()
         pack, index, _ = self.release.leer_pack()
-        archive = self.release.crear_zip_servidor("test", pack, index, [custom])
+        archive = self.release.crear_zip_servidor("test", pack, index, [custom, server_custom])
         extracted = self.root / "extracted"
         with zipfile.ZipFile(archive) as zipped:
             self.assertIsNone(zipped.testzip())
@@ -152,7 +158,8 @@ class ToolingTests(unittest.TestCase):
         ):
             installer.main()
         self.assertEqual(
-            {"manual.jar", "server.jar", "both.jar", custom.name}, {p.name for p in mods.iterdir()}
+            {"manual.jar", "server.jar", "both.jar", custom.name, server_custom.name},
+            {p.name for p in mods.iterdir()},
         )
         client = installer.SERVIDOR / installer.MODS_JUGADOR
         self.assertEqual(
@@ -193,6 +200,18 @@ class ToolingTests(unittest.TestCase):
         self.assertEqual([sample_libs / "sample-1.0.jar"], jars)
         self.assertEqual(
             sample_libs / "sample-1.0.jar", self.proyecto.jar_mod("sample", raiz=self.root)
+        )
+
+        root_managed = self.root / "mods" / "root_managed"
+        metadata = root_managed / "src/main/resources/fabric.mod.json"
+        metadata.parent.mkdir(parents=True)
+        metadata.write_text('{"id":"root_managed"}')
+        libs = root_managed / "build/libs"
+        libs.mkdir(parents=True)
+        root_jar = libs / "root_managed-1.0.jar"
+        root_jar.write_bytes(b"root project builds this module")
+        self.assertEqual(
+            [root_jar, sample_libs / "sample-1.0.jar"], self.proyecto.mods_propios(self.root)
         )
 
         with self.assertRaises(FileNotFoundError):

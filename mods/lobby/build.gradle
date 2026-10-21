@@ -1,0 +1,16 @@
+// Compile against the exact nested 26.3 API; install_server.py provides the pinned bundle.
+repositories {
+    maven { url = 'https://api.modrinth.com/maven' }
+}
+configurations {
+    multiworldBundle
+}
+dependencies {
+    multiworldBundle 'maven.modrinth:multiworld:OwgBsqTu'
+    compileOnly files(configurations.multiworldBundle)
+    compileOnly files(provider {
+        zipTree(configurations.multiworldBundle.singleFile).matching {
+            include 'META-INF/jars/Multiworld-Fabric-26.3.jar'
+        }.singleFile
+    })
+}

@@ -9,3 +9,12 @@ minecraft = "26.3"
 java = 25
 dependencies = ["fabricloader", "fabric-api"]
 optional-server = ["openpartiesandclaims", "ledger", "luckperms"]
+
+[[mods]]
+id = "dolfinlobby"
+source = "mods/lobby"
+side = "server"
+required-client = false
+minecraft = "26.3"
+java = 25
+dependencies = ["fabricloader", "fabric-api", "multiworld"]

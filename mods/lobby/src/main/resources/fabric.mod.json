@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "dolfinlobby",
+  "version": "${version}",
+  "name": "Dolfin Lobby",
+  "description": "Mundos y experiencias controladas de la estación Dolfin.",
+  "authors": ["Dolfin"],
+  "license": "All-Rights-Reserved",
+  "environment": "server",
+  "entrypoints": {"main": ["com.dolfin.lobby.DolfinLobby"]},
+  "depends": {"fabricloader": ">=0.19.5", "minecraft": "~26.3", "java": ">=25", "fabric-api": "*", "multiworld": "1.14.2"}
+}

@@ -82,4 +82,9 @@ metafile = true
 
 [[files]]
 file = "custom-mods.toml"
-hash = "04800415f5079cd0eb4a53df7c12d7821272fd2a60406cae6a14c2aad308ed22"
+hash = "45ab0f31f22db417285cdbfd08266aa2959acae36aeaf41da5a3e225ee2b2481"
+
+[[files]]
+file = "mods/multiworld.pw.toml"
+hash = "0774f6934338ad0e0c0fbb49020fed69bd6ac6a6c7beee4b97f583d6a3fc4f5f"
+metafile = true

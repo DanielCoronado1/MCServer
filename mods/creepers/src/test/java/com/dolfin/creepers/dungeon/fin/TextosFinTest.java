@@ -8,7 +8,6 @@ import com.dolfin.creepers.dungeon.modelo.Dificultad;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 
 class TextosFinTest {
     @Test
@@ -41,18 +40,5 @@ class TextosFinTest {
                 TextosFin.anuncioVictoria(List.of("Ana", "Beto"), "Cripta", Dificultad.MEDIO, 754));
         assertEquals("Queda 1 minuto para que se agote el tiempo", TextosFin.avisoTiempo(1));
         assertEquals("Quedan 10 minutos para que se agote el tiempo", TextosFin.avisoTiempo(10));
-    }
-
-    @Test
-    void lineaDelTopLlevaPuestoTiempoMiembrosYDificultad() {
-        Marca marca =
-                new Marca(
-                        "cripta",
-                        Dificultad.FACIL,
-                        List.of(new Marca.Integrante(UUID.randomUUID(), "Ana")),
-                        61_500,
-                        1_700_000_000_000L);
-        String linea = TextosFin.lineaTop(3, marca);
-        assertTrue(linea.startsWith("3. 1:01.500 · Ana · Facil · 20"), linea);
     }
 }

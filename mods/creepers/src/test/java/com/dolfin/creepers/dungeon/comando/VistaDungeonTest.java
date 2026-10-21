@@ -17,6 +17,7 @@ import com.dolfin.creepers.dungeon.modelo.Zona;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -83,6 +84,17 @@ class VistaDungeonTest {
         assertTrue(info.contains("Requisitos: ninguno"), info.toString());
         assertTrue(info.contains("Cooldown: 30 min"), info.toString());
         assertTrue(info.contains("Tu mejor tiempo: 12:34"), info.toString());
+    }
+
+    @Test
+    void infoMuestraElMejorTiempoDeCadaDificultad() {
+        DefinicionDungeon d = CodecDefinicion.porDefecto("cripta", Zona.ranura(1));
+        List<String> info =
+                VistaDungeon.info(d, Map.of(Dificultad.HARDCORE, 754L, Dificultad.FACIL, 300L));
+        assertTrue(info.contains("Tu mejor tiempo: facil 05:00 · hardcore 12:34"), info.toString());
+        assertTrue(
+                VistaDungeon.info(d, Map.<Dificultad, Long>of())
+                        .contains("Tu mejor tiempo: sin registro"));
     }
 
     @Test

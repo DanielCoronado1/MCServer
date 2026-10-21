@@ -51,7 +51,8 @@
  *   <li>{@code fila}: {@link com.dolfin.creepers.dungeon.fila.ServicioFila}, cómo entra {@code
  *       join} (directo mientras no haya grupos). {@code estadisticas}: {@link
  *       com.dolfin.creepers.dungeon.estadisticas.Estadisticas}, tiempos para {@code info}/{@code
- *       top}. Ambos se sustituyen con {@code Dungeons.usarFila}/{@code usarEstadisticas}.
+ *       top}, por defecto {@code fin.EstadisticasRecords} (#22). Ambos se sustituyen con {@code
+ *       Dungeons.usarFila}/{@code usarEstadisticas}.
  * </ul>
  *
  * <h2>Dónde se engancha cada issue</h2>

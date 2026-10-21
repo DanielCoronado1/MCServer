@@ -27,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
@@ -91,7 +92,16 @@ final class ComandosJugador {
                 .requires(PermisosDungeon::puedeUsar)
                 .then(
                         ArgumentosDungeon.argumentoDungeon(PermisosDungeon::puedeEntrar)
-                                .executes(this::top));
+                                .executes(c -> top(c, Optional.empty()))
+                                .then(
+                                        ArgumentosDungeon.argumentoDificultad()
+                                                .executes(
+                                                        c ->
+                                                                top(
+                                                                        c,
+                                                                        Optional.of(
+                                                                                dificultadEscrita(
+                                                                                        c))))));
     }
 
     private int list(CommandContext<CommandSourceStack> c) {
@@ -118,12 +128,13 @@ final class ComandosJugador {
 
     private int info(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
         DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
-        OptionalLong mejor =
+        Map<Dificultad, Long> mejores =
                 c.getSource().getPlayer() == null
-                        ? OptionalLong.empty()
+                        ? Map.of()
                         : Dungeons.estadisticas()
-                                .mejorTiempoSegundos(c.getSource().getPlayer().getUUID(), d.id());
-        for (String linea : VistaDungeon.info(d, mejor)) {
+                                .mejoresTiemposSegundos(
+                                        c.getSource().getPlayer().getUUID(), d.id());
+        for (String linea : VistaDungeon.info(d, mejores)) {
             c.getSource().sendSuccess(() -> Component.literal(linea), false);
         }
         return 1;
@@ -197,16 +208,18 @@ final class ComandosJugador {
         return fallo(c, "No estás en ninguna fila.");
     }
 
-    private int top(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+    private int top(CommandContext<CommandSourceStack> c, Optional<Dificultad> dificultad)
+            throws CommandSyntaxException {
         DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
-        List<EntradaTop> top = Dungeons.estadisticas().top(d.id(), TOP_LIMITE);
+        List<EntradaTop> top = Dungeons.estadisticas().top(d.id(), dificultad, TOP_LIMITE);
+        String filtro = dificultad.map(x -> " (" + x.id() + ")").orElse("");
         if (top.isEmpty()) {
-            return exito(c, "Aún no hay tiempos registrados en " + d.nombre() + ".");
+            return exito(c, "Aún no hay tiempos registrados en " + d.nombre() + filtro + ".");
         }
         c.getSource()
                 .sendSuccess(
                         () ->
-                                Component.literal("Mejores tiempos de " + d.nombre() + ":")
+                                Component.literal("Mejores tiempos de " + d.nombre() + filtro + ":")
                                         .withStyle(ChatFormatting.GOLD),
                         false);
         for (int i = 0; i < top.size(); i++) {

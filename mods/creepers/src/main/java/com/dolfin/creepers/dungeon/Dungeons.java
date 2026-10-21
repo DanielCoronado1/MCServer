@@ -11,10 +11,11 @@ import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
 import com.dolfin.creepers.dungeon.fila.EntradaDirecta;
 import com.dolfin.creepers.dungeon.fila.ServicioFila;
-import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
+import com.dolfin.creepers.dungeon.fin.EstadisticasRecords;
 import com.dolfin.creepers.dungeon.fin.FinDePartida;
 import com.dolfin.creepers.dungeon.fin.HistorialDungeons;
 import com.dolfin.creepers.dungeon.fin.JefeDungeon;
+import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
 import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
 import com.dolfin.creepers.dungeon.muerte.CastigosHardcore;
@@ -84,6 +85,7 @@ public final class Dungeons {
         historial =
                 new HistorialDungeons(
                         aviso -> DolfinCreepers.LOGGER.warn("event=dungeon_history {}", aviso));
+        estadisticas = new EstadisticasRecords(historial);
         fin = new FinDePartida(registro, partidas, historial, () -> server);
         finPorBajas = new FinPorBajas(registro, fin::derrota);
         CargaChunks.registrar();
@@ -162,7 +164,7 @@ public final class Dungeons {
         return estadisticas;
     }
 
-    /** Sustituye la fuente de tiempos; #22 instala aquí las estadísticas. */
+    /** Sustituye la fuente de tiempos (por defecto, los récords de #22). */
     public static void usarEstadisticas(Estadisticas nuevas) {
         estadisticas = Objects.requireNonNull(nuevas);
     }

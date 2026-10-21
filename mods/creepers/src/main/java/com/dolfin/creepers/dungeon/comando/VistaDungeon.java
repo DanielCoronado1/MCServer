@@ -9,6 +9,7 @@ import com.dolfin.creepers.dungeon.modelo.RegistroDungeons.Rechazo;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
@@ -71,8 +72,27 @@ final class VistaDungeon {
         return String.format("%02d:%02d", s / 60, s % 60);
     }
 
+    /** Líneas de {@code /dungeon info} con el mejor tiempo del jugador en cada dificultad. */
+    static List<String> info(DefinicionDungeon d, Map<Dificultad, Long> mejoresTiempos) {
+        return info(d, mejoresTiempos(mejoresTiempos));
+    }
+
+    /** "facil 05:00 · hardcore 12:34", o "sin registro". */
+    static String mejoresTiempos(Map<Dificultad, Long> mejoresTiempos) {
+        return mejoresTiempos.isEmpty()
+                ? "sin registro"
+                : mejoresTiempos.entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(e -> e.getKey().id() + " " + tiempo(e.getValue()))
+                        .collect(Collectors.joining(" · "));
+    }
+
     /** Líneas de {@code /dungeon info}. */
     static List<String> info(DefinicionDungeon d, OptionalLong mejorTiempo) {
+        return info(d, mejorTiempo.isPresent() ? tiempo(mejorTiempo.getAsLong()) : "sin registro");
+    }
+
+    private static List<String> info(DefinicionDungeon d, String mejorTiempo) {
         List<String> lineas = new ArrayList<>();
         lineas.add(d.nombre() + " (" + d.id() + ")");
         lineas.add("Jugadores: " + jugadores(d));
@@ -90,11 +110,7 @@ final class VistaDungeon {
         lineas.add(
                 "Cooldown: "
                         + (d.cooldownMinutos() == 0 ? "ninguno" : d.cooldownMinutos() + " min"));
-        lineas.add(
-                "Tu mejor tiempo: "
-                        + (mejorTiempo.isPresent()
-                                ? tiempo(mejorTiempo.getAsLong())
-                                : "sin registro"));
+        lineas.add("Tu mejor tiempo: " + mejorTiempo);
         return lineas;
     }
 

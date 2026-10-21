@@ -2,17 +2,11 @@ package com.dolfin.creepers.dungeon.fin;
 
 import com.dolfin.creepers.dungeon.modelo.Dificultad;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
 /** Textos y formatos del fin de partida (#17) y de los récords (#22), sin Minecraft. */
 public final class TextosFin {
-    private static final DateTimeFormatter FECHA =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
-
     private TextosFin() {}
 
     /** {@code m:ss}, o {@code h:mm:ss} desde la hora. */
@@ -110,18 +104,5 @@ public final class TextosFin {
 
     public static String avisoTiempoAgotado(int segundos) {
         return "Se agotó el tiempo. Saldréis de la dungeon en " + segundos + " s";
-    }
-
-    /** Línea del top: "1. 12:34.567 · Ana y Beto · Hardcore · 2026-10-21". */
-    public static String lineaTop(int puesto, Marca marca) {
-        return puesto
-                + ". "
-                + duracionExacta(marca.tiempoMillis())
-                + " · "
-                + lista(marca.miembros().stream().map(Marca.Integrante::nombre).toList())
-                + " · "
-                + dificultad(marca.dificultad())
-                + " · "
-                + FECHA.format(Instant.ofEpochMilli(marca.fechaMillis()));
     }
 }

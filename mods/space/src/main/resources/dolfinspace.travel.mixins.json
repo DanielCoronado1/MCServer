@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.dolfin.space.client.travel",
+  "package": "com.dolfin.space.client.travel.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
     "CameraShakeMixin"

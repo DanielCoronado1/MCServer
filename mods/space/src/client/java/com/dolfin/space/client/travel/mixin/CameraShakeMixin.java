@@ -1,5 +1,6 @@
-package com.dolfin.space.client.travel;
+package com.dolfin.space.client.travel.mixin;
 
+import com.dolfin.space.client.travel.TravelClientModule;
 import com.dolfin.space.travel.LaunchRules;
 
 import net.minecraft.client.Camera;

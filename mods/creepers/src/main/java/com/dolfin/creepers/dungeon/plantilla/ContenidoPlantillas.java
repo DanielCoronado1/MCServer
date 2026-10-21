@@ -6,6 +6,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -15,7 +16,10 @@ import net.minecraft.world.level.material.PushReaction;
 
 import java.util.Set;
 
-/** Registros de las plantillas: el {@link MarcadorMob} (bloque, objeto y entidad de bloque). */
+/**
+ * Registros de las plantillas: el {@link MarcadorMob} (bloque, objeto y entidad de bloque) y el
+ * ticket de chunks de {@link ZonaCargada}.
+ */
 public final class ContenidoPlantillas {
     private static final String MARCADOR = "marcador_mob";
 
@@ -50,12 +54,24 @@ public final class ContenidoPlantillas {
                     DolfinCreepers.id(MARCADOR),
                     new BlockEntityType<>(MarcadorMobEntidad::new, Set.of(MARCADOR_MOB)));
 
+    /**
+     * Ticket que carga una zona mientras se guarda o reinicia, sin simularla. Propio, distinto del
+     * de la partida ({@code CargaChunks}), para no pisarse.
+     */
+    public static final TicketType TICKET_ZONA =
+            Registry.register(
+                    BuiltInRegistries.TICKET_TYPE,
+                    DolfinCreepers.id("dungeon_plantilla"),
+                    new TicketType(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING));
+
     private ContenidoPlantillas() {}
 
     /** Fuerza el registro durante la inicialización del mod. */
     public static void registrar() {
         DolfinCreepers.LOGGER.debug(
-                "event=dungeon_template_content_registered marker={}", MARCADOR_MOB);
+                "event=dungeon_template_content_registered marker={} ticket={}",
+                MARCADOR_MOB,
+                TICKET_ZONA);
     }
 
     private static <T> ResourceKey<T> clave(ResourceKey<? extends Registry<T>> registro) {

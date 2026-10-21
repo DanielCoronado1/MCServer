@@ -25,7 +25,11 @@ import com.dolfin.creepers.dungeon.muerte.Tumbas;
 import com.dolfin.creepers.dungeon.mundo.CargaChunks;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.dolfin.creepers.dungeon.mundo.Reiniciador;
+import com.dolfin.creepers.dungeon.plantilla.AlmacenPlantillas;
 import com.dolfin.creepers.dungeon.plantilla.ContenidoPlantillas;
+import com.dolfin.creepers.dungeon.plantilla.EjecutorPorTicks;
+import com.dolfin.creepers.dungeon.plantilla.ReiniciadorPlantillas;
+import com.dolfin.creepers.dungeon.plantilla.ServicioPlantillas;
 import com.dolfin.creepers.dungeon.reglas.ReglasDungeon;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -40,6 +44,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 
 /**
@@ -64,17 +69,20 @@ public final class Dungeons {
     private static Estadisticas estadisticas = Estadisticas.SIN_DATOS;
     private static FinDePartida fin;
     private static HistorialDungeons historial;
-    private static Reiniciador reiniciador = Reiniciador.SIN_PLANTILLA;
+    private static Reiniciador reiniciador;
+    private static ServicioPlantillas plantillas;
+    private static EjecutorPorTicks ejecutor;
+    private static AlmacenPlantillas almacen;
     private static MinecraftServer server;
 
     private Dungeons() {}
 
     /** Llamado desde {@link DolfinCreepers#onInitialize()}. */
     public static void init() {
+        Path carpetaConfig = FabricLoader.getInstance().getConfigDir();
         config =
                 new DungeonsConfig(
-                        FabricLoader.getInstance().getConfigDir().resolve(DungeonsConfig.ARCHIVO),
-                        DolfinCreepers.LOGGER::warn);
+                        carpetaConfig.resolve(DungeonsConfig.ARCHIVO), DolfinCreepers.LOGGER::warn);
         registro = new RegistroDungeons(BUS, config.actual());
         entradaSalida = new EntradaSalida(registro, BUS);
         partidas = new ServicioPartidas(registro, entradaSalida, () -> reiniciador);
@@ -89,6 +97,21 @@ public final class Dungeons {
         estadisticas = new EstadisticasRecords(historial);
         fin = new FinDePartida(registro, partidas, historial, () -> server);
         finPorBajas = new FinPorBajas(registro, fin::derrota);
+        ejecutor =
+                new EjecutorPorTicks(
+                        ServicioPlantillas.PRESUPUESTO_BLOQUES_POR_TICK,
+                        (clave, error) ->
+                                DolfinCreepers.LOGGER.error(
+                                        "event=dungeon_task_callback_failed task={}",
+                                        clave,
+                                        error));
+        almacen =
+                new AlmacenPlantillas(
+                        carpetaConfig.resolve("dolfin-dungeons").resolve("plantillas"));
+        reiniciador =
+                new ReiniciadorPlantillas(
+                        ejecutor, almacen, ServicioPlantillas.PRESUPUESTO_BLOQUES_POR_TICK);
+        plantillas = new ServicioPlantillas(registro, partidas, ejecutor, almacen);
         CargaChunks.registrar();
         ContenidoPlantillas.registrar();
         suscribirModulos();
@@ -186,7 +209,12 @@ public final class Dungeons {
         return historial;
     }
 
-    /** Sustituye el reiniciador de zonas; #19 instala aquí el de plantillas. */
+    /** Guardar y reiniciar plantillas de zona ({@code /dungeon admin save|reset}). */
+    public static ServicioPlantillas plantillas() {
+        return plantillas;
+    }
+
+    /** Sustituye el reiniciador de zonas (por defecto, el de plantillas). */
     public static void usarReiniciador(Reiniciador nuevo) {
         reiniciador = Objects.requireNonNull(nuevo);
     }
@@ -223,7 +251,11 @@ public final class Dungeons {
                     tumbas.recuperarTrasArranque(s);
                     partidas.recuperarTrasArranque(s);
                 });
-        ServerLifecycleEvents.SERVER_STOPPING.register(s -> entradaSalida.alDetenerse());
+        ServerLifecycleEvents.SERVER_STOPPING.register(
+                s -> {
+                    plantillas.alDetenerse();
+                    entradaSalida.alDetenerse();
+                });
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
         ServerPlayConnectionEvents.JOIN.register(
                 (handler, sender, s) -> {
@@ -252,11 +284,13 @@ public final class Dungeons {
     }
 
     /**
-     * Cada tick: expulsiones de hardcore, checkpoints y espectadores, y derrota por bajas (antes de
-     * que {@code partidas.tick} dé por abandonada una partida vacía). Una vez por segundo: plazos
-     * de reconexión, fin de partida (tiempo, AFK, cierres), partidas vacías y modo aventura.
+     * Cada tick: tareas de plantillas, expulsiones de hardcore, checkpoints y espectadores, y
+     * derrota por bajas (antes de que {@code partidas.tick} dé por abandonada una partida vacía).
+     * Una vez por segundo: plazos de reconexión, fin de partida (tiempo, AFK, cierres), partidas
+     * vacías y modo aventura.
      */
     private static void tick(MinecraftServer s) {
+        plantillas.tick();
         castigos.tick(s);
         muertes.tick(s);
         finPorBajas.tick(s);

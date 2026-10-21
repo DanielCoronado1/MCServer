@@ -13,6 +13,8 @@ import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
 import com.dolfin.creepers.dungeon.modelo.ResultadoPartida;
 import com.dolfin.creepers.dungeon.modelo.Zona;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
+import com.dolfin.creepers.dungeon.plantilla.ServicioPlantillas.InformeGuardado;
+import com.dolfin.creepers.dungeon.plantilla.ServicioPlantillas.Respuesta;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -37,13 +39,11 @@ import java.util.function.BiFunction;
  * Subárbol {@code /dungeon admin}, con {@link PermisosDungeon#ADMIN}. Cada comando que cambia algo
  * deja en el log quién lo ejecutó ({@link AuditoriaAdmin}). Las ediciones de geometría pasan por
  * {@link EdicionDungeon} y se guardan con {@code Dungeons.guardarDungeon}. {@code save} y {@code
- * reset} dependen de las plantillas (#19) y avisan de que no están implementados mientras no haya
- * un reiniciador de plantillas.
+ * reset} usan las plantillas de zona (#19, {@code Dungeons.plantillas()}): responden al empezar y
+ * el guardado avisa otra vez al terminar, porque se reparte en varios ticks.
  */
 final class ComandosAdmin {
     private static final String JUGADOR = "jugador";
-    private static final String NO_IMPLEMENTADO =
-            "No implementado todavía: depende de las plantillas de dungeon (#19).";
 
     private ComandosAdmin() {}
 
@@ -56,8 +56,8 @@ final class ComandosAdmin {
                 .then(conDungeon("setentry", c -> editar(c, "setentry", ComandosAdmin::setentry)))
                 .then(conDungeon("setexit", c -> editar(c, "setexit", ComandosAdmin::setexit)))
                 .then(nodoCheckpoint())
-                .then(conDungeon("save", c -> noImplementado(c, "save")))
-                .then(conDungeon("reset", c -> noImplementado(c, "reset")))
+                .then(conDungeon("save", ComandosAdmin::save))
+                .then(conDungeon("reset", ComandosAdmin::reset))
                 .then(conDungeon("stop", ComandosAdmin::stop))
                 .then(conDungeon("enable", c -> habilitar(c, true)))
                 .then(conDungeon("disable", c -> habilitar(c, false)))
@@ -175,6 +175,68 @@ final class ComandosAdmin {
         return EdicionDungeon.quitarCheckpoint(d, punto);
     }
 
+    private static int save(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
+        CommandSourceStack fuente = c.getSource();
+        Respuesta respuesta =
+                Dungeons.plantillas()
+                        .guardarPlantilla(
+                                fuente.getServer(),
+                                d.id(),
+                                informe -> avisarGuardado(fuente, informe));
+        return responder(c, "save", d.id(), respuesta, "Guardando la plantilla de " + d.id() + "…");
+    }
+
+    private static int reset(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
+        Respuesta respuesta = Dungeons.plantillas().reiniciar(c.getSource().getServer(), d.id());
+        return responder(c, "reset", d.id(), respuesta, "Reiniciando " + d.id() + "…");
+    }
+
+    private static int responder(
+            CommandContext<CommandSourceStack> c,
+            String accion,
+            String id,
+            Respuesta respuesta,
+            String exito) {
+        if (respuesta != Respuesta.INICIADO) {
+            return fallo(c, accion + " " + id + ": " + motivo(respuesta));
+        }
+        AuditoriaAdmin.registrar(c.getSource(), accion, id);
+        return exito(c, exito);
+    }
+
+    private static String motivo(Respuesta respuesta) {
+        return switch (respuesta) {
+            case INICIADO -> "en marcha.";
+            case DUNGEON_DESCONOCIDA -> "no existe esa dungeon.";
+            case OCUPADA -> "tiene una partida, un reinicio o un guardado en curso.";
+            case SIN_DIMENSION -> "la dimensión de dungeons no está cargada.";
+            case ERROR_ARCHIVOS -> "no se pudo preparar la carpeta de la plantilla; mira el log.";
+        };
+    }
+
+    private static void avisarGuardado(CommandSourceStack fuente, InformeGuardado informe) {
+        if (informe.error().isPresent()) {
+            fuente.sendFailure(
+                    Component.literal(
+                            "Falló el guardado de "
+                                    + informe.dungeon()
+                                    + " (la plantilla anterior sigue intacta): "
+                                    + informe.error().get()));
+            return;
+        }
+        String texto =
+                "Plantilla de %s guardada: %d trozos, %d marcadores, %d entidades (%d ms)."
+                        .formatted(
+                                informe.dungeon(),
+                                informe.trozos(),
+                                informe.marcadores(),
+                                informe.entidades(),
+                                informe.milisegundos());
+        fuente.sendSuccess(() -> Component.literal(texto), true);
+    }
+
     private static int stop(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
         DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
         Optional<Partida> partida =
@@ -241,14 +303,6 @@ final class ComandosAdmin {
         }
         c.getSource().sendSuccess(() -> Component.literal(texto.toString()), false);
         return 1;
-    }
-
-    private static int noImplementado(CommandContext<CommandSourceStack> c, String accion) {
-        DolfinCreepers.LOGGER.info(
-                "event=dungeon_admin_command_unavailable executor={} action={}",
-                c.getSource().getTextName(),
-                accion);
-        return fallo(c, NO_IMPLEMENTADO);
     }
 
     private static int guardar(

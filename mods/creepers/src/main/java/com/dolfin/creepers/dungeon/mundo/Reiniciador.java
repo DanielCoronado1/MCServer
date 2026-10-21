@@ -1,6 +1,5 @@
 package com.dolfin.creepers.dungeon.mundo;
 
-import com.dolfin.creepers.DolfinCreepers;
 import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
 
 import net.minecraft.server.MinecraftServer;
@@ -11,18 +10,10 @@ import net.minecraft.server.MinecraftServer;
  * Puede repartir el trabajo en varios ticks y debe llamar a {@code alTerminar} en el hilo del
  * servidor cuando acabe; entonces la dungeon queda {@code LIBRE}.
  *
- * <p>#19 sustituye la implementación por defecto con {@code Dungeons.usarReiniciador}.
+ * <p>La implementación por defecto es {@code plantilla.ReiniciadorPlantillas}; se cambia con {@code
+ * Dungeons.usarReiniciador}.
  */
 @FunctionalInterface
 public interface Reiniciador {
     void reiniciar(MinecraftServer server, DefinicionDungeon dungeon, Runnable alTerminar);
-
-    /** Sin plantillas todavía: no toca la zona y la libera enseguida. */
-    Reiniciador SIN_PLANTILLA =
-            (server, dungeon, alTerminar) -> {
-                DolfinCreepers.LOGGER.warn(
-                        "event=dungeon_reset_skipped dungeon={} reason=no_template_support",
-                        dungeon.id());
-                alTerminar.run();
-            };
 }

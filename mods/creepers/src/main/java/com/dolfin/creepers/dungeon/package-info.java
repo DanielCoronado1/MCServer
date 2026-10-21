@@ -6,7 +6,7 @@
  * <ul>
  *   <li>{@link com.dolfin.creepers.dungeon.Dungeons}: punto de entrada. Crea y conecta los módulos
  *       y da acceso a ellos: {@code config()}, {@code registro()}, {@code partidas()}, {@code
- *       entradaSalida()}, {@code eventos()}, {@code recargarConfig()}, {@code
+ *       entradaSalida()}, {@code eventos()}, {@code plantillas()}, {@code recargarConfig()}, {@code
  *       usarReiniciador(...)}.
  *   <li>{@code config}: {@code config/dolfin-dungeons.json} ({@link
  *       com.dolfin.creepers.dungeon.config.DungeonsConfig}), un record por sección y un {@code
@@ -27,7 +27,14 @@
  *       ajenos.
  *   <li>{@code mundo}: la dimensión {@code dolfincreepers:dungeons} (datapack en {@code
  *       data/dolfincreepers/dimension}), los tickets de chunks durante la partida ({@code
- *       CargaChunks}) y el {@code Reiniciador} de zonas.
+ *       CargaChunks}) y la interfaz {@code Reiniciador} de zonas.
+ *   <li>{@code plantilla}: plantillas de zona (#19) en {@code
+ *       config/dolfin-dungeons/plantillas/<id>/}, trozos {@code StructureTemplate} de hasta 48³ sin
+ *       aire ({@code AlmacenPlantillas}, {@code Troceado}). {@code ReiniciadorPlantillas} es el
+ *       {@code Reiniciador} por defecto; {@code ServicioPlantillas} guarda y reinicia para los
+ *       comandos; todo el trabajo largo pasa por {@code EjecutorPorTicks} con un presupuesto de
+ *       bloques por tick. {@code MarcadorMob} es el bloque invisible que marca
+ *       dónde aparecen mobs.
  *   <li>{@code muerte}: muerte, vidas, checkpoints, tumbas y hardcore (#16). {@code Muertes}
  *       cancela la muerte vanilla de los miembros ({@code ALLOW_DEATH}, respetando el tótem) y
  *       aplica {@code ReglasMuerte}: reaparecer en el checkpoint, tumba ({@code Tumbas}, bloque
@@ -59,8 +66,9 @@
  *
  * <ul>
  *   <li>#13 comandos: ya hechos; usan {@code Dungeons.partidas()}, {@code Dungeons.registro()},
- *       {@code Dungeons.guardarDungeon(...)} y {@code Dungeons.recargarConfig()}. {@code admin
- *       save}/{@code reset} esperan a #19 en {@code ComandosAdmin}; {@code info}/{@code top} a #22.
+ *       {@code Dungeons.guardarDungeon(...)}, {@code Dungeons.recargarConfig()} y {@code
+ *       Dungeons.plantillas()} ({@code admin save}: {@code guardarPlantilla}, {@code admin reset}:
+ *       {@code reiniciar}).
  *   <li>#14 grupos y fila: implementar {@code ServicioFila} e instalarlo con {@code
  *       Dungeons.usarFila} ({@code join}, {@code leave}, {@code queue}, {@code list} y {@code
  *       status} ya lo consultan); por debajo {@code registro().entrarEnFila/salirDeFila}, {@code
@@ -75,8 +83,8 @@
  *       {@code BanHardcore.FUENTE}); el nodo de bypass es {@code PermisoBypassBan.NODO}.
  *   <li>#17 fin (hecho, paquete {@code fin}): ver "Fin de partida" abajo.
  *   <li>#18 escalado: {@code PartidaIniciada}, {@code Partida.jugadoresIniciales()} y {@code
- *       parametros()}.
- *   <li>#19 plantillas: {@code Dungeons.usarReiniciador(...)}; se llama al terminar, en {@code
+ *       parametros().
+ *   <li>#19 plantillas: hecho en {@code plantilla}; el reinicio se lanza al terminar, en {@code
  *       reset} y al arrancar tras una caída.
  *   <li>#22 récords (hecho): {@code Dungeons.historial().records()} ({@code TablaRecords.top},
  *       {@code mejoresTiempos}); los comandos {@code top} e {@code info} leen de ahí.

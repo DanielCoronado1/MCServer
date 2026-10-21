@@ -2,9 +2,11 @@ package com.dolfin.creepers.dungeon.comando;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
 /**
  * Árbol {@code /dungeon}: comandos de jugador ({@link ComandosJugador}) con el permiso {@value
@@ -25,10 +27,21 @@ public final class ComandoDungeon {
                 Commands.literal("dungeon")
                         .requires(s -> PermisosDungeon.puedeUsar(s) || PermisosDungeon.esAdmin(s));
         Confirmaciones confirmaciones = new Confirmaciones();
-        new ComandosJugador(confirmaciones, new FlujoUnirse(confirmaciones))
-                .nodos()
-                .forEach(raiz::then);
+        FlujoUnirse flujo = new FlujoUnirse(confirmaciones);
+        raiz.executes(c -> abrirMenu(c.getSource(), flujo));
+        new ComandosJugador(confirmaciones, flujo).nodos().forEach(raiz::then);
         raiz.then(ComandosAdmin.nodo());
         dispatcher.register(raiz);
+    }
+
+    /** {@code /dungeon} sin argumentos: abre el menú de cofre a quien puede usar los comandos. */
+    private static int abrirMenu(CommandSourceStack origen, FlujoUnirse flujo)
+            throws CommandSyntaxException {
+        if (!PermisosDungeon.puedeUsar(origen)) {
+            origen.sendFailure(Component.literal("No tienes permiso para usar las dungeons."));
+            return 0;
+        }
+        MenuDungeon.abrir(origen.getPlayerOrException(), flujo);
+        return 1;
     }
 }

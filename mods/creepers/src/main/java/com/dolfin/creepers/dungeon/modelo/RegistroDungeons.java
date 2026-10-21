@@ -11,6 +11,7 @@ import com.dolfin.creepers.dungeon.eventos.EventoDungeon.JugadorReconectado;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.JugadorSalio;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.PartidaIniciada;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.PartidaTerminada;
+import com.dolfin.creepers.dungeon.eventos.EventoDungeon.VictoriaDeclarada;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -183,6 +184,20 @@ public final class RegistroDungeons {
         partidas.remove(dungeonId);
         bus.publicar(new PartidaTerminada(partida, resultado));
         cambiarEstado(dungeonId, EstadoDungeon.REINICIANDO);
+        return Optional.of(partida);
+    }
+
+    /**
+     * Marca la victoria de la partida de {@code dungeonId} sin terminarla (queda la ventana de
+     * botín) y publica {@code VictoriaDeclarada}. Falla si no hay partida o ya estaba declarada.
+     */
+    public Optional<Partida> declararVictoria(String dungeonId) {
+        Partida partida = partidas.get(dungeonId);
+        if (partida == null || partida.victoriaDeclarada()) {
+            return Optional.empty();
+        }
+        partida.declararVictoria();
+        bus.publicar(new VictoriaDeclarada(partida));
         return Optional.of(partida);
     }
 

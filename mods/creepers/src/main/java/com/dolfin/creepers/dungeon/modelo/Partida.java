@@ -25,6 +25,7 @@ public final class Partida {
     private final int jugadoresIniciales;
     private final Map<UUID, Miembro> miembros = new LinkedHashMap<>();
     private ResultadoPartida resultado;
+    private boolean victoriaDeclarada;
 
     Partida(
             DefinicionDungeon dungeon,
@@ -94,6 +95,14 @@ public final class Partida {
         return resultado == null;
     }
 
+    /**
+     * El jefe cayó y el grupo ganó, pero la partida sigue abierta durante la ventana de botín
+     * (#17). Desde entonces no hay derrota por bajas ni castigos de hardcore.
+     */
+    public boolean victoriaDeclarada() {
+        return victoriaDeclarada;
+    }
+
     /** Resultado una vez terminada. */
     public Optional<ResultadoPartida> resultado() {
         return Optional.ofNullable(resultado);
@@ -127,6 +136,10 @@ public final class Partida {
     public Punto puntoDeReaparicion(UUID jugador) {
         return dungeon.puntoDeCheckpoint(
                 miembro(jugador).map(Miembro::checkpoint).orElse(Miembro.SIN_CHECKPOINT));
+    }
+
+    void declararVictoria() {
+        victoriaDeclarada = true;
     }
 
     void terminar(ResultadoPartida resultado) {

@@ -16,6 +16,7 @@ import com.dolfin.creepers.dungeon.eventos.EventoDungeon.JugadorReconectado;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.JugadorSalio;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.PartidaIniciada;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.PartidaTerminada;
+import com.dolfin.creepers.dungeon.eventos.EventoDungeon.VictoriaDeclarada;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons.Candidato;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons.ResultadoInicio;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons.TipoRechazo;
@@ -279,5 +280,17 @@ class RegistroDungeonsTest {
         iniciar("cripta", Dificultad.FACIL, ANA);
         assertFalse(registro.marcarReiniciando("cripta"));
         assertFalse(registro.marcarReiniciando("nada"));
+    }
+
+    @Test
+    void declararVictoriaMarcaLaPartidaSinTerminarla() {
+        Partida p = iniciar("cripta", Dificultad.FACIL, ANA);
+        assertFalse(p.victoriaDeclarada());
+        assertEquals(p, registro.declararVictoria("cripta").orElseThrow());
+        assertTrue(p.victoriaDeclarada());
+        assertTrue(p.activa());
+        assertTrue(eventos.contains(new VictoriaDeclarada(p)));
+        assertTrue(registro.declararVictoria("cripta").isEmpty());
+        assertTrue(registro.declararVictoria("torre").isEmpty());
     }
 }

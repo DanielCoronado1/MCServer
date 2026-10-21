@@ -103,6 +103,13 @@ public final class CastigosHardcore {
         }
     }
 
+    /** Tras la victoria nadie pierde nada ni recibe ban; quien muere solo sale de la partida. */
+    private void sinCastigoTrasVictoria(ServerPlayer jugador, OrigenCastigo origen) {
+        if (origen == OrigenCastigo.MUERTE && jugador != null) {
+            entradaSalida.sacar(jugador, MotivoSalida.MUERTE_HARDCORE);
+        }
+    }
+
     private void castigarSiHardcore(Partida partida, UUID jugador, OrigenCastigo origen) {
         MinecraftServer s = server.get();
         if (s != null && partida.dificultad() == Dificultad.HARDCORE) {
@@ -112,6 +119,10 @@ public final class CastigosHardcore {
 
     private void castigar(MinecraftServer s, Partida partida, UUID id, OrigenCastigo origen) {
         ServerPlayer jugador = s.getPlayerList().getPlayer(id);
+        if (partida.victoriaDeclarada()) {
+            sinCastigoTrasVictoria(jugador, origen);
+            return;
+        }
         Castigo castigo = ReglasMuerte.castigoHardcore(origen, PermisoBypassBan.tiene(id));
         if (castigo.vaciar() && jugador == null) {
             DatosMuerte.de(s).marcarVaciado(id);

@@ -84,12 +84,12 @@ public final class ReglasMuerte {
     }
 
     /**
-     * La partida termina en derrota por bajas: nadie sigue vivo ni puede volver vivo, y o bien
-     * quedan espectadores, o bien alguien cayó en hardcore. Si todos salieron sin morir no es
-     * derrota: la partida acaba como abandonada.
+     * La partida termina en derrota por bajas (nunca tras declararse la victoria): nadie sigue vivo
+     * ni puede volver vivo, y o bien quedan espectadores, o bien alguien cayó en hardcore. Si todos
+     * salieron sin morir no es derrota: la partida acaba como abandonada.
      */
     public static boolean derrotaPorBajas(Partida partida) {
-        if (!partida.activa() || partida.hayVivosOPorVolver()) {
+        if (!partida.activa() || partida.victoriaDeclarada() || partida.hayVivosOPorVolver()) {
             return false;
         }
         boolean cayoEnHardcore =

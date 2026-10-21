@@ -22,6 +22,12 @@ public sealed interface EventoDungeon {
     /** Empezó una partida; sus miembros aún no se han teletransportado. */
     record PartidaIniciada(Partida partida) implements EventoDungeon {}
 
+    /**
+     * El jefe cayó: el grupo ganó. La partida sigue activa durante la ventana de botín y termina
+     * con {@code PartidaTerminada(VICTORIA)}; los castigos de hardcore ya no aplican (#17).
+     */
+    record VictoriaDeclarada(Partida partida) implements EventoDungeon {}
+
     /** Terminó una partida; todos sus miembros ya están {@code FUERA}. */
     record PartidaTerminada(Partida partida, ResultadoPartida resultado) implements EventoDungeon {}
 

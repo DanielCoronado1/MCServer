@@ -151,6 +151,15 @@ class ReglasMuerteTest {
     }
 
     @Test
+    void trasLaVictoriaYaNoHayDerrotaPorBajas() {
+        Partida p = iniciar(Dificultad.MEDIO);
+        registro.declararVictoria(p.dungeon().id());
+        registro.pasarAEspectador(ANA.id());
+        registro.pasarAEspectador(BETO.id());
+        assertFalse(ReglasMuerte.derrotaPorBajas(p));
+    }
+
+    @Test
     void salirTodosSinMorirNoEsDerrota() {
         Partida p = iniciar(Dificultad.MEDIO);
         registro.sacarMiembro(ANA.id(), MotivoSalida.ABANDONO);

@@ -6,6 +6,7 @@ import com.dolfin.creepers.dungeon.botin.BotinDungeon;
 import com.dolfin.creepers.dungeon.comando.ComandoDungeon;
 import com.dolfin.creepers.dungeon.comando.PermisosDungeon;
 import com.dolfin.creepers.dungeon.config.DungeonsConfig;
+import com.dolfin.creepers.dungeon.cripta.CriptaPlantilla;
 import com.dolfin.creepers.dungeon.entrada.DatosDungeons;
 import com.dolfin.creepers.dungeon.entrada.EntradaSalida;
 import com.dolfin.creepers.dungeon.escalado.EscaladoDungeon;
@@ -129,6 +130,8 @@ public final class Dungeons {
         plantillas = new ServicioPlantillas(registro, partidas, ejecutor, almacen);
         ajusteAparicion = new EscaladoDungeon();
         botin = new BotinDungeon(registro, new AlmacenBotin(), () -> server);
+        CriptaPlantilla.asegurarEnDisco(
+                almacen, carpetaConfig.resolve("dolfin-dungeons").resolve("plantillas"));
         CargaChunks.registrar();
         ContenidoPlantillas.registrar();
         suscribirModulos();

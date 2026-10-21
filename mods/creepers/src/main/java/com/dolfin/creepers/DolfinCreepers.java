@@ -1,6 +1,7 @@
 package com.dolfin.creepers;
 
 import com.dolfin.creepers.dungeon.Dungeons;
+import com.dolfin.creepers.dungeon.jefe.ReyZombie;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -37,9 +38,11 @@ public class DolfinCreepers implements ModInitializer {
 
     private static final Map<Variante, EntityType<VarianteCreeper>> TIPOS =
             new EnumMap<>(Variante.class);
+    public static final EntityType<ReyZombie> REY_ZOMBIE = registrarReyZombie();
 
     @Override
     public void onInitialize() {
+        FabricDefaultAttributeRegistry.register(REY_ZOMBIE, ReyZombie.crearAtributos());
         for (Variante variante : Variante.values()) {
             EntityType<VarianteCreeper> tipo = registrar(variante);
             TIPOS.put(variante, tipo);
@@ -69,6 +72,15 @@ public class DolfinCreepers implements ModInitializer {
 
     public static Identifier id(String ruta) {
         return Identifier.fromNamespaceAndPath(MOD_ID, ruta);
+    }
+
+    private static EntityType<ReyZombie> registrarReyZombie() {
+        ResourceKey<EntityType<?>> clave =
+                ResourceKey.create(Registries.ENTITY_TYPE, id("rey_zombie"));
+        EntityType.Builder<ReyZombie> constructor =
+                EntityType.Builder.of(ReyZombie::new, MobCategory.MONSTER);
+        constructor.sized(0.8f, 2.3f).clientTrackingRange(10);
+        return Registry.register(BuiltInRegistries.ENTITY_TYPE, clave, constructor.build(clave));
     }
 
     @SuppressWarnings("unchecked")

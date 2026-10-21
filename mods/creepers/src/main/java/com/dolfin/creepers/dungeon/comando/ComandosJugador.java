@@ -5,13 +5,10 @@ import static com.dolfin.creepers.dungeon.comando.ArgumentosDungeon.DIFICULTAD;
 import com.dolfin.creepers.dungeon.Dungeons;
 import com.dolfin.creepers.dungeon.comando.VistaDungeon.EstadoVisible;
 import com.dolfin.creepers.dungeon.estadisticas.Estadisticas.EntradaTop;
-import com.dolfin.creepers.dungeon.fila.ServicioFila.ResultadoUnirse;
 import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
 import com.dolfin.creepers.dungeon.modelo.Dificultad;
-import com.dolfin.creepers.dungeon.modelo.EstadoDungeon;
 import com.dolfin.creepers.dungeon.modelo.MotivoSalida;
 import com.dolfin.creepers.dungeon.modelo.Partida;
-import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons.Ocupacion;
 import com.dolfin.creepers.dungeon.mundo.DimensionDungeons;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -30,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
@@ -47,13 +43,22 @@ final class ComandosJugador {
                     id -> Component.literal("Dificultad desconocida: " + id));
 
     private final Confirmaciones confirmaciones;
+    private final FlujoUnirse flujo;
 
-    ComandosJugador(Confirmaciones confirmaciones) {
+    ComandosJugador(Confirmaciones confirmaciones, FlujoUnirse flujo) {
         this.confirmaciones = confirmaciones;
+        this.flujo = flujo;
     }
 
     List<LiteralArgumentBuilder<CommandSourceStack>> nodos() {
-        return List.of(nodoList(), nodoInfo(), nodoJoin(), nodoLeave(), nodoQueue(), nodoTop());
+        return List.of(
+                nodoList(),
+                nodoInfo(),
+                nodoJoin(),
+                nodoReady(),
+                nodoLeave(),
+                nodoQueue(),
+                nodoTop());
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> nodoList() {
@@ -77,6 +82,10 @@ final class ComandosJugador {
                                 .then(
                                         ArgumentosDungeon.argumentoDificultad()
                                                 .executes(c -> join(c, dificultadEscrita(c)))));
+    }
+
+    private LiteralArgumentBuilder<CommandSourceStack> nodoReady() {
+        return Commands.literal("ready").requires(PermisosDungeon::puedeUsar).executes(this::ready);
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> nodoLeave() {
@@ -114,7 +123,7 @@ final class ComandosJugador {
         origen.sendSuccess(
                 () -> Component.literal("Dungeons:").withStyle(ChatFormatting.GOLD), false);
         for (DefinicionDungeon d : dungeons) {
-            EstadoVisible visible = estadoVisible(origen, d);
+            EstadoVisible visible = ConsultaDungeon.estadoVisible(origen, d);
             origen.sendSuccess(
                     () ->
                             Component.literal(" - " + d.nombre() + " (" + d.id() + "): ")
@@ -144,18 +153,19 @@ final class ComandosJugador {
             throws CommandSyntaxException {
         ServerPlayer jugador = c.getSource().getPlayerOrException();
         DefinicionDungeon d = ArgumentosDungeon.dungeon(c);
-        if (!PermisosDungeon.puedeEntrar(c.getSource(), d)) {
-            return fallo(c, "No tienes permiso para entrar a " + d.nombre() + ".");
-        }
-        if (!d.dificultades().contains(dificultad)) {
-            return fallo(c, d.nombre() + " no tiene la dificultad " + dificultad.id() + ".");
-        }
-        if (dificultad == Dificultad.HARDCORE && !confirmaHardcore(jugador, "join:" + d.id())) {
-            return avisarConfirmacion(c, "/dungeon join " + d.id() + " hardcore", "entrar");
-        }
-        ResultadoUnirse resultado =
-                Dungeons.fila().unirse(c.getSource().getServer(), jugador, d, dificultad);
-        return informarUnirse(c, d, dificultad, resultado);
+        return switch (flujo.unirse(c.getSource(), jugador, d, dificultad)) {
+            case FlujoUnirse.Resultado.Exito(String texto) -> exito(c, texto);
+            case FlujoUnirse.Resultado.Fallo(String texto) -> fallo(c, texto);
+            case FlujoUnirse.Resultado.PideConfirmacion p ->
+                    avisarConfirmacion(
+                            c, p.baneoMinutos(), "/dungeon join " + d.id() + " hardcore", "entrar");
+        };
+    }
+
+    private int ready(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
+        ServerPlayer jugador = c.getSource().getPlayerOrException();
+        Optional<String> error = Dungeons.fila().confirmar(c.getSource().getServer(), jugador);
+        return error.map(texto -> fallo(c, texto)).orElseGet(() -> exito(c, "Estás listo."));
     }
 
     private int leave(CommandContext<CommandSourceStack> c) throws CommandSyntaxException {
@@ -180,7 +190,11 @@ final class ComandosJugador {
         if (partida.isPresent()
                 && partida.get().dificultad() == Dificultad.HARDCORE
                 && !confirmaHardcore(jugador, "leave")) {
-            return avisarConfirmacion(c, "/dungeon leave", "salir (cuenta como muerte)");
+            return avisarConfirmacion(
+                    c,
+                    Dungeons.registro().config().partida().hardcoreBanMinutos(),
+                    "/dungeon leave",
+                    "salir (cuenta como muerte)");
         }
         Dungeons.partidas().salir(jugador, MotivoSalida.ABANDONO);
         return exito(c, "Has salido de la partida.");
@@ -237,71 +251,14 @@ final class ComandosJugador {
         return top.size();
     }
 
-    private int informarUnirse(
-            CommandContext<CommandSourceStack> c,
-            DefinicionDungeon d,
-            Dificultad dificultad,
-            ResultadoUnirse resultado) {
-        return switch (resultado) {
-            case ResultadoUnirse.Entro entro ->
-                    exito(c, "Entras a " + d.nombre() + " (" + dificultad.id() + ").");
-            case ResultadoUnirse.EnFila(int posicion, int grupos) ->
-                    exito(
-                            c,
-                            "Estás en la fila de "
-                                    + d.nombre()
-                                    + ": puesto "
-                                    + posicion
-                                    + " de "
-                                    + grupos
-                                    + ".");
-            case ResultadoUnirse.Bloqueado(String motivo) -> fallo(c, motivo);
-            case ResultadoUnirse.Rechazado(var rechazos) ->
-                    fallo(
-                            c,
-                            "No se puede entrar: "
-                                    + String.join(
-                                            "; ",
-                                            rechazos.stream()
-                                                    .map(
-                                                            r ->
-                                                                    VistaDungeon.rechazo(
-                                                                            r, Optional.of(d)))
-                                                    .toList()));
-        };
-    }
-
-    private EstadoVisible estadoVisible(CommandSourceStack origen, DefinicionDungeon d) {
-        RegistroDungeons registro = Dungeons.registro();
-        EstadoDungeon estado = registro.estado(d.id()).orElse(EstadoDungeon.DESHABILITADA);
-        int tick = origen.getServer().getTickCount();
-        OptionalLong segundos =
-                registro.partida(d.id())
-                        .map(
-                                p ->
-                                        OptionalLong.of(
-                                                (tick - p.inicioTick())
-                                                        / RegistroDungeons.TICKS_POR_SEGUNDO))
-                        .orElse(OptionalLong.empty());
-        return VistaDungeon.estado(
-                estado, segundos, Dungeons.fila().gruposEnFila(d.id()), estaBloqueada(origen, d));
-    }
-
-    private static boolean estaBloqueada(CommandSourceStack origen, DefinicionDungeon d) {
-        ServerPlayer jugador = origen.getPlayer();
-        return !PermisosDungeon.puedeEntrar(origen, d)
-                || (jugador != null && Dungeons.fila().bloqueo(jugador.getUUID(), d).isPresent());
-    }
-
     private boolean confirmaHardcore(ServerPlayer jugador, String accion) {
         return confirmaciones.confirmar(jugador.getUUID(), accion, System.currentTimeMillis());
     }
 
     private static int avisarConfirmacion(
-            CommandContext<CommandSourceStack> c, String comando, String accion) {
-        int minutos = Dungeons.registro().config().partida().hardcoreBanMinutos();
+            CommandContext<CommandSourceStack> c, int baneoMinutos, String comando, String accion) {
         String texto =
-                VistaDungeon.avisoHardcore(minutos)
+                VistaDungeon.avisoHardcore(baneoMinutos)
                         + " Para "
                         + accion
                         + ", repite "

@@ -2,6 +2,7 @@ package com.dolfin.creepers.dungeon;
 
 import com.dolfin.creepers.DolfinCreepers;
 import com.dolfin.creepers.dungeon.comando.ComandoDungeon;
+import com.dolfin.creepers.dungeon.comando.PermisosDungeon;
 import com.dolfin.creepers.dungeon.config.DungeonsConfig;
 import com.dolfin.creepers.dungeon.entrada.DatosDungeons;
 import com.dolfin.creepers.dungeon.entrada.EntradaSalida;
@@ -9,12 +10,17 @@ import com.dolfin.creepers.dungeon.estadisticas.Estadisticas;
 import com.dolfin.creepers.dungeon.eventos.BusEventos;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon;
 import com.dolfin.creepers.dungeon.eventos.EventoDungeon.DungeonCambioEstado;
-import com.dolfin.creepers.dungeon.fila.EntradaDirecta;
+import com.dolfin.creepers.dungeon.fila.ConsultaProgreso;
+import com.dolfin.creepers.dungeon.fila.FilaGrupos;
 import com.dolfin.creepers.dungeon.fila.ServicioFila;
 import com.dolfin.creepers.dungeon.fin.EstadisticasRecords;
 import com.dolfin.creepers.dungeon.fin.FinDePartida;
 import com.dolfin.creepers.dungeon.fin.HistorialDungeons;
 import com.dolfin.creepers.dungeon.fin.JefeDungeon;
+import com.dolfin.creepers.dungeon.grupo.AvisosGrupo;
+import com.dolfin.creepers.dungeon.grupo.ComandosGrupo;
+import com.dolfin.creepers.dungeon.grupo.Grupos;
+import com.dolfin.creepers.dungeon.grupo.Nombres;
 import com.dolfin.creepers.dungeon.modelo.DefinicionDungeon;
 import com.dolfin.creepers.dungeon.modelo.RegistroDungeons;
 import com.dolfin.creepers.dungeon.muerte.BloqueTumba;
@@ -68,6 +74,8 @@ public final class Dungeons {
     private static Muertes muertes;
     private static FinPorBajas finPorBajas;
     private static ServicioFila fila;
+    private static Grupos grupos;
+    private static final Nombres NOMBRES = new Nombres();
     private static Estadisticas estadisticas = Estadisticas.SIN_DATOS;
     private static FinDePartida fin;
     private static HistorialDungeons historial;
@@ -89,7 +97,6 @@ public final class Dungeons {
         registro = new RegistroDungeons(BUS, config.actual());
         entradaSalida = new EntradaSalida(registro, BUS);
         partidas = new ServicioPartidas(registro, entradaSalida, () -> reiniciador);
-        fila = new EntradaDirecta(partidas, registro);
         BloqueTumba.registrar();
         tumbas = new Tumbas(registro, () -> server);
         castigos = new CastigosHardcore(entradaSalida, () -> server);
@@ -98,6 +105,7 @@ public final class Dungeons {
                 new HistorialDungeons(
                         aviso -> DolfinCreepers.LOGGER.warn("event=dungeon_history {}", aviso));
         estadisticas = new EstadisticasRecords(historial);
+        crearGrupos();
         fin = new FinDePartida(registro, partidas, historial, () -> server);
         finPorBajas = new FinPorBajas(registro, fin::derrota);
         ejecutor =
@@ -123,6 +131,11 @@ public final class Dungeons {
                 "event=dungeons_ready dungeons={} configGeneration={}",
                 config.actual().dungeons().size(),
                 config.actual().generacion());
+    }
+
+    /** Grupos de jugadores ({@code /party}) que usa la fila (#14). */
+    public static Grupos grupos() {
+        return grupos;
     }
 
     /** Config cargada; las partidas en curso usan {@code Partida.config()} en su lugar. */
@@ -227,6 +240,23 @@ public final class Dungeons {
         ajusteAparicion = Objects.requireNonNull(nuevo);
     }
 
+    /** Crea la fila con grupos y ready check, y sus avisos y comandos {@code /party}. */
+    private static void crearGrupos() {
+        FilaGrupos filaGrupos =
+                new FilaGrupos(
+                        registro,
+                        partidas,
+                        ConsultaProgreso.de(() -> historial.progreso()),
+                        (jugador, dungeon) ->
+                                PermisosDungeon.puedeEntrar(
+                                        jugador.createCommandSourceStack(), dungeon),
+                        NOMBRES,
+                        () -> server);
+        fila = filaGrupos;
+        grupos = filaGrupos.grupos();
+        new AvisosGrupo(() -> server, NOMBRES).suscribir(grupos);
+    }
+
     private static void suscribirModulos() {
         new CargaChunks(() -> server).suscribir(BUS);
         new AvisosPartida(() -> server).suscribir(BUS);
@@ -255,6 +285,7 @@ public final class Dungeons {
                     registro.limpiar(config.actual());
                     historial.cargar(s.getWorldPath(LevelResource.ROOT));
                     entradaSalida.alArrancar();
+                    fila.alArrancar();
                 });
         ServerLifecycleEvents.SERVER_STARTED.register(
                 s -> {
@@ -273,9 +304,13 @@ public final class Dungeons {
                     castigos.alConectarse(handler.getPlayer());
                     tumbas.alConectarse(handler.getPlayer());
                     fin.alConectarse(handler.getPlayer());
+                    fila.alConectarse(handler.getPlayer());
                 });
         ServerPlayConnectionEvents.DISCONNECT.register(
-                (handler, s) -> entradaSalida.alDesconectarse(handler.getPlayer()));
+                (handler, s) -> {
+                    entradaSalida.alDesconectarse(handler.getPlayer());
+                    fila.alDesconectarse(handler.getPlayer());
+                });
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(
                 (jugador, origen, destino) -> {
                     if (DimensionDungeons.es(origen)) {
@@ -288,7 +323,10 @@ public final class Dungeons {
         JefeDungeon.registrar(fin);
         ServerTickEvents.END_SERVER_TICK.register(Dungeons::tick);
         CommandRegistrationCallback.EVENT.register(
-                (dispatcher, acceso, entorno) -> ComandoDungeon.registrar(dispatcher));
+                (dispatcher, acceso, entorno) -> {
+                    ComandoDungeon.registrar(dispatcher);
+                    new ComandosGrupo(grupos, NOMBRES).registrar(dispatcher);
+                });
         ComandoDungeon.registrarEventos();
         ReglasDungeon.registrar();
     }
@@ -309,6 +347,7 @@ public final class Dungeons {
         }
         registro.vencerDesconexiones(s.getTickCount());
         fin.tick(s);
+        fila.tick(s);
         partidas.tick(s);
         ReglasDungeon.cadaSegundo(s);
     }

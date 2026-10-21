@@ -14,10 +14,11 @@ import java.util.OptionalInt;
 import java.util.UUID;
 
 /**
- * Cómo se entra a una dungeon desde {@code /dungeon join}: punto de enganche de grupos, fila y
- * requisitos (#14). Mientras no haya otra implementación ({@code Dungeons.usarFila}), {@link
- * EntradaDirecta} mete al jugador solo en la dungeon si está libre. Los comandos ya comprueban el
- * permiso y la confirmación de hardcore; esta capa decide si el jugador entra, espera o no puede.
+ * Cómo se entra a una dungeon desde {@code /dungeon join}: grupos, fila, ready check y requisitos
+ * (#14). {@link FilaGrupos} es la implementación en uso; {@link EntradaDirecta} mete al jugador
+ * solo en la dungeon si está libre y sirve de alternativa ({@code Dungeons.usarFila}). Los comandos
+ * ya comprueban el permiso y la confirmación de hardcore; esta capa decide si el jugador entra,
+ * espera o no puede.
  */
 public interface ServicioFila {
     /** Lo que pasó al pedir entrar. */
@@ -53,4 +54,25 @@ public interface ServicioFila {
 
     /** Por qué el jugador no puede entrar ahora (requisitos, cooldown); vacío si puede. */
     Optional<String> bloqueo(UUID jugador, DefinicionDungeon dungeon);
+
+    /**
+     * El jugador confirma su ready check.
+     *
+     * @return el motivo del fallo si no tiene ninguno pendiente
+     */
+    default Optional<String> confirmar(MinecraftServer server, ServerPlayer jugador) {
+        return Optional.of("No tienes ningún ready check pendiente.");
+    }
+
+    /** Llamado cada segundo desde el tick del servidor: plazos, desconexiones y ready checks. */
+    default void tick(MinecraftServer server) {}
+
+    /** Un jugador se conectó. */
+    default void alConectarse(ServerPlayer jugador) {}
+
+    /** Un jugador se desconectó. */
+    default void alDesconectarse(ServerPlayer jugador) {}
+
+    /** El servidor arranca: se olvidan filas y grupos de una ejecución anterior. */
+    default void alArrancar() {}
 }

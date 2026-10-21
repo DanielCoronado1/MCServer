@@ -24,7 +24,10 @@ public final class ComandoDungeon {
         LiteralArgumentBuilder<CommandSourceStack> raiz =
                 Commands.literal("dungeon")
                         .requires(s -> PermisosDungeon.puedeUsar(s) || PermisosDungeon.esAdmin(s));
-        new ComandosJugador(new Confirmaciones()).nodos().forEach(raiz::then);
+        Confirmaciones confirmaciones = new Confirmaciones();
+        new ComandosJugador(confirmaciones, new FlujoUnirse(confirmaciones))
+                .nodos()
+                .forEach(raiz::then);
         raiz.then(ComandosAdmin.nodo());
         dispatcher.register(raiz);
     }

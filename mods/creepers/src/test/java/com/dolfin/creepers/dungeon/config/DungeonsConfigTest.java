@@ -157,6 +157,15 @@ class DungeonsConfigTest {
     }
 
     @Test
+    void guardarDungeonReemplazaEnSuPosicion() throws IOException {
+        config.guardarDungeon(CodecDefinicion.porDefecto("a", Zona.ranura(1)));
+        config.guardarDungeon(CodecDefinicion.porDefecto("b", Zona.ranura(2)));
+        config.guardarDungeon(CodecDefinicion.porDefecto("a", Zona.ranura(1)).conHabilitada(false));
+        List<String> ids = config.actual().dungeons().stream().map(DefinicionDungeon::id).toList();
+        assertEquals(List.of("ejemplo", "a", "b"), ids);
+    }
+
+    @Test
     void guardarDungeonNoPisaUnArchivoRoto() throws IOException {
         Files.writeString(archivo, "{roto");
         assertThrows(

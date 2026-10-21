@@ -214,15 +214,13 @@ public final class DungeonsConfig {
     }
 
     /**
-     * Añade o reemplaza (por id) una dungeon en el archivo y recarga. Conserva el resto del JSON
-     * tal como lo escribió el administrador; si el archivo no se puede leer, falla sin
-     * sobrescribirlo.
+     * Añade o reemplaza (por id) una dungeon en el archivo y recarga. Reemplazar conserva su
+     * posición en la lista; una nueva va al final. Conserva el resto del JSON tal como lo escribió
+     * el administrador; si el archivo no se puede leer, falla sin sobrescribirlo.
      */
     public synchronized Informe guardarDungeon(DefinicionDungeon definicion) throws IOException {
         JsonObject raiz = leerRaizEditable();
-        JsonArray dungeons = sinDungeon(raiz, definicion.id());
-        dungeons.add(CodecDefinicion.aJson(definicion));
-        raiz.add("dungeons", dungeons);
+        raiz.add("dungeons", conDungeon(raiz, CodecDefinicion.aJson(definicion)));
         escribirAtomico(archivo, raiz);
         return recargar();
     }
@@ -356,19 +354,46 @@ public final class DungeonsConfig {
 
     private static JsonArray sinDungeon(JsonObject raiz, String id) {
         JsonArray resultado = new JsonArray();
-        JsonElement actuales = raiz.get("dungeons");
-        if (actuales != null && actuales.isJsonArray()) {
-            for (JsonElement elemento : actuales.getAsJsonArray()) {
-                boolean esLaMisma =
-                        elemento.isJsonObject()
-                                && elemento.getAsJsonObject().has("id")
-                                && id.equals(elemento.getAsJsonObject().get("id").getAsString());
-                if (!esLaMisma) {
-                    resultado.add(elemento);
-                }
+        for (JsonElement elemento : dungeonsActuales(raiz)) {
+            if (!tieneId(elemento, id)) {
+                resultado.add(elemento);
             }
         }
         return resultado;
+    }
+
+    /** La lista con {@code nueva} en el lugar de la que tiene su id, o al final si no existía. */
+    private static JsonArray conDungeon(JsonObject raiz, JsonObject nueva) {
+        String id = nueva.get("id").getAsString();
+        JsonArray resultado = new JsonArray();
+        boolean reemplazada = false;
+        for (JsonElement elemento : dungeonsActuales(raiz)) {
+            if (tieneId(elemento, id)) {
+                if (!reemplazada) {
+                    resultado.add(nueva);
+                }
+                reemplazada = true;
+            } else {
+                resultado.add(elemento);
+            }
+        }
+        if (!reemplazada) {
+            resultado.add(nueva);
+        }
+        return resultado;
+    }
+
+    private static JsonArray dungeonsActuales(JsonObject raiz) {
+        JsonElement actuales = raiz.get("dungeons");
+        return actuales != null && actuales.isJsonArray()
+                ? actuales.getAsJsonArray()
+                : new JsonArray();
+    }
+
+    private static boolean tieneId(JsonElement elemento, String id) {
+        return elemento.isJsonObject()
+                && elemento.getAsJsonObject().has("id")
+                && id.equals(elemento.getAsJsonObject().get("id").getAsString());
     }
 
     private static String causa(Exception e) {

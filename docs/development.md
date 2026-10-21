@@ -10,6 +10,12 @@ Cada mod propio es un subproyecto Gradle en `mods/<nombre>/` integrado en el pro
 
 Genera las texturas con `python3 tools/generate_creeper_textures.py`. Las texturas y su vista previa viven en el proyecto del mod. Instala `requirements-dev.txt` para usar las herramientas de recursos y comprobación visual.
 
+### Estructuras abandonadas
+
+`mods/creepers/` incluye cuatro estructuras que aparecen solas en chunks nuevos, solo con datos en `data/dolfincreepers/` (sin código): casa abandonada (llanuras y bosques), torre caída (superficie), campamento minero (subterráneo, Y 0-40) y puesto hundido (océano poco profundo). Cada una tiene un cofre con botín ligero (`loot_table/chests/`) y mobs persistentes o un generador. Se pueden romper y no usan reglas de dungeon.
+
+Las plantillas `.nbt` y los JSON se regeneran con `python3 tools/estructuras/generate_estructuras.py`. La frecuencia de cada una se ajusta en su `worldgen/structure_set/<nombre>.json` (`spacing` y `separation`, en chunks) y los biomas en `tags/worldgen/biome/has_structure/<nombre>.json`; edítalos en `generate_estructuras.py`, no a mano. `tests/test_estructuras.py` comprueba referencias y que los archivos coincidan con el generador. `tests/manual/prueba_estructuras.py` las carga como datapack en un servidor vanilla aislado.
+
 ## Mods de terceros
 
 Gestiona los metadatos de Packwiz desde `pack/`:

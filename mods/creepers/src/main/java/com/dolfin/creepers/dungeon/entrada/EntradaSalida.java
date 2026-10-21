@@ -88,6 +88,30 @@ public final class EntradaSalida {
         return fallidos;
     }
 
+    /**
+     * Lleva a un administrador a {@code punto} en espectador, sin partida ({@code /dungeon admin
+     * tp}). Guarda su retorno antes de teletransportar, así {@link #restaurar} (con {@code /dungeon
+     * leave}, al conectarse o al salir de la dimensión) lo devuelve a su sitio y modo.
+     *
+     * @return {@code false} si no se pudo teletransportar; no queda retorno nuevo
+     */
+    public boolean observar(MinecraftServer server, ServerPlayer jugador, Punto punto) {
+        DatosDungeons datos = DatosDungeons.de(server);
+        boolean teniaRetorno = datos.retorno(jugador.getUUID()).isPresent();
+        datos.guardarRetornoSiFalta(jugador.getUUID(), RetornoGuardado.de(jugador));
+        DatosDungeons.guardarYa(server);
+        if (llevarADungeon(server, jugador, punto, GameType.SPECTATOR)) {
+            DolfinCreepers.LOGGER.info(
+                    "event=dungeon_observe player={}", jugador.getName().getString());
+            return true;
+        }
+        if (!teniaRetorno) {
+            datos.quitarRetorno(jugador.getUUID());
+            DatosDungeons.guardarPronto(server);
+        }
+        return false;
+    }
+
     /** Saca a un jugador de su partida (si está en una) y lo restaura. */
     public void sacar(ServerPlayer jugador, MotivoSalida motivo) {
         registro.sacarMiembro(jugador.getUUID(), motivo);

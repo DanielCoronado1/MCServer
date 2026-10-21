@@ -14,12 +14,18 @@ import net.minecraft.commands.Commands;
 public final class ComandoDungeon {
     private ComandoDungeon() {}
 
+    /** Engancha los eventos de Fabric de los comandos (la varita de zona); una vez al arrancar. */
+    public static void registrarEventos() {
+        VaritaZona.registrarEventos();
+    }
+
     /** Registra {@code /dungeon}; se llama en cada construcción del despachador de comandos. */
     public static void registrar(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> raiz =
                 Commands.literal("dungeon")
                         .requires(s -> PermisosDungeon.puedeUsar(s) || PermisosDungeon.esAdmin(s));
         new ComandosJugador(new Confirmaciones()).nodos().forEach(raiz::then);
+        raiz.then(ComandosAdmin.nodo());
         dispatcher.register(raiz);
     }
 }

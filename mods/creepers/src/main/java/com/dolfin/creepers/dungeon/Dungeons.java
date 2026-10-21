@@ -215,10 +215,8 @@ public final class Dungeons {
         ServerLivingEntityEvents.ALLOW_DEATH.register(muertes::permitirMuerte);
         ServerTickEvents.END_SERVER_TICK.register(Dungeons::tick);
         CommandRegistrationCallback.EVENT.register(
-                (dispatcher, acceso, entorno) -> {
-                    ComandoDebug.registrar(dispatcher);
-                    ComandoDungeon.registrar(dispatcher);
-                });
+                (dispatcher, acceso, entorno) -> ComandoDungeon.registrar(dispatcher));
+        ComandoDungeon.registrarEventos();
     }
 
     /**

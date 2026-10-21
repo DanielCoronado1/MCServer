@@ -68,14 +68,32 @@ public record DefinicionDungeon(
 
     /** Copia con otro valor de {@code habilitada}, para {@code enable}/{@code disable} (#13). */
     public DefinicionDungeon conHabilitada(boolean valor) {
+        return copia(valor, zona, entrada, checkpoints, salida);
+    }
+
+    /** Copia con otra zona, entrada, checkpoints y salida (todos deben caber en la zona). */
+    public DefinicionDungeon conGeometria(
+            Zona nuevaZona,
+            Punto nuevaEntrada,
+            List<Punto> nuevosCheckpoints,
+            Optional<Punto> nuevaSalida) {
+        return copia(habilitada, nuevaZona, nuevaEntrada, nuevosCheckpoints, nuevaSalida);
+    }
+
+    private DefinicionDungeon copia(
+            boolean nuevaHabilitada,
+            Zona nuevaZona,
+            Punto nuevaEntrada,
+            List<Punto> nuevosCheckpoints,
+            Optional<Punto> nuevaSalida) {
         return new DefinicionDungeon(
                 id,
                 nombre,
-                valor,
-                zona,
-                entrada,
-                checkpoints,
-                salida,
+                nuevaHabilitada,
+                nuevaZona,
+                nuevaEntrada,
+                nuevosCheckpoints,
+                nuevaSalida,
                 modo,
                 minJugadores,
                 maxJugadores,

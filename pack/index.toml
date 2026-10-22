@@ -61,7 +61,7 @@ metafile = true
 
 [[files]]
 file = "mods/mcpfabric.pw.toml"
-hash = "ffa681745f1134a175122f86f2793530be5a5958966551f429856aa79ceabb59"
+hash = "6a4ced28580363e2e7aa6ce4116d1a9de80a170af54f23912216de8d8cd7247c"
 metafile = true
 
 [[files]]

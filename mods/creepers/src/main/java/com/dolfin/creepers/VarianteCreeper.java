@@ -56,7 +56,7 @@ public class VarianteCreeper extends Creeper {
 
     /** Sustituye a la explosion normal del creeper. */
     public void explotar() {
-        if (!(level() instanceof ServerLevel mundo)) {
+        if (isRemoved() || !isAlive() || !(level() instanceof ServerLevel mundo)) {
             return;
         }
         Vec3 centro = position();
@@ -270,6 +270,9 @@ public class VarianteCreeper extends Creeper {
 
     @Override
     public void tick() {
+        if (isRemoved() || !isAlive()) {
+            return;
+        }
         super.tick();
         if (level() instanceof ServerLevel mundo && isAlive()) {
             if (tickCount % 10 == 0) {

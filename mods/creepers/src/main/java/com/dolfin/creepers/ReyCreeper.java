@@ -52,7 +52,7 @@ public class ReyCreeper extends VarianteCreeper {
     /** La onda expansiva: dana alrededor, no rompe bloques y el rey sigue vivo. */
     @Override
     public void explotar() {
-        if (!(level() instanceof ServerLevel mundo)) {
+        if (isRemoved() || !isAlive() || !(level() instanceof ServerLevel mundo)) {
             return;
         }
         Vec3 centro = position();
@@ -81,6 +81,9 @@ public class ReyCreeper extends VarianteCreeper {
 
     @Override
     public void tick() {
+        if (isRemoved() || !isAlive()) {
+            return;
+        }
         super.tick();
         if (!(level() instanceof ServerLevel mundo) || !isAlive()) {
             return;

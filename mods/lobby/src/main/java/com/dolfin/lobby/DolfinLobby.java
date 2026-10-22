@@ -225,7 +225,7 @@ public final class DolfinLobby implements ModInitializer {
                 (entity, source, amount) -> {
                     if (entity instanceof ServerPlayer p && StationProtection.isolated(p)) {
                         p.setHealth(p.getMaxHealth());
-                        sessions.lobby(p);
+                        p.level().getServer().execute(() -> sessions.lobby(p));
                         return false;
                     }
                     return true;

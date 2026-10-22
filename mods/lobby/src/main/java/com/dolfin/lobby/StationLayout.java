@@ -321,8 +321,14 @@ public final class StationLayout {
         var level = server.getLevel(LobbyConfig.key(sessions.config.showcase()));
         if (level == null) return;
         var c = arenaCenter(slot);
-        for (var e : level.getEntities((Entity) null, new AABB(c).inflate(15, 30, 15)))
-            if (!(e instanceof net.minecraft.server.level.ServerPlayer)) e.discard();
+        for (var e : level.getEntities((Entity) null, new AABB(c).inflate(15, 30, 15))) {
+            if (!(e instanceof net.minecraft.server.level.ServerPlayer)) {
+                if (e instanceof net.minecraft.world.entity.monster.Creeper creeper) {
+                    creeper.setSwellDir(-1);
+                }
+                e.discard();
+            }
+        }
     }
 
     public static void fill(ServerLevel w, int x, int y, int z, int x2, int y2, int z2, Block b) {

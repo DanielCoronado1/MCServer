@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-import re
 import struct
 import subprocess
 import tempfile
@@ -12,6 +11,7 @@ import wave
 from pathlib import Path
 from typing import Any
 
+import ship_art
 from PIL import Image, ImageDraw, ImageFont
 from resources import (
     ASSETS_DIR,
@@ -61,6 +61,8 @@ INDUSTRIAL_BLOCKS = {
     "fabricador_circuitos": "crafter_top",
     "refineria": "blast_furnace_top",
 }
+
+SHIP_DESIGN_SOURCE = ROOT / "mods/space/src/main/java/com/dolfin/space/ships/ShipDesign.java"
 
 SOUND_SPECS = (
     ("cockpit_hum", 85, 2.0),
@@ -588,29 +590,12 @@ def generate_fauna_assets() -> None:
 
 def generate_ship_and_sound_assets() -> None:
     """Generate 3D ship models from Java design spec, sounds.json, and catalog preview sheet."""
-    for name, color in SHIP_THEMES.items():
-        tex_path = ASSETS_DIR / f"textures/entity/{name}.png"
-        if not tex_path.exists():
-            im = Image.new("RGB", (128, 128), color)
-            draw = ImageDraw.Draw(im)
-            for y in range(0, 96, 8):
-                draw.line((0, y, 127, y), fill=tuple(int(c * 0.65) for c in color))
-            for x in range(0, 128, 16):
-                draw.line((x, 0, x, 95), fill=tuple(min(255, int(c * 1.1)) for c in color))
-            draw.rectangle((0, 96, 127, 127), fill=(20, 40, 68))
-            draw.rectangle((0, 97, 127, 99), fill=(140, 230, 255))
-            tex_path.parent.mkdir(parents=True, exist_ok=True)
-            im.save(tex_path)
-
-    flame_path = ASSETS_DIR / "textures/entity/ship_flame.png"
-    if not flame_path.exists():
-        im = Image.new("RGB", (32, 32))
-        pixels = im.load()
-        for y in range(32):
-            for x in range(32):
-                pixels[x, y] = (255, max(40, 230 - y * 5), max(0, 130 - y * 6))
-        flame_path.parent.mkdir(parents=True, exist_ok=True)
-        im.save(flame_path)
+    designs = ship_art.parse_designs(SHIP_DESIGN_SOURCE.read_text())
+    for tier, name in zip(ship_art.TIERS, SHIP_THEMES, strict=True):
+        ship_art.write_ship_texture(
+            ASSETS_DIR / f"textures/entity/{name}.png", designs[tier], SHIP_THEMES[name]
+        )
+    ship_art.write_flame_texture(ASSETS_DIR / "textures/entity/ship_flame.png")
 
     sound_dir = ASSETS_DIR / "sounds"
     sound_dir.mkdir(parents=True, exist_ok=True)
@@ -717,31 +702,35 @@ def generate_ship_and_sound_assets() -> None:
 
 
 def parse_ship_designs() -> dict[str, list[dict[str, Any]]]:
-    """Parse ship cuboid dimensions from the canonical Java ShipDesign specification."""
-    source = (ROOT / "mods/space/src/main/java/com/dolfin/space/ships/ShipDesign.java").read_text()
-    sections = re.split(r"case (BASICA|CARGA|RAPIDA) ->", source)
-    designs: dict[str, list[dict[str, Any]]] = {}
-    for tier, name in zip(["BASICA", "CARGA", "RAPIDA"], SHIP_THEMES, strict=True):
-        seg = sections[sections.index(tier) + 1]
-        parts = re.findall(
-            r'p\("([^\"]+)",\s*(-?[\d.]+),\s*(-?[\d.]+),\s*(-?[\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)',
-            seg,
+    """Convert ShipDesign cuboids into item-model elements with box-UV face mapping."""
+    designs = ship_art.parse_designs(SHIP_DESIGN_SOURCE.read_text())
+    return {
+        name: ship_item_elements(designs[tier])
+        for tier, name in zip(ship_art.TIERS, SHIP_THEMES, strict=True)
+    }
+
+
+def ship_item_elements(parts: list[ship_art.Part]) -> list[dict[str, Any]]:
+    """Scale parts into block-model space; UVs are in sixteenths of the texture atlas."""
+    width, height = ship_art.texture_size(parts)
+    elements = []
+    for part in parts:
+        faces = {}
+        for face, (u, v, w, h) in part.faces().items():
+            uv = [u * 16 / width, v * 16 / height, (u + w) * 16 / width, (v + h) * 16 / height]
+            faces[face] = {"texture": "#hull", "uv": [round(c, 4) for c in uv]}
+        elements.append(
+            {
+                "from": [8 + part.x * 0.32, part.y * 0.32, 8 + part.z * 0.32],
+                "to": [
+                    8 + (part.x + part.w) * 0.32,
+                    (part.y + part.h) * 0.32,
+                    8 + (part.z + part.d) * 0.32,
+                ],
+                "faces": faces,
+            }
         )
-        elements = []
-        for _part, *coords in parts:
-            x, y, z, w, h, depth = (float(c) for c in coords)
-            elements.append(
-                {
-                    "from": [8 + x * 0.32, y * 0.32, 8 + z * 0.32],
-                    "to": [8 + (x + w) * 0.32, (y + h) * 0.32, 8 + (z + depth) * 0.32],
-                    "faces": {
-                        f: {"texture": "#hull"}
-                        for f in ["north", "south", "east", "west", "up", "down"]
-                    },
-                }
-            )
-        designs[name] = elements
-    return designs
+    return elements
 
 
 def generate_catalog_sheet_if_missing() -> None:
@@ -749,8 +738,7 @@ def generate_catalog_sheet_if_missing() -> None:
     sheet_path = ROOT / "docs/space/issue-32-assets.png"
     if sheet_path.exists():
         return
-    source = (ROOT / "mods/space/src/main/java/com/dolfin/space/ships/ShipDesign.java").read_text()
-    sections = re.split(r"case (BASICA|CARGA|RAPIDA) ->", source)
+    designs = ship_art.parse_designs(SHIP_DESIGN_SOURCE.read_text())
     width, height = 1500, 1120
     sheet = Image.new("RGB", (width, height), (14, 23, 35))
     draw = ImageDraw.Draw(sheet)
@@ -759,17 +747,13 @@ def generate_catalog_sheet_if_missing() -> None:
     draw.text((35, 22), "DOLFIN SPACE / ORIGINAL ASSET CATALOG", font=big, fill=(220, 235, 248))
 
     for n, (tier, name) in enumerate(zip(["BASICA", "CARGA", "RAPIDA"], SHIP_THEMES, strict=True)):
-        seg = sections[sections.index(tier) + 1]
-        parts = re.findall(
-            r'p\("([^\"]+)",\s*(-?[\d.]+),\s*(-?[\d.]+),\s*(-?[\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\)',
-            seg,
-        )
+        parts = [(p.name, p.x, p.y, p.z, p.w, p.h, p.d) for p in designs[tier]]
         ox = 250 + n * 500
         oy = 420
         scale = 3.4
         for part, *coords in sorted(parts, key=lambda p: float(p[3]), reverse=True):
             x, y, z, w, h, depth = (float(c) for c in coords)
-            color = SHIP_THEMES[name] if "window" not in part else (40, 70, 100)
+            color = SHIP_THEMES[name] if "canopy" not in part else (40, 70, 100)
             faces = [
                 ([(x, y, z), (x + w, y, z), (x + w, y + h, z), (x, y + h, z)], 1.0),
                 (

@@ -255,6 +255,11 @@ public final class SpaceshipEntity extends Entity {
         return InteractionResult.FAIL;
     }
 
+    /** Visual engine output in [0, 1] for renderers; zero while the engines are cold. */
+    public float thrust() {
+        return burning() ? 1 : 0;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -270,27 +275,29 @@ public final class SpaceshipEntity extends Entity {
                                 net.minecraft.sounds.SoundSource.NEUTRAL,
                                 .4f,
                                 tier() == ShipTier.RAPIDA ? 1.3f : .8f);
-        } else if (burning() && tickCount % 3 == 0) {
-            int engines = tier() == ShipTier.CARGA ? 2 : 1;
-            for (int i = 0; i < engines; i++) {
-                double x = getX() + (engines == 2 ? (i == 0 ? -1.12 : 1.12) : 0);
-                level().addParticle(
-                                net.minecraft.core.particles.ParticleTypes.FLAME,
-                                x,
-                                getY() - .15,
-                                getZ(),
-                                0,
-                                -.12,
-                                0);
-                level().addParticle(
-                                net.minecraft.core.particles.ParticleTypes.SMOKE,
-                                x,
-                                getY() - .3,
-                                getZ(),
-                                0,
-                                -.08,
-                                0);
-            }
+        } else if (burning() && tickCount % 3 == 0) exhaust();
+    }
+
+    /** Client-side flame and smoke trail under every nozzle, rotated with the hull. */
+    private void exhaust() {
+        for (var nozzle : ShipDesign.of(tier()).nozzles()) {
+            var at = position().add(nozzle.offset(getYRot()));
+            level().addParticle(
+                            net.minecraft.core.particles.ParticleTypes.FLAME,
+                            at.x,
+                            at.y - .15,
+                            at.z,
+                            0,
+                            -.12,
+                            0);
+            level().addParticle(
+                            net.minecraft.core.particles.ParticleTypes.SMOKE,
+                            at.x,
+                            at.y - .3,
+                            at.z,
+                            0,
+                            -.08,
+                            0);
         }
     }
 }

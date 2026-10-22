@@ -83,6 +83,8 @@ public final class ShipItem extends Item {
                     .getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY)
                     .copyInto(ship.cargo.getItems());
             ship.setPos(pos.getX() + .5, pos.getY() + 1, pos.getZ() + .5);
+            // Snap to a cardinal heading with the canopy facing the player who placed it.
+            ship.setYRot(Math.round((player.getYRot() + 180) / 90f) * 90f);
             level.addFreshEntity(ship);
             c.getItemInHand().shrink(1);
             DolfinSpace.LOGGER.info(

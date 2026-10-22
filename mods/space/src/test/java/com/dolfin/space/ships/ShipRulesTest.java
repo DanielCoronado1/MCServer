@@ -90,4 +90,39 @@ class ShipRulesTest {
         var encoded = ShipState.CODEC.encodeStart(JsonOps.INSTANCE, showcase).getOrThrow();
         assertEquals(showcase, ShipState.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
     }
+
+    @Test
+    void shipUvRegionsFitTheTextureAndOnlyMirroredPartsShareThem() {
+        for (var tier : ShipTier.values()) {
+            var design = ShipDesign.of(tier);
+            var parts = design.parts();
+            for (var a : parts) {
+                assertTrue(a.u() + a.uvWidth() <= design.textureWidth(), a.name());
+                assertTrue(a.v() + a.uvHeight() <= design.textureHeight(), a.name());
+                for (var b : parts) {
+                    if (a == b) continue;
+                    boolean shared =
+                            a.u() == b.u()
+                                    && a.v() == b.v()
+                                    && a.uvWidth() == b.uvWidth()
+                                    && a.uvHeight() == b.uvHeight();
+                    boolean overlap =
+                            a.u() < b.u() + b.uvWidth()
+                                    && b.u() < a.u() + a.uvWidth()
+                                    && a.v() < b.v() + b.uvHeight()
+                                    && b.v() < a.v() + a.uvHeight();
+                    assertTrue(!overlap || shared, a.name() + " overlaps " + b.name());
+                }
+            }
+            assertFalse(design.nozzles().isEmpty());
+        }
+    }
+
+    @Test
+    void nozzleOffsetsRotateWithTheHull() {
+        var nozzle = new ShipDesign.Nozzle(16, 0, 8);
+        assertEquals(-1, nozzle.offset(0).x, 1e-9);
+        assertEquals(1, nozzle.offset(180).x, 1e-9);
+        assertEquals(1, Math.abs(nozzle.offset(90).z), 1e-9);
+    }
 }

@@ -7,7 +7,11 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.model.monster.zombie.ZombieModel;
 import net.minecraft.client.renderer.entity.state.ZombieRenderState;
 
-/** Model-space props in a separate atlas; empty humanoid parents inherit the walking/head poses. */
+/**
+ * Model-space props in a separate atlas; empty humanoid parents inherit the walking/head poses.
+ * Texture offsets must match {@code PROPS} in {@code tools/zombie_textures.py}: cubes sharing an
+ * offset share texels, so distinct props get their own islands.
+ */
 final class ZombieAttachments {
     private ZombieAttachments() {}
 
@@ -44,18 +48,18 @@ final class ZombieAttachments {
             case ESCUDERO -> {
                 box(head, "dented_helm", 0, 0, -4.5f, -9, -4.5f, 9, 3, 9);
                 var left = root.getChild("left_arm");
-                box(left, "shield", 0, 0, -4, -1, -5, 8, 11, 2);
+                box(left, "shield", 0, 13, -4, -1, -5, 8, 11, 2);
             }
             case HAMBRIENTO -> box(head, "jaw", 0, 0, -4, -1, -5, 8, 3, 5);
             case GRITON -> {
                 box(head, "open_jaw", 0, 0, -4, 0, -4.5f, 8, 2, 5);
-                box(head, "eye_left", 0, 0, -3.5f, -6, -5, 2, 2, 1);
-                box(head, "eye_right", 0, 0, 1.5f, -6, -5, 2, 2, 1);
+                box(head, "eye_left", 0, 16, -3.5f, -6, -5, 2, 2, 1);
+                box(head, "eye_right", 0, 16, 1.5f, -6, -5, 2, 2, 1);
             }
             case BRUJA -> {
                 box(head, "brim", 0, 0, -6, -9, -6, 12, 1, 12);
-                box(head, "witch_crown", 0, 0, -4, -13, -4, 8, 4, 8);
-                box(head, "tip", 0, 0, -2, -17, -1, 4, 4, 4);
+                box(head, "witch_crown", 0, 13, -4, -13, -4, 8, 4, 8);
+                box(head, "tip", 32, 13, -2, -17, -1, 4, 4, 4);
                 box(head, "mushroom", 16, 48, 2, -11, -6, 3, 2, 3);
                 box(body, "bottles", 0, 48, -4, 8, -3, 3, 3, 2);
             }
@@ -78,7 +82,7 @@ final class ZombieAttachments {
             case ENANO -> {
                 box(head, "helmet", 0, 0, -4.5f, -9, -4.5f, 9, 2, 9);
                 box(head, "candle", 48, 0, -.5f, -13, -1, 1, 4, 1);
-                box(head, "beard", 32, 32, -4, -1, -3, 8, 5, 3);
+                box(head, "beard", 0, 13, -4, -1, -3, 8, 5, 3);
                 pick(right, true);
             }
             case CONTAGIADO, MIMO, EXPLORADOR -> {}
@@ -88,7 +92,7 @@ final class ZombieAttachments {
 
     private static void hat(PartDefinition head) {
         box(head, "brim", 0, 0, -6, -9, -6, 12, 1, 12);
-        box(head, "crown", 0, 0, -4, -12, -4, 8, 3, 8);
+        box(head, "crown", 0, 13, -4, -12, -4, 8, 3, 8);
     }
 
     private static void pick(PartDefinition arm, boolean small) {

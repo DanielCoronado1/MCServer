@@ -4,9 +4,9 @@
 
 `uv run tools/generate_zombie_assets.py` instala dependencias Python declaradas (Pillow 12.1.0, soundfile 0.13.1), crea arte y audio originales sin descargas de contenido. Produce skins RGBA 64×64 `textures/entity/<id>_zombie.png`, atlas independientes para accesorios, capas emisivas para Minero, Bombero, Ahogado, Enano, Contagiado y Explorador, y overlay facial del Mimo. No redistribuye texturas ni sonidos de Minecraft.
 
-Los 16 huevos tienen sprites 16×16 y modelos propios, con dos colores distintos por variante. Minecraft 26.3 ya no incluye `template_spawn_egg`; se usa `minecraft:item/generated` con sprites coloreados. Se conservan nombres de entidad/huevo en en_us, es_mx, es_es y es_ar y se agregan subtítulos de los cuatro sonidos.
+Los 16 huevos tienen sprites 32×32 sombreados y modelos propios, con dos colores distintos por variante. El pintor `tools/zombie_textures.py` dibuja cada cara de los cubos con rampas de 5 tonos iluminadas desde arriba a la izquierda; la capa `hat` (UV 32,0) queda transparente y los offsets de `PROPS` reflejan `ZombieAttachments`. Minecraft 26.3 ya no incluye `template_spawn_egg`; se usa `minecraft:item/generated` con sprites coloreados. Se conservan nombres de entidad/huevo en en_us, es_mx, es_es y es_ar y se agregan subtítulos de los cuatro sonidos.
 
-`issue-08-skins.png` muestra únicamente UV frontales ampliadas; no representa una captura del juego ni los accesorios 3D.
+`issue-08-skins.png` muestra únicamente UV frontales y traseras ampliadas; no representa una captura del juego ni los accesorios 3D.
 
 ## Render
 

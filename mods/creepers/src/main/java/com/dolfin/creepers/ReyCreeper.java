@@ -55,6 +55,11 @@ public class ReyCreeper extends VarianteCreeper {
         if (isRemoved() || !isAlive() || !(level() instanceof ServerLevel mundo)) {
             return;
         }
+        if (mundo.players().isEmpty()) {
+            ((CreeperAccessor) this).dolfin$setHinchado(0);
+            setSwellDir(-1);
+            return;
+        }
         Vec3 centro = position();
         mundo.explode(
                 this,
@@ -82,6 +87,12 @@ public class ReyCreeper extends VarianteCreeper {
     @Override
     public void tick() {
         if (isRemoved() || !isAlive()) {
+            return;
+        }
+        if (level() instanceof ServerLevel mundo && mundo.players().isEmpty()) {
+            setTarget(null);
+            setSwellDir(-1);
+            ((CreeperAccessor) this).dolfin$setHinchado(0);
             return;
         }
         super.tick();

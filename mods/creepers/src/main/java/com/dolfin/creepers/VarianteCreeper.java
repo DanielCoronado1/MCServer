@@ -273,6 +273,13 @@ public class VarianteCreeper extends Creeper {
         if (isRemoved() || !isAlive()) {
             return;
         }
+        LivingEntity objetivo = getTarget();
+        if (objetivo != null
+                && (objetivo.isRemoved() || !objetivo.isAlive() || objetivo.level() != level())) {
+            setTarget(null);
+            setSwellDir(-1);
+            ((CreeperAccessor) this).dolfin$setHinchado(0);
+        }
         super.tick();
         if (level() instanceof ServerLevel mundo && isAlive()) {
             if (tickCount % 10 == 0) {

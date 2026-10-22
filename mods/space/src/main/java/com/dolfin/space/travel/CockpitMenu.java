@@ -8,6 +8,65 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 
 public final class CockpitMenu extends AbstractContainerMenu {
+    /**
+     * Server-side cockpit readings. Vanilla polls every slot each tick, so the expensive launch
+     * check (it scans the ascent column) is computed once per ship tick and reused for all 17.
+     */
+    private static final class Telemetry implements ContainerData {
+        private final SpaceshipEntity ship;
+        private final ServerPlayer pilot;
+        private final int[] values = new int[17];
+        private int sampledTick = -1;
+
+        Telemetry(SpaceshipEntity ship, ServerPlayer pilot) {
+            this.ship = ship;
+            this.pilot = pilot;
+        }
+
+        public int get(int i) {
+            if (ship.tickCount != sampledTick) sample();
+            return i >= 0 && i < values.length ? values[i] : 0;
+        }
+
+        private void sample() {
+            sampledTick = ship.tickCount;
+            var check = TravelModule.check(ship, pilot);
+            var own = OxygenStatusBridge.status(pilot);
+            var passenger =
+                    ship.getPassengers().stream()
+                            .filter(e -> e != pilot && e instanceof Player)
+                            .map(e -> (Player) e)
+                            .findFirst()
+                            .orElse(null);
+            var other = OxygenStatusBridge.status(passenger);
+            var journal = FlightController.journal(ship);
+            values[0] = ship.fuel();
+            values[1] = check.required();
+            values[2] = check.surface() ? 1 : 0;
+            values[3] = own.equipped() ? 1 : 0;
+            values[4] = own.percent();
+            values[5] = passenger == null ? 0 : other.equipped() ? 2 : 1;
+            values[6] = other.percent();
+            values[7] = journal == null ? -1 : journal.phase().ordinal();
+            values[8] = journal == null ? 0 : journal.ticks();
+            values[9] = check.allowed() ? 1 : 0;
+            values[10] = ship.passengersAllowed ? 1 : 0;
+            values[11] =
+                    com.dolfin.space.KeplerDimension.isKepler(ship.level().dimension()) ? 1 : 0;
+            values[12] = own.seconds();
+            values[13] = other.seconds();
+            values[14] = own.capacity();
+            values[15] = other.capacity();
+            values[16] = ship.tier().ordinal();
+        }
+
+        public void set(int i, int v) {}
+
+        public int getCount() {
+            return values.length;
+        }
+    }
+
     public final SpaceshipEntity ship;
     public final ContainerData data;
 
@@ -24,50 +83,7 @@ public final class CockpitMenu extends AbstractContainerMenu {
         this.ship = ship;
         data =
                 server
-                        ? new ContainerData() {
-                            public int get(int i) {
-                                var check = TravelModule.check(ship, (ServerPlayer) inv.player);
-                                var pilot = OxygenStatusBridge.status(inv.player);
-                                var passenger =
-                                        ship.getPassengers().stream()
-                                                .filter(e -> e != inv.player && e instanceof Player)
-                                                .map(e -> (Player) e)
-                                                .findFirst()
-                                                .orElse(null);
-                                var other = OxygenStatusBridge.status(passenger);
-                                var journal = FlightController.journal(ship);
-                                return switch (i) {
-                                    case 0 -> ship.fuel();
-                                    case 1 -> check.required();
-                                    case 2 -> check.surface() ? 1 : 0;
-                                    case 3 -> pilot.equipped() ? 1 : 0;
-                                    case 4 -> pilot.percent();
-                                    case 5 -> passenger == null ? 0 : other.equipped() ? 2 : 1;
-                                    case 6 -> other.percent();
-                                    case 7 -> journal == null ? -1 : journal.phase().ordinal();
-                                    case 8 -> journal == null ? 0 : journal.ticks();
-                                    case 9 -> check.allowed() ? 1 : 0;
-                                    case 10 -> ship.passengersAllowed ? 1 : 0;
-                                    case 12 -> pilot.seconds();
-                                    case 13 -> other.seconds();
-                                    case 14 -> pilot.capacity();
-                                    case 15 -> other.capacity();
-                                    case 16 -> ship.tier().ordinal();
-                                    case 11 ->
-                                            com.dolfin.space.KeplerDimension.isKepler(
-                                                            ship.level().dimension())
-                                                    ? 1
-                                                    : 0;
-                                    default -> 0;
-                                };
-                            }
-
-                            public void set(int i, int v) {}
-
-                            public int getCount() {
-                                return 17;
-                            }
-                        }
+                        ? new Telemetry(ship, (ServerPlayer) inv.player)
                         : new SimpleContainerData(17);
         addDataSlots(data);
     }

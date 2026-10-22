@@ -111,6 +111,10 @@ public final class FlightController {
         ship.setDeltaMovement(Vec3.ZERO);
         FlightLedger.get(((ServerLevel) ship.level()).getServer()).track(ship);
         shake(ship, 0);
+        for (var rider : ship.getPassengers())
+            if (rider instanceof ServerPlayer p
+                    && ServerPlayNetworking.canSend(p, FlightPhasePayload.TYPE))
+                ServerPlayNetworking.send(p, new FlightPhasePayload(-1));
         DolfinSpace.LOGGER.info(
                 "event=ship_flight_transition ship={} to=IDLE reason={}", ship.getUUID(), reason);
     }
@@ -249,7 +253,36 @@ public final class FlightController {
         }
     }
 
+    /** Advances the journal one tick, then publishes phase and readiness to clients. */
     public static void tick(SpaceshipEntity ship) {
+        advance(ship);
+        if (!ship.isRemoved()) publish(ship);
+    }
+
+    /**
+     * Mirrors the journal into synced entity data. The launch checklist scans the ascent column, so
+     * it is refreshed twice a second and only while a pilot sits in a parked ship.
+     */
+    private static void publish(SpaceshipEntity ship) {
+        var j = journal(ship);
+        ship.telemetry(j == null ? -1 : j.phase().ordinal(), j == null ? 0 : j.ticks());
+        if (ship.tickCount % 10 != 0) return;
+        var pilot = ship.getFirstPassenger() instanceof ServerPlayer p ? p : null;
+        int flags =
+                pilot == null
+                        ? 0
+                        : j == null
+                                ? TravelModule.check(ship, pilot).flags()
+                                : OxygenStatusBridge.status(pilot).equipped()
+                                        ? 0
+                                        : LaunchRules.Checklist.TANK_WARNING;
+        ship.readiness(
+                LaunchRules.required(
+                        launchWorld(ship.level()), DolfinSpace.config().current().naves()),
+                flags);
+    }
+
+    private static void advance(SpaceshipEntity ship) {
         if (cancelled(ship)) return;
         var world = (ServerLevel) ship.level();
         var ledger = FlightLedger.get(world.getServer());
@@ -279,26 +312,24 @@ public final class FlightController {
                     clear(ship, "countdown_guard_failed");
                     return;
                 }
-                if (j.ticks() % 20 == 0) {
+                // The HUD shows the countdown; beeps rise in pitch over the final seconds.
+                if (j.ticks() % 20 == 0)
                     world.playSound(
                             null,
                             ship.blockPosition(),
                             com.dolfin.space.assets.SpaceSounds.BEEP,
                             SoundSource.NEUTRAL,
                             .4f,
-                            1.2f);
-                    pilot.sendOverlayMessage(
-                            net.minecraft.network.chat.Component.translatable(
-                                    "space.ui.countdown", j.ticks() / 20));
-                }
+                            FlightProfile.beepPitch(j.ticks()));
                 if (j.ticks() <= 60 && j.ticks() % 5 == 0)
                     shake(ship, (60 - j.ticks()) / 60f * .45f);
                 if (j.action(true) == FlightJournal.Action.LIFTOFF) {
                     int cost =
                             DolfinSpace.config().current().naves().porcentajeCombustiblePorViaje();
                     ship.fuel(LaunchRules.deduct(ship.fuel(), cost));
-                    save(ship, j.phase(FlightJournal.Phase.ASCENT, 200));
+                    save(ship, j.phase(FlightJournal.Phase.ASCENT, FlightProfile.ASCENT_TICKS));
                     pilot.closeContainer();
+                    liftoff(world, ship);
                     DolfinSpace.LOGGER.info(
                             "event=ship_fuel_consumed ship={} cost={} remaining={}",
                             ship.getUUID(),
@@ -311,15 +342,24 @@ public final class FlightController {
                 double y =
                         Math.min(
                                 world.getMaxY() - 5,
-                                j.startY() + altitude * (201 - j.ticks()) / 200d);
+                                j.startY() + FlightProfile.ascentOffset(altitude, j.ticks()));
                 ship.setPos(ship.getX(), y, ship.getZ());
                 if (j.ticks() % 4 == 0) {
                     particles(world, ship, ParticleTypes.LARGE_SMOKE);
                     particles(world, ship, ParticleTypes.FLAME);
-                    shake(ship, .45f + .55f * (200 - j.ticks()) / 200f);
+                    shake(
+                            ship,
+                            .45f
+                                    + .55f
+                                            * (FlightProfile.ASCENT_TICKS - j.ticks())
+                                            / FlightProfile.ASCENT_TICKS);
                 }
                 if (j.action(true) == FlightJournal.Action.STARS)
-                    save(ship, j.phase(FlightJournal.Phase.TRANSITION, 20));
+                    save(
+                            ship,
+                            j.phase(
+                                    FlightJournal.Phase.TRANSITION,
+                                    FlightProfile.TRANSITION_TICKS));
                 else save(ship, j.step());
             }
             case TRANSITION -> {
@@ -329,9 +369,17 @@ public final class FlightController {
             }
             case DESCENT -> {
                 var target = BlockPos.of(j.target());
-                double y = target.getY() + Math.max(0, j.ticks() - 1) * .25;
+                double y = target.getY() + FlightProfile.descentOffset(j.ticks());
                 ship.setPos(target.getX() + .5, y, target.getZ() + .5);
                 if (j.ticks() % 8 == 0) particles(world, ship, ParticleTypes.CLOUD);
+                if (j.ticks() % 5 == 0)
+                    shake(
+                            ship,
+                            .15f
+                                    + .25f
+                                            * FlightProfile.thrust(
+                                                    FlightJournal.Phase.DESCENT.ordinal(),
+                                                    j.ticks()));
                 if (j.action(true) == FlightJournal.Action.LAND) {
                     // Terrain may have changed during descent; re-check and find a nearby safe
                     // surface.
@@ -347,6 +395,7 @@ public final class FlightController {
                                         : SafeLanding.find(world, target);
                     ship.setPos(target.getX() + .5, target.getY(), target.getZ() + .5);
                     clear(ship, "landed");
+                    touchdown(world, ship);
                     DolfinSpace.LOGGER.info(
                             "event=ship_landed ship={} dimension={} pos={} fuel={}",
                             ship.getUUID(),
@@ -356,6 +405,47 @@ public final class FlightController {
                 } else save(ship, j.step());
             }
         }
+    }
+
+    /** Engine roar and a smoke ring on the pad at the moment of liftoff. */
+    private static void liftoff(ServerLevel world, SpaceshipEntity ship) {
+        world.playSound(
+                null,
+                ship.blockPosition(),
+                com.dolfin.space.assets.SpaceSounds.ENGINE,
+                SoundSource.NEUTRAL,
+                1.2f,
+                ship.tier() == ShipTier.RAPIDA ? .9f : .6f);
+        world.sendParticles(
+                ParticleTypes.LARGE_SMOKE,
+                ship.getX(),
+                ship.getY() + .2,
+                ship.getZ(),
+                40,
+                1.6,
+                .2,
+                1.6,
+                .08,
+                RandomizationType.DEFAULT);
+        shake(ship, 1);
+    }
+
+    /** Dust burst and a short jolt when the landing legs touch the ground. */
+    private static void touchdown(ServerLevel world, SpaceshipEntity ship) {
+        world.sendParticles(
+                ParticleTypes.CLOUD,
+                ship.getX(),
+                ship.getY() + .1,
+                ship.getZ(),
+                24,
+                1.4,
+                .1,
+                1.4,
+                .05,
+                RandomizationType.DEFAULT);
+        world.playSound(
+                null, ship.blockPosition(), SoundEvents.ANVIL_LAND, SoundSource.NEUTRAL, .35f, .5f);
+        shake(ship, .5f);
     }
 
     private static void particles(
@@ -385,7 +475,7 @@ public final class FlightController {
         var next =
                 new FlightJournal(
                         FlightJournal.Phase.DESCENT,
-                        80,
+                        FlightProfile.DESCENT_TICKS,
                         j.startY(),
                         landing.asLong(),
                         j.destination(),
@@ -396,7 +486,11 @@ public final class FlightController {
             var p = server.getPlayerList().getPlayer(UUID.fromString(id));
             if (p != null && !riderBlocked.test(ship, p.getUUID())) occupants.add(p);
         }
-        Vec3 pos = new Vec3(landing.getX() + .5, landing.getY() + 20, landing.getZ() + .5);
+        Vec3 pos =
+                new Vec3(
+                        landing.getX() + .5,
+                        landing.getY() + FlightProfile.DESCENT_DROP,
+                        landing.getZ() + .5);
         var arrival = teleportGroup(ship, target, pos, occupants, "ship_travel");
         if (arrival == null) {
             DolfinSpace.LOGGER.error("event=ship_transition_failed ship={}", ship.getUUID());

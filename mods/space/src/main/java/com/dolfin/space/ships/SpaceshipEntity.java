@@ -28,6 +28,14 @@ public final class SpaceshipEntity extends Entity {
             SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> TIER =
             SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> PHASE =
+            SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> PHASE_TICKS =
+            SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> REQUIRED_FUEL =
+            SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> CHECKS =
+            SynchedEntityData.defineId(SpaceshipEntity.class, EntityDataSerializers.INT);
     public UUID owner;
     public BlockPos home;
     public String homeDimension = "minecraft:overworld";
@@ -62,6 +70,10 @@ public final class SpaceshipEntity extends Entity {
         b.define(BURNING, false);
         b.define(FUEL, 0);
         b.define(TIER, 0);
+        b.define(PHASE, -1);
+        b.define(PHASE_TICKS, 0);
+        b.define(REQUIRED_FUEL, 0);
+        b.define(CHECKS, 0);
     }
 
     public int fuel() {
@@ -257,7 +269,39 @@ public final class SpaceshipEntity extends Entity {
 
     /** Visual engine output in [0, 1] for renderers; zero while the engines are cold. */
     public float thrust() {
-        return burning() ? 1 : 0;
+        return com.dolfin.space.travel.FlightProfile.thrust(flightPhase(), phaseTicks());
+    }
+
+    /** Synced flight phase ordinal for HUD and effects, or -1 while parked. */
+    public int flightPhase() {
+        return entityData.get(PHASE);
+    }
+
+    /** Synced ticks remaining in the current flight phase. */
+    public int phaseTicks() {
+        return entityData.get(PHASE_TICKS);
+    }
+
+    /** Synced fuel percentage required for the next launch from the current world. */
+    public int requiredFuel() {
+        return entityData.get(REQUIRED_FUEL);
+    }
+
+    /** Synced launch checklist bitmask, see {@code LaunchRules.Checklist#flags()}. */
+    public int launchChecks() {
+        return entityData.get(CHECKS);
+    }
+
+    /** Server-only: publish the flight phase so clients can animate and display it. */
+    public void telemetry(int phase, int ticks) {
+        entityData.set(PHASE, phase);
+        entityData.set(PHASE_TICKS, ticks);
+    }
+
+    /** Server-only: publish the launch requirement and checklist for the pilot HUD. */
+    public void readiness(int requiredFuel, int checks) {
+        entityData.set(REQUIRED_FUEL, requiredFuel);
+        entityData.set(CHECKS, checks);
     }
 
     @Override

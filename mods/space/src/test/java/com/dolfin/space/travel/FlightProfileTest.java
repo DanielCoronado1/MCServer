@@ -55,4 +55,31 @@ class FlightProfileTest {
         assertFalse(LaunchRules.Checklist.ready(noFuel.flags()));
         assertNotEquals(0, noFuel.flags() & LaunchRules.Checklist.TANK_WARNING);
     }
+
+    @Test
+    void hudStatusFollowsSyncedFlags() {
+        int ready =
+                LaunchRules.Checklist.SURFACE
+                        | LaunchRules.Checklist.FUEL
+                        | LaunchRules.Checklist.PILOT
+                        | LaunchRules.Checklist.ACTIVE;
+        assertEquals("hud_checking", FlightStatus.stateKey(-1, 0, 0));
+        assertEquals("hud_ready", FlightStatus.stateKey(-1, 0, ready));
+        assertEquals("hud_not_ready", FlightStatus.stateKey(-1, 0, LaunchRules.Checklist.PILOT));
+        assertEquals("hud_countdown", FlightStatus.stateKey(0, 100, ready));
+        assertEquals("hud_ignition", FlightStatus.stateKey(0, 20, ready));
+        assertEquals("hud_descent", FlightStatus.stateKey(3, 20, 0));
+        assertTrue(FlightStatus.warnings(-1, 10, 50, 0).isEmpty());
+        assertEquals(
+                java.util.List.of(FlightStatus.Warning.FUEL, FlightStatus.Warning.SURFACE),
+                FlightStatus.warnings(
+                        -1, 10, 50, LaunchRules.Checklist.PILOT | LaunchRules.Checklist.ACTIVE));
+        assertEquals(
+                java.util.List.of(FlightStatus.Warning.TANK),
+                FlightStatus.warnings(1, 0, 50, LaunchRules.Checklist.TANK_WARNING));
+        assertTrue(FlightStatus.boundForKepler(1, false));
+        assertTrue(FlightStatus.boundForKepler(3, true));
+        assertEquals(1, FlightStatus.countdownSeconds(1));
+        assertEquals(5, FlightStatus.countdownSeconds(100));
+    }
 }

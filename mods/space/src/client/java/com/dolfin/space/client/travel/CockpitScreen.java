@@ -31,9 +31,12 @@ public final class CockpitScreen extends AbstractContainerScreen<CockpitMenu> {
                 addRenderableWidget(
                         Button.builder(
                                         tr("launch"),
-                                        b ->
-                                                minecraft.gameMode.handleInventoryButtonClick(
-                                                        menu.containerId, 0))
+                                        b -> {
+                                            minecraft.gameMode.handleInventoryButtonClick(
+                                                    menu.containerId, 0);
+                                            // Hand over to the flight HUD's big countdown.
+                                            onClose();
+                                        })
                                 .bounds(leftPos + 12, topPos + 153, 140, 20)
                                 .build());
         consent =
@@ -98,14 +101,25 @@ public final class CockpitScreen extends AbstractContainerScreen<CockpitMenu> {
         g.text(font, text, leftPos + 12, topPos + y, color);
     }
 
+    /** Gauge under the fuel line with a white tick at the launch minimum, as in the HUD. */
+    private void fuelBar(GuiGraphicsExtractor g, int fuel, int required, int color) {
+        int left = leftPos + 12, right = left + 140, top = topPos + 55;
+        g.fill(left, top, right, top + 3, 0xff26303c);
+        g.fill(left, top, left + 140 * Math.clamp(fuel, 0, 100) / 100, top + 3, color);
+        int mark = left + 140 * Math.clamp(required, 0, 100) / 100;
+        g.fill(mark, top - 1, mark + 1, top + 4, 0xffffffff);
+    }
+
     public void extractContents(GuiGraphicsExtractor g, int x, int y, float dt) {
         int theme = ShipDesign.of(ShipTier.safe(menu.data.get(16))).theme();
-        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff172330);
+        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xf00b1220);
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + 3, theme);
+        g.fill(leftPos + 8, topPos + 24, leftPos + imageWidth - 8, topPos + 25, 0x40ffffff);
         int white = 0xffeeeeff, good = theme, bad = 0xffff6666;
         boolean fuel = menu.data.get(0) >= menu.data.get(1), earth = menu.data.get(11) == 0;
         line(g, tr("destination", tr(earth ? "kepler" : "overworld")), 30, white);
-        line(g, tr("fuel", menu.data.get(0), menu.data.get(1)), 47, fuel ? good : bad);
+        line(g, tr("fuel", menu.data.get(0), menu.data.get(1)), 44, fuel ? good : bad);
+        fuelBar(g, menu.data.get(0), menu.data.get(1), fuel ? good : bad);
         line(
                 g,
                 tr("pilot", oxygen(menu.data.get(3) == 1, menu.data.get(4), menu.data.get(12))),

@@ -26,6 +26,7 @@ public final class TravelClientModule {
     public static void init() {
         MenuScreens.register(TravelModule.MENU, CockpitScreen::new);
         KeyMappingHelper.registerKeyMapping(COCKPIT);
+        ShipHud.init();
         ClientPlayNetworking.registerGlobalReceiver(
                 CameraShakePayload.TYPE,
                 (p, c) ->

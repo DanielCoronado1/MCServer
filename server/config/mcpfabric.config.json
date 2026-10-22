@@ -1,0 +1,12 @@
+{
+  "host": "0.0.0.0",
+  "port": 25599,
+  "requireAuth": true,
+  "callTimeoutMs": 8000,
+  "enableWorldWrite": true,
+  "enableCommands": true,
+  "enablePlayerControl": true,
+  "enableVision": true,
+  "enableUiControl": false,
+  "enableSupervisedControl": false
+}

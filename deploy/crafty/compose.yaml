@@ -8,6 +8,7 @@ services:
     ports:
       - "8443:8443" # Crafty HTTPS dashboard
       - "25565:25565" # Minecraft Java + AutoModpack HOLEPUNCH
+      - "25599:25599" # MCPFabric HTTP bridge
     volumes:
       - ../../runtime/crafty/backups:/crafty/backups
       - ../../runtime/crafty/logs:/crafty/logs

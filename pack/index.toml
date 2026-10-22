@@ -1,6 +1,10 @@
 hash-format = "sha256"
 
 [[files]]
+file = "custom-mods.toml"
+hash = "45ab0f31f22db417285cdbfd08266aa2959acae36aeaf41da5a3e225ee2b2481"
+
+[[files]]
 file = "mods/automodpack.pw.toml"
 hash = "5cb5ad8462a314ebdbeaaae1dcfcccf14ee8862462da7712c7b44a6f7dc35d36"
 metafile = true
@@ -56,6 +60,16 @@ hash = "abaff630ec5a2f28ada62238b81a05313d5609282fa182ca64ba1bab7953d9ee"
 metafile = true
 
 [[files]]
+file = "mods/mcpfabric.pw.toml"
+hash = "ffa681745f1134a175122f86f2793530be5a5958966551f429856aa79ceabb59"
+metafile = true
+
+[[files]]
+file = "mods/multiworld.pw.toml"
+hash = "0774f6934338ad0e0c0fbb49020fed69bd6ac6a6c7beee4b97f583d6a3fc4f5f"
+metafile = true
+
+[[files]]
 file = "mods/open-parties-and-claims.pw.toml"
 hash = "74bdac9fc9cc613e8b1cf5552bde371853c38f0950296393fddd775a6b532fd1"
 metafile = true
@@ -78,13 +92,4 @@ metafile = true
 [[files]]
 file = "mods/vmp-fabric.pw.toml"
 hash = "5e4f565b61e14d9db3c9aee3a2bd329b9e9d6dced068e5e079f02077e9fc3670"
-metafile = true
-
-[[files]]
-file = "custom-mods.toml"
-hash = "45ab0f31f22db417285cdbfd08266aa2959acae36aeaf41da5a3e225ee2b2481"
-
-[[files]]
-file = "mods/multiworld.pw.toml"
-hash = "0774f6934338ad0e0c0fbb49020fed69bd6ac6a6c7beee4b97f583d6a3fc4f5f"
 metafile = true

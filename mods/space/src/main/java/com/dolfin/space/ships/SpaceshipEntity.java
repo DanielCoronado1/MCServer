@@ -130,7 +130,7 @@ public final class SpaceshipEntity extends Entity {
                                                 p))
                                 .getType()
                         == net.minecraft.world.phys.HitResult.Type.MISS;
-        var seat = position().add(getPassengers().isEmpty() ? -.45 : .45, 1.2, 0);
+        var seat = position().add(seat(getPassengers().size()));
         boolean clear =
                 level().noCollision(p, p.getBoundingBox().move(seat.subtract(p.position())));
         return ShipDesign.boarding(sight, clear, distanceToSqr(p));
@@ -204,8 +204,38 @@ public final class SpaceshipEntity extends Entity {
         return getPassengers().size() < tier().seats;
     }
 
+    /**
+     * Seat offset from the ship's feet, turned with the hull. One-seat ships centre the pilot so a
+     * seated player's head and legs stay inside the hull; the cargo ship seats two side by side.
+     */
+    public Vec3 seat(int index) {
+        double x = tier().seats > 1 ? (index == 0 ? -.45 : .45) : 0;
+        return new Vec3(x, 1.2, 0).yRot((float) Math.toRadians(-getYRot()));
+    }
+
     protected Vec3 getPassengerAttachmentPoint(Entity e, EntityDimensions d, float scale) {
-        return new Vec3(getPassengers().indexOf(e) == 0 ? -.45 : .45, 1.2, 0);
+        return seat(getPassengers().indexOf(e));
+    }
+
+    /** Like boats: riders' bodies face the canopy and their heads turn at most 105 degrees. */
+    private void faceCanopy(Entity rider) {
+        rider.setYBodyRot(getYRot());
+        float turn = net.minecraft.util.Mth.wrapDegrees(rider.getYRot() - getYRot());
+        float clamped = net.minecraft.util.Mth.clamp(turn, -105, 105);
+        rider.yRotO += clamped - turn;
+        rider.setYRot(rider.getYRot() + clamped - turn);
+        rider.setYHeadRot(rider.getYRot());
+    }
+
+    @Override
+    protected void positionRider(Entity rider, Entity.MoveFunction move) {
+        super.positionRider(rider, move);
+        faceCanopy(rider);
+    }
+
+    @Override
+    public void onPassengerTurned(Entity rider) {
+        faceCanopy(rider);
     }
 
     public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {

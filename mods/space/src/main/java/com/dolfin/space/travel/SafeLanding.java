@@ -117,7 +117,7 @@ public final class SafeLanding {
                         feet.getY(),
                         feet.getZ() - 1,
                         feet.getX() + 2,
-                        feet.getY() + 5,
+                        feet.getY() + 6,
                         feet.getZ() + 2));
     }
 

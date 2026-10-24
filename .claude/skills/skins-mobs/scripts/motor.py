@@ -5,6 +5,10 @@ Un diseño de mob es un modulo de Python con:
     PIEZAS = {"region": (ancho, alto, fondo), ...}   # tamanos de caja en pixeles de modelo
     def partes(): -> lista de dict(r=region, caja=(x0,y0,z0,x1,y1,z1), piv=(x,y,z), rot=(rx,ry,rz))
     def pintar(t, uv, pz): pinta cada region en el Lienzo t (uv(nombre) da su esquina en la textura)
+    def relieve(t, uv, pz): opcional, retoca la capa exterior (t.exterior) despues de generarla sola
+
+Capa exterior: cada pieza de 2 px o mas de grosor lleva una segunda caja inflada (como el sombrero y la chaqueta
+del jugador) con su propia textura, en el mismo UV que la base. Lo transparente no se ve; lo pintado sobresale.
 
 Coordenadas del modelo: 16 px = 1 bloque, y hacia arriba, +z es el frente del mob (hacia quien lo mira),
 +x es la izquierda del mob. Las rotaciones son en grados y se aplican en orden x, z, y alrededor de piv.
@@ -135,23 +139,45 @@ def ruido(seed, esc):
 class Lienzo:
     def __init__(self, w, h, seed):
         self.im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        self.exterior = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         self.idx = {}
+        self.detalle = set()  # pixeles pintados encima del material base (heridas, hueso, ropa...)
         self.seed = seed
 
-    def set(self, x, y, rampa, i):
+    def set(self, x, y, rampa, i, detalle=True):
         i = max(0, min(len(rampa) - 1, round(i)))
         self.im.putpixel((x, y), rampa[i] + (255,))
         self.idx[(x, y)] = (rampa, i)
+        if detalle:
+            self.detalle.add((x, y))
+        else:
+            self.detalle.discard((x, y))
 
     def color(self, x, y, c):
         self.im.putpixel((x, y), c + (255,) if len(c) == 3 else c)
         self.idx.pop((x, y), None)
+        self.detalle.add((x, y))
 
     def ajustar(self, x, y, delta):
         """Aclara (+) u oscurece (-) un pixel dentro de su propia rampa."""
         if (x, y) in self.idx:
             rampa, i = self.idx[(x, y)]
-            self.set(x, y, rampa, i + delta)
+            self.set(x, y, rampa, i + delta, detalle=(x, y) in self.detalle)
+
+    def sobresale(self, x, y, rampa=None, i=None):
+        """Pone un pixel en la capa exterior: el mismo color de la base o (rampa, indice)."""
+        if rampa is None:
+            self.exterior.putpixel((x, y), self.im.getpixel((x, y)))
+        else:
+            i = max(0, min(len(rampa) - 1, round(i)))
+            self.exterior.putpixel((x, y), rampa[i] + (255,))
+
+    def hundir(self, rect):
+        """Borra la capa exterior en un rectangulo (x, y, ancho, alto) de la textura."""
+        x0, y0, rw, rh = rect
+        for j in range(rh):
+            for i in range(rw):
+                self.exterior.putpixel((x0 + i, y0 + j), (0, 0, 0, 0))
 
     def pintar(self, uv, tam, rampa, base=0.55, var=0.35, grad=0.3, esc=2.5):
         """Material base de una caja: luz arriba, sombra abajo, borde superior iluminado. Devuelve las caras."""
@@ -171,7 +197,7 @@ class Lienzo:
                         v = base + var * n - grad * (t - 0.35)
                         if j == 0: v += 0.12
                         if i in (0, rw - 1): v -= 0.05
-                    self.set(x0 + i, y0 + j, rampa, v * (len(rampa) - 1))
+                    self.set(x0 + i, y0 + j, rampa, v * (len(rampa) - 1), detalle=False)
         return reg
 
     def dibujo(self, rect, filas, leyenda):
@@ -260,26 +286,70 @@ class Lienzo:
         self.rellenar(reg["top"], rampa, 4)
         self.rellenar(reg["bottom"], rampa, 1)
 
+# ---------------------------------------------------------------- capa exterior (relieve)
+# Lo que se hunde en la carne se queda en la base: cuencas, bocas, ojos y heridas abiertas.
+HUNDIDO = (NEGRO, OJO, CARNE)
+UMBRAL_GRUMO = 0.6
+
+def inflado(tam):
+    """Cuanto sobresale la capa exterior de una caja (px de modelo): 0.5 como el sombrero del jugador, 0.25 en
+    piezas delgadas como sus mangas y 0 en piezas de 1 px (puas, dedos), que no llevan capa.
+    El mod usa la misma regla en sus capas exteriores (CapaExterior.java)."""
+    grosor = min(tam)
+    return 0.5 if grosor >= 4 else 0.25 if grosor >= 2 else 0.0
+
+def relieve_auto(t, uvs, piezas):
+    """Capa exterior generada desde la pintura: el detalle que no es hundido sobresale un tono mas claro y el
+    material base suelta grumos de podredumbre. Bajo cada grumo de una cara lateral oscurece la base, para que
+    el relieve proyecte sombra tambien en el juego, donde no hay oclusion entre capas."""
+    grumo = ruido(t.seed + 7, 2.8)
+    for nombre, tam in piezas.items():
+        if not inflado(tam):
+            continue
+        for cara, (x0, y0, rw, rh) in regiones(*uvs[nombre], *tam).items():
+            for j in range(rh):
+                for i in range(rw):
+                    x, y = x0 + i, y0 + j
+                    if t.im.getpixel((x, y))[3] == 0:
+                        continue
+                    rampa, k = t.idx.get((x, y), (None, 0))
+                    if (x, y) in t.detalle:
+                        if rampa is None:
+                            t.sobresale(x, y)
+                        elif rampa not in HUNDIDO:
+                            t.sobresale(x, y, rampa, k + 1)
+                    elif rampa is not None and rampa not in HUNDIDO and grumo(x, y) > UMBRAL_GRUMO:
+                        t.sobresale(x, y, rampa, k + (cara == "top"))
+                        lateral = cara not in ("top", "bottom")
+                        if lateral and j + 1 < rh and grumo(x, y + 1) <= UMBRAL_GRUMO:
+                            t.ajustar(x, y + 1, -1)
+
 def construir(mod):
-    """Pinta la textura y arma el modelo de un modulo de diseno."""
+    """Pinta la textura base y la capa exterior y arma el modelo de un modulo de diseno.
+    Devuelve (textura, modelo, exterior); cada parte trae 'inflado', lo que sobresale su caja exterior."""
     uvs, th = empacar(mod.PIEZAS)
     t = Lienzo(128, th, mod.MOB["seed"])
     mod.pintar(t, lambda n: uvs[n], mod.PIEZAS)
+    relieve_auto(t, uvs, mod.PIEZAS)
+    if hasattr(mod, "relieve"):
+        mod.relieve(t, lambda n: uvs[n], mod.PIEZAS)
     modelo = [dict(r=p["r"], uv=uvs[p["r"]], caja=tuple(p["caja"]), piv=tuple(p.get("piv", (0, 0, 0))),
-                   rot=tuple(p.get("rot", (0, 0, 0)))) for p in mod.partes()]
+                   rot=tuple(p.get("rot", (0, 0, 0))), inflado=inflado(mod.PIEZAS[p["r"]])) for p in mod.partes()]
     for p in modelo:
         x0, y0, z0, x1, y1, z1 = p["caja"]
         esperado = mod.PIEZAS[p["r"]]
         real = (round(x1 - x0), round(y1 - y0), round(z1 - z0))
         if real != tuple(esperado):
             raise ValueError(f"{mod.MOB['clave']}: la caja de '{p['r']}' mide {real} pero PIEZAS dice {esperado}")
-    return t.im, modelo
+    return t.im, modelo, t.exterior
 
 # ---------------------------------------------------------------- vista previa (render ortografico con PIL)
-def _caras(parte):
+def _caras(parte, g=0.0):
+    """Caras de la caja de una parte; con g > 0, la caja inflada g px por lado con el mismo UV."""
     x0, y0, z0, x1, y1, z1 = parte["caja"]
+    reg = regiones(*parte["uv"], round(x1 - x0), round(y1 - y0), round(z1 - z0))
+    x0, y0, z0, x1, y1, z1 = x0 - g, y0 - g, z0 - g, x1 + g, y1 + g, z1 + g
     w, h, d = x1 - x0, y1 - y0, z1 - z0
-    reg = regiones(*parte["uv"], round(w), round(h), round(d))
     return [
         (reg["front"], (0, 0, 1), lambda s, t: (x0 + s * w, y1 - t * h, z1)),
         (reg["back"], (0, 0, -1), lambda s, t: (x1 - s * w, y1 - t * h, z0)),
@@ -289,19 +359,23 @@ def _caras(parte):
         (reg["bottom"], (0, -1, 0), lambda s, t: (x0 + s * w, y0, z1 - t * d)),
     ]
 
-def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30):
+def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30, exterior=None):
+    """Render ortografico; con exterior (textura de la capa exterior) dibuja tambien las cajas infladas."""
     polis = []
-    for parte in modelo:
+    capas = [(parte, tex, 0.0) for parte in modelo]
+    if exterior is not None:
+        capas += [(parte, exterior, parte["inflado"]) for parte in modelo if parte.get("inflado")]
+    for parte, img, g in capas:
         piv, rot = parte["piv"], parte["rot"]
         mundo = lambda p: rotar(rotar(tuple(a + b for a, b in zip(rotar(p, rot), piv)), (0, yaw, 0)), (pitch, 0, 0))
-        for (u, v, w, h), n, f in _caras(parte):
+        for (u, v, w, h), n, f in _caras(parte, g):
             nn = rotar(rotar(rotar(n, rot), (0, yaw, 0)), (pitch, 0, 0))
             if nn[2] <= 1e-6:
                 continue
             luz = 0.55 + 0.45 * max(0, nn[2] * 0.6 + nn[1] * 0.5 + nn[0] * 0.25)
             for j in range(h):
                 for i in range(w):
-                    c = tex.getpixel((u + i, v + j))
+                    c = img.getpixel((u + i, v + j))
                     if c[3] == 0:
                         continue
                     pts = [mundo(f(a / w, b / h)) for a, b in ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))]
@@ -320,19 +394,29 @@ def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30):
 
 FONDO = (24, 24, 30, 255)
 
-def lamina(titulo, modelo, tex, archivo):
-    """Lamina de revision: frente 3/4, espalda 3/4 y la textura ampliada."""
-    f1, f2 = ImageFont.load_default(size=30), ImageFont.load_default(size=18)
-    vistas = [(render(modelo, tex, 32, 14), "frente 3/4"), (render(modelo, tex, 212, 14), "espalda 3/4")]
-    k = 8
-    tg = Image.new("RGBA", (tex.size[0] * k, tex.size[1] * k), (40, 40, 46, 255))
+def ampliar(tex, k, fondo=(40, 40, 46, 255)):
+    """Textura ampliada k veces con 1 px de rejilla entre pixeles; lo transparente queda del color de fondo."""
+    tg = Image.new("RGBA", (tex.size[0] * k, tex.size[1] * k), fondo)
     for y in range(tex.size[1]):
         for x in range(tex.size[0]):
             c = tex.getpixel((x, y))
             if c[3]:
                 tg.paste(c[:3] + (255,), (x * k, y * k, x * k + k - 1, y * k + k - 1))
+    return tg
+
+def lamina(titulo, modelo, tex, archivo, exterior=None):
+    """Lamina de revision: frente 3/4, espalda 3/4, la textura ampliada y debajo la de la capa exterior."""
+    f1, f2 = ImageFont.load_default(size=30), ImageFont.load_default(size=18)
+    vistas = [(render(modelo, tex, 32, 14, exterior=exterior), "frente 3/4"),
+              (render(modelo, tex, 212, 14, exterior=exterior), "espalda 3/4")]
+    k = 4 if exterior is not None and tex.size[1] > 64 else 8 if exterior is None else 5
+    texturas = [(ampliar(tex, k), f"textura {tex.size[0]}x{tex.size[1]} (ampliada x{k})")]
+    if exterior is not None:
+        texturas.append((ampliar(exterior, k, (30, 30, 36, 255)), "capa exterior (lo pintado sobresale)"))
+    alto_t = sum(tg.size[1] + 40 for tg, _ in texturas)
     ancho_v = sum(v.size[0] for v, _ in vistas) + 20
-    im = Image.new("RGBA", (40 + ancho_v + 40 + tg.size[0] + 40, 90 + max(560, tg.size[1]) + 60), FONDO)
+    ancho_t = max(tg.size[0] for tg, _ in texturas)
+    im = Image.new("RGBA", (40 + ancho_v + 40 + ancho_t + 40, 90 + max(560, alto_t) + 60), FONDO)
     dr = ImageDraw.Draw(im)
     dr.text((40, 25), titulo, fill=(235, 235, 235), font=f1)
     x = 40
@@ -340,7 +424,9 @@ def lamina(titulo, modelo, tex, archivo):
         im.alpha_composite(v, (x, 90))
         dr.text((x, 90 + v.size[1] + 10), etiqueta, fill=(170, 170, 180), font=f2)
         x += v.size[0] + 20
-    im.alpha_composite(tg, (x + 20, 90))
-    dr.text((x + 20, 90 + tg.size[1] + 10), f"textura {tex.size[0]}x{tex.size[1]} (ampliada x{k})",
-            fill=(170, 170, 180), font=f2)
+    y = 90
+    for tg, etiqueta in texturas:
+        im.alpha_composite(tg, (x + 20, y))
+        dr.text((x + 20, y + tg.size[1] + 8), etiqueta, fill=(170, 170, 180), font=f2)
+        y += tg.size[1] + 40
     im.save(archivo)

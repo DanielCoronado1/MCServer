@@ -11,51 +11,59 @@ Minecraft cambian seguido entre versiones; el código que ya compila en el repo 
 Los mods viven en `mods/<mod>/` y se compilan desde el `build.gradle` de la raíz.
 
 - **`mods/zombies`** (`dolfinzombies`): 16 tipos en `ZombieKind.java`, con su habilidad en `kinds/*Zombie.java`.
-  `client/KindZombieRenderer.java` dibuja cada tipo con varias capas de textura en
-  `assets/dolfinzombies/textures/entity/`:
-  - `<tipo>_zombie.png`: skin de humanoide de 64×64 sobre el modelo de zombie vanilla.
-  - `<tipo>_zombie_accessories.png`: accesorios (sombreros, sacos, escudos…) con **su propia malla**,
-    definida en `client/ZombieAttachments.java`.
-  - `<tipo>_zombie_accessories_emissive.png` y `<tipo>_zombie_eyes.png`: partes que brillan y ojos (solo algunos).
-  - **Mimo** y **contagiado** usan `PlayerLikeZombieRenderer`, que se pone la skin del jugador muerto.
-  - Esas texturas **no se dibujan a mano**: las genera `tools/generate_zombie_assets.py` con `tools/zombie_textures.py`.
+  `client/KindZombieRenderer.java` dibuja cada tipo con su modelo de diseño (`DesignModel`), su textura
+  `<tipo>_zombie.png`, la capa exterior y, en algunos, los ojos brillantes (`_ojos.png`). Los accesorios
+  (cascos, sacos, escudos…) son piezas del diseño.
+  - **Mimo** y **contagiado** usan `PlayerLikeZombieRenderer`: muestran su diseño hasta copiar la skin de un jugador.
+  - `tools/generate_zombie_assets.py` ya no escribe la skin. Sigue generando huevos, sonidos, idiomas y los
+    atlas antiguos `_accessories`/`_eyes`, que los tests de assets todavía piden.
 - **`mods/creepers`** (`dolfincreepers`): las 9 variantes en `Variante.java`, el renderer en
   `client/DolfinCreepersClient.java` y el jefe Rey Zombie en `dungeon/jefe/ReyZombie.java`.
 - **`mods/space`** (`dolfinspace`): los mobs de Kepler en `mobs/` (`Parasite`, `Stalker`, `Worm`, `Sentinel`,
   `SpaceZombie`, `SpaceSkeleton`, `SpaceCreeper`) y su render en `client/mobs/`. Las texturas están en
   `assets/dolfinspace/textures/entity/`.
 
-## Correspondencia diseño → mod
+## Cómo llega un diseño al juego
 
-El diseño del skill es **un modelo completo**: cuerpo y accesorios en una sola textura empacada. Para cada mod:
+Los 33 mobs del mod se dibujan con **su propio modelo**, igual al del visor. No usan los modelos vanilla.
 
-- **Zombies:** separa el diseño. El cuerpo humanoide (cabeza, cuerpo, brazos, piernas) va a la skin de 64×64
-  con el layout de jugador. El resto (cascos, sacos, escudos, cristales…) va a la malla de
-  `ZombieAttachments` y a `_accessories`. Si un diseño cambia el esqueleto (hambriento flaco, bilioso gordo,
-  ladrón encorvado), eso ya no es una skin: es un modelo nuevo. Avísale al usuario antes.
-  Lo ideal es portar el diseño al generador existente (`zombie_textures.py`) para que todo siga
-  saliendo de un solo script.
-- **Creepers y Kepler:** si el diseño usa la geometría vanilla, basta con la textura. Si agrega piezas, hace
-  falta un modelo propio (ver pasos).
+1. `python tools/skins/integrate_existing.py` exporta cada diseño a su mod:
+   - `textures/entity/<mob>.png`: la textura del diseño, sin remuestrear.
+   - `<mob>_exterior.png`: la capa exterior con relieve.
+   - `<mob>_ojos.png`: solo los píxeles de la rampa `OJO`, que se dibujan a plena luz.
+   - `dolfin/modelos/<mob>.json`: el modelo en coordenadas de Minecraft (y hacia abajo, pies en 24, frente en −z),
+     con las rotaciones convertidas exactas aunque combinen ejes.
 
-## Pasos para un modelo propio
+   Para agregar un mob, súmalo a `targets()`.
+2. **Huesos y animación.** El integrador agrupa las piezas en huesos según su rol:
+   - `cabeza`/`ojo` mira.
+   - Las patas (`pierna`, `pata`, `muslo`…) se balancean en fases alternas.
+   - Los brazos se mecen.
+   - Colas, tentáculos, algas y capas cuelgan y se mecen.
 
-1. **Modelo**: genera el método con
-   ```bash
-   python .claude/skills/skins-mobs/scripts/exportar_java.py runtime/skins/<clave>/modelo.json
-   ```
-   Pégalo en una clase de modelo nueva que siga el patrón del mod de destino. El script convierte las
-   coordenadas: el motor usa y hacia arriba y el frente en +z; Minecraft usa y hacia abajo con los pies en 24 y
-   el frente en −z. Las piezas quedan como hijas directas de la raíz, cada una con su pivote y rotación.
-2. **Textura**: copia `runtime/skins/<clave>/<clave>.png` a la carpeta de texturas del mod, con el nombre que
-   use el renderer.
-3. **Capa y renderer**: registra la capa del modelo y el renderer igual que los demás del mismo mod.
-   El usuario pidió **sin aura** en los creepers gigantes: no agregues la capa de carga eléctrica.
-4. **Animación mínima**: en `setupAnim`, agrega al menos el balanceo de patas o brazos al caminar.
-   Sin eso, el mob se desliza como una estatua. Mantén las rotaciones base del diseño y suma el balanceo encima.
-5. **Hitbox**: el modelo nuevo puede ser más ancho o alto que la hitbox actual. Compara con el visor
-   ("Tamaño real") y ajusta el `EntityType` o la escala. Avisa al usuario, porque cambia el gameplay.
-6. **Probar**: compila con `gradlew` desde la raíz, corre los tests (`python -m unittest discover -s tests`) y mira
-   el mob en el cliente de prueba de frente y de espalda. Si una cara de la textura queda invertida o rotada,
-   lo más probable es el mapeo de caras: compara con una pieza simple como la cabeza.
+   Una pieza sigue al hueso cuya pieza contiene su pivote: el casco va con la cabeza y la canilla con el muslo.
+   El tronco (`cuerpo`, `panza`, `torax`…) queda fijo. Si un diseño nuevo usa otro nombre para una pata o la
+   cabeza, agrégalo a las tuplas `HEADS`/`LEGS`/`ARMS`/`DANGLING`/`TRUNK`.
+3. **Modelo genérico.** `ModeloDiseno` (creepers) y `DesignModel` (zombies, space) leen ese JSON y arman tres
+   mallas:
+   - la base;
+   - la exterior, cada caja inflada con `CubeDeformation` según `inflado()` del motor;
+   - el aura de carga de los creepers.
+
+   Los brazos sostienen objetos (`ArmedModel`).
+4. **Renderers.** Los renderers conservan lo del vanilla:
+   - El creeper se hincha, parpadea y lleva el aura al cargarse. Los gigantes van **sin aura**, como pidió el
+     usuario.
+   - Los zombies conservan los objetos en la mano, los ojos brillantes y la invisibilidad del explorador.
+   - Mimo y contagiado muestran su diseño hasta copiar a un jugador.
+
+   La escala del mob la da su atributo `SCALE`. El renderer solo corrige la diferencia con la `escala` del
+   diseño.
+5. **Hitbox.** Ajústala al tamaño del diseño: el integrador imprime alto y ancho en bloques. Avisa al usuario,
+   porque cambia el gameplay.
+6. **Probar en el juego.** Corre `python -m tests.manual.prueba_visual_skins [mob]` con `JAVA_HOME` en un JDK 25.
+   Abre el servidor de pruebas (`runtime/test-server`) y un cliente aparte con portablemc (`runtime/test-client`),
+   pone cada mob quieto y lo fotografía de frente y de espalda con el ángulo del visor. Las capturas quedan en
+   `runtime/test-client/capturas/skins-<fecha>/`. No uses el equipo mientras corre. Compara cada captura con el
+   visor antes de dar el trabajo por hecho.
 7. **Commit**: solo si el usuario lo pide.

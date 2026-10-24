@@ -79,7 +79,8 @@ public class DolfinCreepers implements ModInitializer {
                 ResourceKey.create(Registries.ENTITY_TYPE, id("rey_zombie"));
         EntityType.Builder<ReyZombie> constructor =
                 EntityType.Builder.of(ReyZombie::new, MobCategory.MONSTER);
-        constructor.sized(0.8f, 2.3f).clientTrackingRange(10);
+        // La caja del diseño: el doble de alto que un zombie (escala 1.6 del modelo del skin).
+        constructor.sized(1.2f, 3.8f).clientTrackingRange(10);
         return Registry.register(BuiltInRegistries.ENTITY_TYPE, clave, constructor.build(clave));
     }
 
@@ -94,7 +95,14 @@ public class DolfinCreepers implements ModInitializer {
                         : EntityType.Builder.of(
                                 (tipo, mundo) -> new VarianteCreeper(tipo, mundo, variante),
                                 MobCategory.MONSTER);
-        constructor.sized(0.6f, 1.7f).clientTrackingRange(8);
+        // Caja a escala 1; el atributo SCALE de la variante la agranda o la achica.
+        switch (variante) {
+            case MINI -> constructor.sized(0.6f, 1.1f); // cabezón y de patas cortas
+            case GIGANTE -> constructor.sized(1.0f, 2.3f); // patas de araña abiertas
+            case REY -> constructor.sized(0.7f, 2.3f); // corona y capa
+            default -> constructor.sized(0.6f, 1.7f);
+        }
+        constructor.clientTrackingRange(8);
         if (variante == Variante.FUEGO) {
             constructor.fireImmune();
         }

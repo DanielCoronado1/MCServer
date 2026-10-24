@@ -50,7 +50,10 @@ public final class DolfinZombies implements ModInitializer {
                             EntityType.Builder.<ConfiguredZombie>of(
                                             (t, l) -> ZombieFactories.create(t, l, kind),
                                             MobCategory.MONSTER)
-                                    .sized(.6f, 1.95f)
+                                    // the bloated kind's design is wider and taller
+                                    .sized(
+                                            kind == ZombieKind.BILIOSO ? .8f : .6f,
+                                            kind == ZombieKind.BILIOSO ? 2.25f : 1.95f)
                                     .clientTrackingRange(8)
                                     .build(key));
             TYPES.put(kind, type);

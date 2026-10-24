@@ -1,0 +1,253 @@
+{
+ "clave": "creeper_mini",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 0.45,
+ "alto": 0.477,
+ "ancho": 0.288,
+ "huesos": [
+  {
+   "nombre": "pierna_0",
+   "tipo": "pierna",
+   "piv": [
+    -1,
+    21,
+    1
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": -1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_1",
+   "tipo": "pierna",
+   "piv": [
+    -1,
+    21,
+    -1
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 1,
+   "lado": -1,
+   "frente": 1
+  },
+  {
+   "nombre": "pierna_2",
+   "tipo": "pierna",
+   "piv": [
+    1,
+    21,
+    1
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 2,
+   "lado": 1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_3",
+   "tipo": "pierna",
+   "piv": [
+    1,
+    21,
+    -1
+   ],
+   "fase": 0.0,
+   "pieza": 3,
+   "lado": 1,
+   "frente": 1
+  },
+  {
+   "nombre": "cabeza_4",
+   "tipo": "cabeza",
+   "piv": [
+    0,
+    16.4,
+    -0.5
+   ],
+   "fase": 0.0,
+   "pieza": 5,
+   "lado": 0,
+   "frente": 0
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "pata",
+   "hueso": "pierna_0",
+   "uv": [
+    46,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    3,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_1",
+   "uv": [
+    46,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    3,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_2",
+   "uv": [
+    46,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    3,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_3",
+   "uv": [
+    46,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    3,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cuerpo",
+   "hueso": null,
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -2,
+    -5,
+    -1.5
+   ],
+   "tam": [
+    4,
+    5,
+    3.0
+   ],
+   "piv": [
+    0,
+    21,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cabeza",
+   "hueso": "cabeza_4",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.17453,
+    0.0,
+    -0.27925
+   ],
+   "inflado": 0.5
+  }
+ ]
+}

@@ -48,12 +48,17 @@ El módulo define `MOB` (con `clave`, `grupo` para el menú del visor, `nombre`,
 antes de inventar colores. Si necesitas un material nuevo, agrega su rampa al motor siguiendo la regla de la guía
 de estilo.
 
+Cada pieza de 2 px o más lleva una **capa exterior** con relieve (como el sombrero y la chaqueta del jugador):
+una caja inflada con su propia textura. Se genera sola desde la pintura. El hueso, el cristal, la ropa y los grumos
+de la piel sobresalen; las cuencas, las bocas y las heridas (`NEGRO`, `OJO`, `CARNE`) quedan hundidas. Si un mob
+la necesita distinta, define `relieve(t, uv, pz)` y retócala con `t.sobresale(...)` o `t.hundir(...)`.
+
 ### 4. Generar y autocriticar
 ```bash
 python .claude/skills/skins-mobs/scripts/generar.py <clave>
 ```
-Genera `runtime/skins/<clave>/` con `<clave>.png`, `preview.png` y `modelo.json`, además de `runtime/skins/visor.html`
-con todos los mobs. `runtime/` está en `.gitignore`, así que solo se versiona el diseño fuente.
+Genera `runtime/skins/<clave>/` con `<clave>.png`, `<clave>_exterior.png` (la capa exterior), `preview.png` y
+`modelo.json`, además de `runtime/skins/visor.html` con todos los mobs (con un interruptor para la capa exterior). `runtime/` está en `.gitignore`, así que solo se versiona el diseño fuente.
 Para revisar varios de un vistazo: `python .claude/skills/skins-mobs/scripts/hoja.py <salida.png> <clave> ...`
 (frente y espalda de cada uno). Si una lámina va a revisión del equipo, cópiala a `docs/previews/<fecha>/`.
 

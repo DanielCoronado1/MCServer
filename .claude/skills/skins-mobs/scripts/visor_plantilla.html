@@ -25,8 +25,9 @@
   <span id="pos"></span>
   <label><input type="checkbox" id="real"> Tamaño real</label>
   <label><input type="checkbox" id="girar" checked> Girar</label>
+  <label><input type="checkbox" id="exterior" checked> Capa exterior</label>
 </div>
-<div id="ayuda">Arrastra para girar · rueda para zoom · clic derecho para mover · ← → cambian de mob. La cuadrícula es de 1 bloque.</div>
+<div id="ayuda">Arrastra para girar · rueda para zoom · clic derecho para mover · ← → cambian de mob. La cuadrícula es de 1 bloque. «Capa exterior» muestra u oculta el relieve.</div>
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -74,11 +75,13 @@ function regiones(u, v, w, h, d) {
            front: [u + d, v + d, w, h], izq: [u + d + w, v + d, d, h], back: [u + d + w + d, v + d, w, h] };
 }
 
-// Cada caja se arma cara por cara con el mismo mapeo UV que usa Minecraft
-function caja(p, tw, th) {
-  const [x0, y0, z0, x1, y1, z1] = p.caja;
+// Cada caja se arma cara por cara con el mismo mapeo UV que usa Minecraft.
+// Con g > 0 es la caja de la capa exterior: inflada g px por lado y con el mismo UV (como CubeDeformation).
+function caja(p, tw, th, g = 0) {
+  const c = p.caja;
+  const r = regiones(p.uv[0], p.uv[1], Math.round(c[3] - c[0]), Math.round(c[4] - c[1]), Math.round(c[5] - c[2]));
+  const [x0, y0, z0, x1, y1, z1] = [c[0] - g, c[1] - g, c[2] - g, c[3] + g, c[4] + g, c[5] + g];
   const w = x1 - x0, h = y1 - y0, d = z1 - z0;
-  const r = regiones(p.uv[0], p.uv[1], Math.round(w), Math.round(h), Math.round(d));
   const caras = [
     [r.front, 0.92, (s, t) => [x0 + s * w, y1 - t * h, z1]],
     [r.back, 0.92, (s, t) => [x1 - s * w, y1 - t * h, z0]],
@@ -97,27 +100,36 @@ function caja(p, tw, th) {
       col.push(luz, luz, luz);
     }
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
-  return g;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  return geo;
 }
 
-const modelos = {};
-for (const [clave, m] of Object.entries(DATOS)) {
-  const tex = new THREE.TextureLoader().load(m.tex);
+function material(url) {
+  const tex = new THREE.TextureLoader().load(url);
   tex.magFilter = tex.minFilter = THREE.NearestFilter;
   tex.flipY = false;
   tex.colorSpace = THREE.SRGBColorSpace;
-  const mat = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  return new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide });
+}
+
+const modelos = {};
+const exteriores = [];
+for (const [clave, m] of Object.entries(DATOS)) {
+  const mat = material(m.tex), matExt = material(m.ext);
   const cuerpo = new THREE.Group();
   for (const p of m.partes) {
-    const mesh = new THREE.Mesh(caja(p, m.tw, m.th), mat);
     const g = new THREE.Group();
     g.position.set(...p.piv);
     g.rotation.set(...p.rot.map(a => THREE.MathUtils.degToRad(a)), "YZX");
-    g.add(mesh);
+    g.add(new THREE.Mesh(caja(p, m.tw, m.th), mat));
+    if (p.inflado) {
+      const ext = new THREE.Mesh(caja(p, m.tw, m.th, p.inflado), matExt);
+      exteriores.push(ext);
+      g.add(ext);
+    }
     cuerpo.add(g);
   }
   const caja3 = new THREE.Box3().setFromObject(cuerpo);
@@ -169,6 +181,7 @@ addEventListener("keydown", e => {
 });
 document.getElementById("real").onchange = mostrar;
 document.getElementById("girar").onchange = e => controls.autoRotate = e.target.checked;
+document.getElementById("exterior").onchange = e => exteriores.forEach(m => m.visible = e.target.checked);
 
 function tamano() {
   renderer.setSize(innerWidth, innerHeight);

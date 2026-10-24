@@ -1,0 +1,511 @@
+{
+ "clave": "centinela_flotante",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 1.0,
+ "alto": 1.339,
+ "ancho": 1.143,
+ "huesos": [
+  {
+   "nombre": "cabeza_0",
+   "tipo": "cabeza",
+   "piv": [
+    0,
+    12,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": 0,
+   "frente": 0
+  },
+  {
+   "nombre": "cuelga_1",
+   "tipo": "cuelga",
+   "piv": [
+    -2,
+    11.5,
+    -1.5
+   ],
+   "fase": 0.0,
+   "pieza": 8,
+   "lado": -1,
+   "frente": 1
+  },
+  {
+   "nombre": "cuelga_2",
+   "tipo": "cuelga",
+   "piv": [
+    2,
+    11.5,
+    -1.5
+   ],
+   "fase": 0.0,
+   "pieza": 9,
+   "lado": 1,
+   "frente": 1
+  },
+  {
+   "nombre": "cuelga_3",
+   "tipo": "cuelga",
+   "piv": [
+    0,
+    11.5,
+    1.5
+   ],
+   "fase": 0.0,
+   "pieza": 10,
+   "lado": 0,
+   "frente": -1
+  },
+  {
+   "nombre": "cuelga_4",
+   "tipo": "cuelga",
+   "piv": [
+    -2.5,
+    11.5,
+    2
+   ],
+   "fase": 0.0,
+   "pieza": 11,
+   "lado": -1,
+   "frente": -1
+  },
+  {
+   "nombre": "cuelga_5",
+   "tipo": "cuelga",
+   "piv": [
+    2.5,
+    11.5,
+    2.5
+   ],
+   "fase": 0.0,
+   "pieza": 12,
+   "lado": 1,
+   "frente": -1
+  },
+  {
+   "nombre": "cuelga_6",
+   "tipo": "cuelga",
+   "piv": [
+    0.5,
+    11.5,
+    -2.5
+   ],
+   "fase": 0.0,
+   "pieza": 13,
+   "lado": 1,
+   "frente": 1
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "ojo",
+   "hueso": "cabeza_0",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "parpado",
+   "hueso": "cabeza_0",
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -4.5,
+    -8.5,
+    -4.5
+   ],
+   "tam": [
+    9.0,
+    2.0,
+    9.0
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.10472,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal",
+   "hueso": "cabeza_0",
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -6,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    6,
+    2.0
+   ],
+   "piv": [
+    -4.6,
+    -3,
+    -2
+   ],
+   "rot": [
+    0.2618,
+    0.0,
+    -0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": "cabeza_0",
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -4,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    4,
+    2.0
+   ],
+   "piv": [
+    4.6,
+    -4,
+    -1
+   ],
+   "rot": [
+    0.2618,
+    0.0,
+    0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal",
+   "hueso": "cabeza_0",
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -6,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    6,
+    2.0
+   ],
+   "piv": [
+    -3.5,
+    -5,
+    4
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    -0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": "cabeza_0",
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -4,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    4,
+    2.0
+   ],
+   "piv": [
+    3.5,
+    -3,
+    4
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal",
+   "hueso": null,
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -6,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    6,
+    2.0
+   ],
+   "piv": [
+    0,
+    8,
+    4.8
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": "cabeza_0",
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -4,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    4,
+    2.0
+   ],
+   "piv": [
+    -4.6,
+    -5,
+    1.5
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    -0.87266
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "tentaculo",
+   "hueso": "cuelga_1",
+   "uv": [
+    68,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    9,
+    1.0
+   ],
+   "piv": [
+    0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.10472,
+    0.0,
+    -0.17453
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "tentaculo_corto",
+   "hueso": "cuelga_2",
+   "uv": [
+    80,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    6,
+    1.0
+   ],
+   "piv": [
+    0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.10472,
+    0.0,
+    0.17453
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "tentaculo",
+   "hueso": "cuelga_3",
+   "uv": [
+    68,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    9,
+    1.0
+   ],
+   "piv": [
+    0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    -0.10472,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "tentaculo_corto",
+   "hueso": "cuelga_4",
+   "uv": [
+    80,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    6,
+    1.0
+   ],
+   "piv": [
+    0.0,
+    -0.0,
+    0
+   ],
+   "rot": [
+    -0.13963,
+    0.0,
+    -0.21817
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "tentaculo",
+   "hueso": "cuelga_5",
+   "uv": [
+    68,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    9,
+    1.0
+   ],
+   "piv": [
+    0.0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    -0.17453,
+    0.0,
+    0.21817
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "tentaculo_corto",
+   "hueso": "cuelga_6",
+   "uv": [
+    80,
+    0
+   ],
+   "origen": [
+    -0.5,
+    0,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    6,
+    1.0
+   ],
+   "piv": [
+    0.0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.17453,
+    0.0,
+    0.04363
+   ],
+   "inflado": 0.0
+  }
+ ]
+}

@@ -1,0 +1,398 @@
+{
+ "clave": "creeper_multiplicador",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 1.0,
+ "alto": 1.643,
+ "ancho": 0.961,
+ "huesos": [
+  {
+   "nombre": "pierna_0",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    18,
+    4
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": -1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_1",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    18,
+    -4
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 1,
+   "lado": -1,
+   "frente": 1
+  },
+  {
+   "nombre": "pierna_2",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    18,
+    4
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 2,
+   "lado": 1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_3",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    18,
+    -4
+   ],
+   "fase": 0.0,
+   "pieza": 3,
+   "lado": 1,
+   "frente": 1
+  },
+  {
+   "nombre": "cabeza_4",
+   "tipo": "cabeza",
+   "piv": [
+    0.0,
+    6.0,
+    -0.0
+   ],
+   "fase": 0.0,
+   "pieza": 5,
+   "lado": 0,
+   "frente": 0
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "pata",
+   "hueso": "pierna_0",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_1",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_2",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_3",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cuerpo",
+   "hueso": null,
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -4,
+    -12,
+    -2
+   ],
+   "tam": [
+    8,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    18,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cabeza",
+   "hueso": "cabeza_4",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0.0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.06981
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cria",
+   "hueso": null,
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -2.0,
+    -4,
+    -2.0
+   ],
+   "tam": [
+    4.0,
+    4,
+    4.0
+   ],
+   "piv": [
+    -4.2,
+    8.5,
+    -0.8
+   ],
+   "rot": [
+    0.13963,
+    0.0,
+    -0.55851
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cria_chica",
+   "hueso": "cabeza_4",
+   "uv": [
+    88,
+    0
+   ],
+   "origen": [
+    -1.5,
+    -3,
+    -1.5
+   ],
+   "tam": [
+    3.0,
+    3,
+    3.0
+   ],
+   "piv": [
+    4.2,
+    -5.0,
+    -0.5
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.66323
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cria",
+   "hueso": null,
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -2.0,
+    -4,
+    -2.0
+   ],
+   "tam": [
+    4.0,
+    4,
+    4.0
+   ],
+   "piv": [
+    0.8,
+    12,
+    2.4
+   ],
+   "rot": [
+    -1.0821,
+    0.0,
+    -0.13963
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cria_chica",
+   "hueso": null,
+   "uv": [
+    88,
+    0
+   ],
+   "origen": [
+    -1.5,
+    -3,
+    -1.5
+   ],
+   "tam": [
+    3.0,
+    3,
+    3.0
+   ],
+   "piv": [
+    -1.5,
+    16,
+    2.2
+   ],
+   "rot": [
+    -1.22173,
+    0.0,
+    0.20944
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "bulto",
+   "hueso": null,
+   "uv": [
+    100,
+    0
+   ],
+   "origen": [
+    -1.5,
+    -3,
+    -1.5
+   ],
+   "tam": [
+    3.0,
+    3,
+    3.0
+   ],
+   "piv": [
+    3.6,
+    13,
+    -0.5
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.43633
+   ],
+   "inflado": 0.25
+  }
+ ]
+}

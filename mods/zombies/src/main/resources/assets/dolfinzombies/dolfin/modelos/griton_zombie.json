@@ -1,0 +1,311 @@
+{
+ "clave": "griton_zombie",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 1.0,
+ "alto": 2.223,
+ "ancho": 1.121,
+ "huesos": [
+  {
+   "nombre": "pierna_0",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    12,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": -1,
+   "frente": 0
+  },
+  {
+   "nombre": "pierna_1",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    12,
+    0
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 1,
+   "lado": 1,
+   "frente": 0
+  },
+  {
+   "nombre": "cabeza_2",
+   "tipo": "cabeza",
+   "piv": [
+    0,
+    -2.5,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 3,
+   "lado": 0,
+   "frente": 0
+  },
+  {
+   "nombre": "brazo_3",
+   "tipo": "brazo",
+   "piv": [
+    -6,
+    2,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 4,
+   "lado": -1,
+   "frente": 0
+  },
+  {
+   "nombre": "brazo_4",
+   "tipo": "brazo",
+   "piv": [
+    6,
+    2,
+    0
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 5,
+   "lado": 1,
+   "frente": 0
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "pierna",
+   "hueso": "pierna_0",
+   "uv": [
+    88,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pierna",
+   "hueso": "pierna_1",
+   "uv": [
+    88,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cuerpo",
+   "hueso": null,
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -4,
+    -12,
+    -2
+   ],
+   "tam": [
+    8,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    12,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cabeza",
+   "hueso": "cabeza_2",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0,
+    -0.0,
+    0
+   ],
+   "rot": [
+    -0.69813,
+    0.0,
+    -0.10472
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "brazo_d",
+   "hueso": "brazo_3",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    -2,
+    -2
+   ],
+   "tam": [
+    4,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    -0.43633
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "brazo_i",
+   "hueso": "brazo_4",
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -2,
+    -2,
+    -2
+   ],
+   "tam": [
+    4,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    -0.5236,
+    0.0,
+    0.43633
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cuello",
+   "hueso": null,
+   "uv": [
+    30,
+    16
+   ],
+   "origen": [
+    -2,
+    -2.5,
+    -2
+   ],
+   "tam": [
+    4,
+    3.0,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "mandibula",
+   "hueso": "cabeza_2",
+   "uv": [
+    0,
+    16
+   ],
+   "origen": [
+    -4,
+    0,
+    -5
+   ],
+   "tam": [
+    8,
+    2,
+    7
+   ],
+   "piv": [
+    0.0272,
+    0.2583,
+    1.0874
+   ],
+   "rot": [
+    0.5236,
+    0.0,
+    -0.10472
+   ],
+   "inflado": 0.25
+  }
+ ]
+}

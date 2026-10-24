@@ -4,11 +4,13 @@ import com.dolfin.zombies.*;
 import com.dolfin.zombies.kinds.ExploradorZombie;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.model.monster.zombie.ZombieModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.*;
+import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
 import net.minecraft.client.renderer.entity.state.ZombieRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.rendertype.*;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
@@ -16,9 +18,18 @@ import net.minecraft.world.entity.monster.zombie.Zombie;
 
 import java.util.Set;
 
-public final class KindZombieRenderer extends ZombieRenderer {
+/**
+ * Each kind with its own design model (hats, tools and mutations are part of the mesh), its relief
+ * layer, held items and, for some kinds, glowing eyes.
+ */
+public final class KindZombieRenderer
+        extends MobRenderer<Zombie, ZombieRenderState, DesignModel<ZombieRenderState>> {
     private final ZombieKind kind;
     private final Identifier skin;
+    // The SCALE attribute already sizes the kind; this only corrects designs drawn at another size.
+    private final float scale;
+    private final ItemModelResolver items;
+    private static final int EXPLORER_TINT = 0x99ffffff;
     private static final Set<ZombieKind> GLOW =
             Set.of(
                     ZombieKind.MINERO,
@@ -33,51 +44,25 @@ public final class KindZombieRenderer extends ZombieRenderer {
     }
 
     public KindZombieRenderer(EntityRendererProvider.Context context, ZombieKind kind) {
-        super(context);
+        super(
+                context,
+                new DesignModel<>(
+                        DesignModel.load(DolfinZombies.MOD_ID, kind.id()), DesignModel.Layer.BASE),
+                .5f);
         this.kind = kind;
         skin = texture(kind, "");
-        // Props use their own mesh and texture, so the entity skin remains a portable 64x64 skin.
-        if (kind != ZombieKind.EXPLORADOR) {
-            var props = ZombieAttachments.create(kind);
-            addLayer(
-                    new RenderLayer<ZombieRenderState, ZombieModel<ZombieRenderState>>(this) {
-                        @Override
-                        public void submit(
-                                PoseStack pose,
-                                SubmitNodeCollector collector,
-                                int light,
-                                ZombieRenderState state,
-                                float y,
-                                float x) {
-                            if (state.isInvisible) return;
-                            collector
-                                    .order(0)
-                                    .submitModel(
-                                            props,
-                                            state,
-                                            pose,
-                                            RenderTypes.entityCutout(texture(kind, "_accessories")),
-                                            light,
-                                            OverlayTexture.NO_OVERLAY,
-                                            0);
-                            if (kind == ZombieKind.MINERO || kind == ZombieKind.ENANO)
-                                collector
-                                        .order(1)
-                                        .submitModel(
-                                                props,
-                                                state,
-                                                pose,
-                                                RenderTypes.eyes(
-                                                        texture(kind, "_accessories_emissive")),
-                                                15728880,
-                                                OverlayTexture.NO_OVERLAY,
-                                                0);
-                        }
-                    });
-        }
+        scale = model.data().scale() / kind.defaults().get("escala").getAsFloat();
+        items = context.getItemModelResolver();
+        addLayer(
+                new ExteriorLayer<>(
+                        this,
+                        new DesignModel<>(model.data(), DesignModel.Layer.EXTERIOR),
+                        texture(kind, "_exterior"),
+                        kind == ZombieKind.EXPLORADOR ? EXPLORER_TINT : 0));
+        addLayer(new ItemInHandLayer<>(this));
         if (GLOW.contains(kind))
             addLayer(
-                    new RenderLayer<ZombieRenderState, ZombieModel<ZombieRenderState>>(this) {
+                    new RenderLayer<ZombieRenderState, DesignModel<ZombieRenderState>>(this) {
                         @Override
                         public void submit(
                                 PoseStack pose,
@@ -98,7 +83,7 @@ public final class KindZombieRenderer extends ZombieRenderer {
                                             getParentModel(),
                                             state,
                                             pose,
-                                            RenderTypes.eyes(texture(kind, "_eyes")),
+                                            RenderTypes.eyes(texture(kind, "_ojos")),
                                             15728880,
                                             OverlayTexture.NO_OVERLAY,
                                             tint,
@@ -130,6 +115,7 @@ public final class KindZombieRenderer extends ZombieRenderer {
     @Override
     public void extractRenderState(Zombie zombie, ZombieRenderState state, float partial) {
         super.extractRenderState(zombie, state, partial);
+        ArmedEntityRenderState.extractArmedEntityRenderState(zombie, state, items, partial);
         if (zombie instanceof ExploradorZombie explorer) {
             ((State) state).hiddenBody = !explorer.bodyRevealed();
             state.isInvisible = ((State) state).hiddenBody;
@@ -147,13 +133,12 @@ public final class KindZombieRenderer extends ZombieRenderer {
 
     @Override
     protected int getModelTint(ZombieRenderState state) {
-        return kind == ZombieKind.EXPLORADOR ? 0x99ffffff : super.getModelTint(state);
+        return kind == ZombieKind.EXPLORADOR ? EXPLORER_TINT : super.getModelTint(state);
     }
 
     @Override
     protected void scale(ZombieRenderState state, PoseStack pose) {
-        super.scale(state, pose);
-        if (kind == ZombieKind.HAMBRIENTO) pose.scale(.7f, 1, .75f);
-        if (kind == ZombieKind.BILIOSO) pose.scale(1.25f, 1, 1.15f);
+        float size = state.isBaby ? scale * .5f : scale;
+        pose.scale(size, size, size);
     }
 }

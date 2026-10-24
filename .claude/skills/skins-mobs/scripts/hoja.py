@@ -25,9 +25,12 @@ def main():
     for c in a.claves:
         m = json.load(open(os.path.join(a.dir, c, "modelo.json"), encoding="utf-8"))
         tex = Image.open(os.path.join(a.dir, c, c + ".png")).convert("RGBA")
+        ruta_ext = os.path.join(a.dir, c, c + "_exterior.png")
+        ext = Image.open(ruta_ext).convert("RGBA") if os.path.exists(ruta_ext) else None
         partes = [dict(p, uv=tuple(p["uv"]), caja=tuple(p["caja"]), piv=tuple(p["piv"]), rot=tuple(p["rot"]))
                   for p in m["partes"]]
-        celdas.append((c, motor.render(partes, tex, 32, 14, (340, 380)), motor.render(partes, tex, 212, 14, (340, 380))))
+        celdas.append((c, motor.render(partes, tex, 32, 14, (340, 380), exterior=ext),
+                       motor.render(partes, tex, 212, 14, (340, 380), exterior=ext)))
     im = Image.new("RGBA", (700 * 2, 420 * ((len(celdas) + 1) // 2)), motor.FONDO)
     dr = ImageDraw.Draw(im)
     f = ImageFont.load_default(size=20)

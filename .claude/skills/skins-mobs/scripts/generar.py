@@ -1,4 +1,4 @@
-"""Genera textura, lamina de revision, modelo JSON y el visor 3D de los disenos de mobs.
+"""Genera textura, capa exterior, lamina de revision, modelo JSON y el visor 3D de los disenos de mobs.
 
 Uso (desde la raiz del repo):
     python .claude/skills/skins-mobs/scripts/generar.py                 # todos los disenos
@@ -39,16 +39,17 @@ def main():
     for f in archivos:
         mod = cargar(os.path.join(a.mobs, f))
         clave = mod.MOB["clave"]
-        tex, modelo = motor.construir(mod)
+        tex, modelo, exterior = motor.construir(mod)
         datos[clave] = dict(nombre=mod.MOB["nombre"], grupo=mod.MOB.get("grupo", "Otros"),
-                            escala=mod.MOB.get("escala", 1.0), tex=b64(tex),
+                            escala=mod.MOB.get("escala", 1.0), tex=b64(tex), ext=b64(exterior),
                             tw=tex.size[0], th=tex.size[1], partes=modelo)
         if a.solo and clave not in a.solo and os.path.splitext(f)[0] not in a.solo:
             continue
         carpeta = os.path.join(a.out, clave)
         os.makedirs(carpeta, exist_ok=True)
         tex.save(os.path.join(carpeta, clave + ".png"))
-        motor.lamina(sin_tildes(mod.MOB["nombre"]), modelo, tex, os.path.join(carpeta, "preview.png"))
+        exterior.save(os.path.join(carpeta, clave + "_exterior.png"))
+        motor.lamina(sin_tildes(mod.MOB["nombre"]), modelo, tex, os.path.join(carpeta, "preview.png"), exterior)
         json.dump(dict(clave=clave, nombre=mod.MOB["nombre"], escala=mod.MOB.get("escala", 1.0),
                        textura=[tex.size[0], tex.size[1]], partes=modelo),
                   open(os.path.join(carpeta, "modelo.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)

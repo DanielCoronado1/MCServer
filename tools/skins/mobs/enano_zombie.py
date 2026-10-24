@@ -1,15 +1,27 @@
 # ruff: noqa: F403, F405
 """Enano: un minero enano con la vela del casco derretida sobre la cara (la cera le tapo un ojo), la barba
 apelmazada de sangre seca y el cuerpo rechoncho. Cabe por huecos de un bloque."""
-from motor import *
+
 from _zombies import *
+from motor import *
 
-MOB = dict(clave="enano_zombie", grupo="Zombies (mod zombies)", nombre="Enano", escala=0.6, seed=913)
+MOB = dict(
+    clave="enano_zombie", grupo="Zombies (mod zombies)", nombre="Enano", escala=0.6, seed=913
+)
 
-PIEZAS = dict(cabeza=(8, 8, 8), casco=(9, 3, 9), vela=(2, 4, 2), llama=(1, 2, 1), barba=(6, 6, 2), cuerpo=(8, 7, 5),
-              brazo=(3, 8, 3), pierna=(3, 5, 3))
+PIEZAS = dict(
+    cabeza=(8, 8, 8),
+    casco=(9, 3, 9),
+    vela=(2, 4, 2),
+    llama=(1, 2, 1),
+    barba=(6, 6, 2),
+    cuerpo=(8, 7, 5),
+    brazo=(3, 8, 3),
+    pierna=(3, 5, 3),
+)
 
 CABEZA = (4, 0, -8)
+
 
 def partes():
     S = [dict(r="pierna", caja=(-1.5, -5, -1.5, 1.5, 0, 1.5), piv=(sx * 2, 5, 0)) for sx in (-1, 1)]
@@ -20,32 +32,41 @@ def partes():
     S.append(dict(r="llama", caja=(-0.5, 12.5, -0.5, 0.5, 14.5, 0.5), piv=(0, 12, 0.5), rot=CABEZA))
     S.append(dict(r="barba", caja=(-3, -5, 3.5, 3, 1, 5.5), piv=(0, 12, 0.5), rot=CABEZA))
     for sx, r_b in ((-1, (-70, 0, 10)), (1, (-15, 0, -14))):
-        S.append(dict(r="brazo", caja=(-1.5, -7, -1.5, 1.5, 1, 1.5), piv=(sx * 5.5, 11, 0), rot=r_b))
+        S.append(
+            dict(r="brazo", caja=(-1.5, -7, -1.5, 1.5, 1, 1.5), piv=(sx * 5.5, 11, 0), rot=r_b)
+        )
     return S
+
 
 def pintar(t, uv, pz):
     cab = t.pintar(uv("cabeza"), pz["cabeza"], PIEL, base=0.45)
-    t.dibujo(cab["front"], [
-        ". . . . . w . .",
-        ". . . . w w w .",
-        "K K K . w w w w",
-        "K R K . w w w .",
-        ". s . . . w . .",
-        ". . . . . . . .",
-        ". . . . . . . .",
-        ". . . . . . . .",
-    ], dict(CARA, w=(HUESO, 4)))  # cera derretida tapando un ojo
+    t.dibujo(
+        cab["front"],
+        [
+            ". . . . . w . .",
+            ". . . . w w w .",
+            "K K K . w w w w",
+            "K R K . w w w .",
+            ". s . . . w . .",
+            ". . . . . . . .",
+            ". . . . . . . .",
+            ". . . . . . . .",
+        ],
+        dict(CARA, w=(HUESO, 4)),
+    )  # cera derretida tapando un ojo
     cas = t.pintar(uv("casco"), pz["casco"], HIERRO, base=0.45, grad=0.35)
     for cara in ("front", "der", "izq", "back"):
         t.mancha(cas[cara], 4, 1, 1.4, HUESO, 0.9, 0)  # cera chorreando por el casco
     ve = t.pintar(uv("vela"), pz["vela"], HUESO, base=0.75, grad=0.4)
     t.rellenar(ve["top"], NEGRO, 1)
-    ll = t.pintar(uv("llama"), pz["llama"], MAGMA, base=0.85, grad=0.6)
+    t.pintar(uv("llama"), pz["llama"], MAGMA, base=0.85, grad=0.6)
     ba = t.pintar(uv("barba"), pz["barba"], CAFE, base=0.62, grad=0.35)
     for cara in ("front", "der", "izq"):
         t.mancha(ba[cara], ba[cara][2] / 2 + 1, 4, 1.0, CARNE, 0.3, 0)
     jirones(t, ba, 2)
-    t.dibujo(ba["front"], ["K W K K W K", ". . . . . ."], {"K": (NEGRO, 0), "W": (HUESO, 3)})  # boca dentro de la barba
+    t.dibujo(
+        ba["front"], ["K W K K W K", ". . . . . ."], {"K": (NEGRO, 0), "W": (HUESO, 3)}
+    )  # boca dentro de la barba
     cue = t.pintar(uv("cuerpo"), pz["cuerpo"], CUERO, base=0.45)
     for cara in LADOS:
         x0, y0, rw, rh = cue[cara]

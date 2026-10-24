@@ -46,9 +46,9 @@ MOBS = [
 ]
 
 SHIP_THEMES = {
-    "nave_basica": (73, 202, 202),
-    "nave_carga": (239, 165, 69),
-    "nave_rapida": (186, 139, 255),
+    "nave_basica": (196, 112, 60),
+    "nave_carga": (214, 168, 72),
+    "nave_rapida": (88, 170, 150),
 }
 
 UI_TRANSLATIONS = {

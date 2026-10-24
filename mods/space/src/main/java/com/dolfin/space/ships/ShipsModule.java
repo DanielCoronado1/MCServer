@@ -83,7 +83,7 @@ public final class ShipsModule {
                             .sized(2.5f, 3f)
                             .fireImmune()
                             .clientTrackingRange(12)
-                            .updateInterval(2)
+                            .updateInterval(1)
                             .build(
                                     ResourceKey.create(
                                             Registries.ENTITY_TYPE, DolfinSpace.id("nave"))));

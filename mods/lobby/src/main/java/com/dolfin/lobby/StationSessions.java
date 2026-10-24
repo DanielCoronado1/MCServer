@@ -195,6 +195,7 @@ public final class StationSessions {
                         .dolfinlobby$restore(
                                 TagValueInput.create(
                                         ProblemReporter.DISCARDING, p.registryAccess(), survival));
+                IsolatedAttachments.restore(p, survival);
                 com.dolfin.space.SpaceTravelAccess.runAuthorized(
                         p,
                         "lobby_survival_restore",
@@ -450,6 +451,7 @@ public final class StationSessions {
         p.inventoryMenu.getCraftSlots().clearContent();
         p.inventoryMenu.setCarried(ItemStack.EMPTY);
         ((TankAccess) p).dolfinspace$tank().clearContent();
+        IsolatedAttachments.clear(p);
         p.removeAllEffects();
         p.setRemainingFireTicks(0);
         p.setHealth(p.getMaxHealth());
@@ -481,15 +483,19 @@ public final class StationSessions {
 
     public static void teleport(ServerPlayer p, ServerLevel world, Vec3 pos) {
         p.stopRiding();
-        if (p.teleport(
-                        new TeleportTransition(
-                                world,
-                                pos,
-                                Vec3.ZERO,
-                                0,
-                                0,
-                                TeleportTransition.PLACE_PORTAL_TICKET))
-                == null)
+        var moved = new ServerPlayer[1];
+        StationProtection.route(
+                () ->
+                        moved[0] =
+                                p.teleport(
+                                        new TeleportTransition(
+                                                world,
+                                                pos,
+                                                Vec3.ZERO,
+                                                0,
+                                                0,
+                                                TeleportTransition.PLACE_PORTAL_TICKET)));
+        if (moved[0] == null)
             throw new IllegalStateException(
                     "No se pudo completar el traslado; se conserva el resguardo.");
     }

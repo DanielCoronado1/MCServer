@@ -1,6 +1,6 @@
 name = "Forge Config API Port"
 filename = "ForgeConfigAPIPort-v26.3.1-mc26.3.x-Fabric.jar"
-side = "server"
+side = "both"
 
 [download]
 url = "https://cdn.modrinth.com/data/ohNO6lps/versions/JpKvrr9J/ForgeConfigAPIPort-v26.3.1-mc26.3.x-Fabric.jar"

@@ -40,6 +40,23 @@ class FlightProfileTest {
     }
 
     @Test
+    void transitWaitingOnChunksStillResolvesToTransfer() {
+        var transit =
+                new FlightJournal(
+                        FlightJournal.Phase.TRANSITION,
+                        FlightProfile.TRANSITION_TICKS,
+                        64,
+                        0,
+                        "dolfinspace:kepler",
+                        java.util.List.of());
+        assertEquals(FlightJournal.Action.STARS, transit.action(true));
+        for (int ticks : new int[] {1, 0, 1 - FlightProfile.TRANSIT_WAIT_TICKS})
+            assertEquals(
+                    FlightJournal.Action.TRANSFER,
+                    transit.phase(FlightJournal.Phase.TRANSITION, ticks).action(true));
+    }
+
+    @Test
     void beepsRiseOverTheFinalSeconds() {
         assertEquals(1.2f, FlightProfile.beepPitch(100));
         assertTrue(FlightProfile.beepPitch(20) > FlightProfile.beepPitch(60));

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visor de skins</title>
+<style>
+  :root { --bg: #18181e; --panel: #24242c; --txt: #e8e8ee; --sub: #9a9aa8; --acc: #5fbf4a; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--txt); font: 14px system-ui, sans-serif; overflow: hidden; }
+  #ui { position: absolute; top: 12px; left: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; z-index: 2;
+        max-width: calc(100% - 24px); padding: 6px; background: rgba(24, 24, 30, .78); border: 1px solid #3a3a46; border-radius: 10px; }
+  button, select { background: var(--panel); color: var(--txt); border: 1px solid #3a3a46; border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; }
+  select { max-width: 260px; }
+  #pos { color: var(--sub); font-size: 12px; min-width: 42px; text-align: center; }
+  label { display: flex; gap: 6px; align-items: center; color: var(--sub); font-size: 13px; }
+  #ayuda { position: absolute; bottom: 14px; left: 16px; right: 16px; color: var(--sub); font-size: 12px; z-index: 2; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <button id="ant" title="Anterior (←)">◀</button>
+  <select id="mob" aria-label="Mob"></select>
+  <button id="sig" title="Siguiente (→)">▶</button>
+  <span id="pos"></span>
+  <label><input type="checkbox" id="real"> Tamaño real</label>
+  <label><input type="checkbox" id="girar" checked> Girar</label>
+</div>
+<div id="ayuda">Arrastra para girar · rueda para zoom · clic derecho para mover · ← → cambian de mob. La cuadrícula es de 1 bloque.</div>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const DATOS = __DATOS__;
+// Menu agrupado: cada grupo es un <optgroup>; ORDEN es el recorrido de las flechas
+const selector = document.getElementById("mob");
+const grupos = {};
+for (const [clave, m] of Object.entries(DATOS)) (grupos[m.grupo || "Otros"] ??= []).push(clave);
+const ORDEN = [];
+for (const g of Object.keys(grupos).sort()) {
+  const og = document.createElement("optgroup");
+  og.label = `${g} (${grupos[g].length})`;
+  for (const clave of grupos[g].sort((a, b) => DATOS[a].nombre.localeCompare(DATOS[b].nombre))) {
+    og.appendChild(new Option(DATOS[clave].nombre, clave));
+    ORDEN.push(clave);
+  }
+  selector.appendChild(og);
+}
+const PRIMERO = ORDEN[0];
+const PX = 1 / 16; // 16 pixeles de modelo = 1 bloque
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x18181e);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.5;
+
+const grid = new THREE.GridHelper(20, 20, 0x3a3a46, 0x2a2a32);
+scene.add(grid);
+
+function regiones(u, v, w, h, d) {
+  return { top: [u + d, v, w, d], bottom: [u + d + w, v, w, d], der: [u, v + d, d, h],
+           front: [u + d, v + d, w, h], izq: [u + d + w, v + d, d, h], back: [u + d + w + d, v + d, w, h] };
+}
+
+// Cada caja se arma cara por cara con el mismo mapeo UV que usa Minecraft
+function caja(p, tw, th) {
+  const [x0, y0, z0, x1, y1, z1] = p.caja;
+  const w = x1 - x0, h = y1 - y0, d = z1 - z0;
+  const r = regiones(p.uv[0], p.uv[1], Math.round(w), Math.round(h), Math.round(d));
+  const caras = [
+    [r.front, 0.92, (s, t) => [x0 + s * w, y1 - t * h, z1]],
+    [r.back, 0.92, (s, t) => [x1 - s * w, y1 - t * h, z0]],
+    [r.izq, 0.75, (s, t) => [x1, y1 - t * h, z1 - s * d]],
+    [r.der, 0.75, (s, t) => [x0, y1 - t * h, z0 + s * d]],
+    [r.top, 1.0, (s, t) => [x0 + s * w, y1, z0 + t * d]],
+    [r.bottom, 0.55, (s, t) => [x0 + s * w, y0, z1 - t * d]],
+  ];
+  const pos = [], uv = [], col = [];
+  for (const [[u, v, rw, rh], luz, f] of caras) {
+    const esq = [[0, 0], [1, 0], [1, 1], [0, 1]];
+    for (const i of [0, 3, 1, 1, 3, 2]) {
+      const [s, t] = esq[i];
+      pos.push(...f(s, t));
+      uv.push((u + s * rw) / tw, (v + t * rh) / th);
+      col.push(luz, luz, luz);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  return g;
+}
+
+const modelos = {};
+for (const [clave, m] of Object.entries(DATOS)) {
+  const tex = new THREE.TextureLoader().load(m.tex);
+  tex.magFilter = tex.minFilter = THREE.NearestFilter;
+  tex.flipY = false;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  const cuerpo = new THREE.Group();
+  for (const p of m.partes) {
+    const mesh = new THREE.Mesh(caja(p, m.tw, m.th), mat);
+    const g = new THREE.Group();
+    g.position.set(...p.piv);
+    g.rotation.set(...p.rot.map(a => THREE.MathUtils.degToRad(a)), "YZX");
+    g.add(mesh);
+    cuerpo.add(g);
+  }
+  const caja3 = new THREE.Box3().setFromObject(cuerpo);
+  cuerpo.position.y = -caja3.min.y;
+  const raiz = new THREE.Group();
+  raiz.add(cuerpo);
+  raiz.userData = { escala: m.escala, alto: caja3.max.y - caja3.min.y };
+  raiz.visible = false;
+  scene.add(raiz);
+  modelos[clave] = raiz;
+}
+
+// Jugador de referencia: 0.6 x 1.8 bloques
+const jugador = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, 0.6),
+  new THREE.MeshBasicMaterial({ color: 0x4a8fd8, transparent: true, opacity: 0.45 }));
+jugador.position.set(-2.2, 0.9, 0);
+scene.add(jugador);
+
+let actual = PRIMERO;
+function mostrar() {
+  const real = document.getElementById("real").checked;
+  for (const [k, r] of Object.entries(modelos)) {
+    r.visible = k === actual;
+    r.scale.setScalar(PX * (real ? r.userData.escala : 1));
+  }
+  jugador.visible = real;
+  const r = modelos[actual];
+  const alto = r.userData.alto * PX * (real ? r.userData.escala : 1);
+  controls.target.set(0, alto * 0.6, 0);
+  const dist = Math.max(alto, real ? 2.5 : 0) * 2.9 + 1.5;
+  camera.position.set(dist * 0.6, alto * 0.7 + dist * 0.25, dist * 0.8);
+  grid.scale.setScalar(1);
+}
+function elegir(clave) {
+  actual = clave;
+  selector.value = clave;
+  document.getElementById("pos").textContent = `${ORDEN.indexOf(clave) + 1}/${ORDEN.length}`;
+  mostrar();
+}
+function mover(paso) {
+  elegir(ORDEN[(ORDEN.indexOf(actual) + paso + ORDEN.length) % ORDEN.length]);
+}
+selector.onchange = () => { elegir(selector.value); selector.blur(); };
+document.getElementById("ant").onclick = () => mover(-1);
+document.getElementById("sig").onclick = () => mover(1);
+addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") mover(-1);
+  if (e.key === "ArrowRight") mover(1);
+});
+document.getElementById("real").onchange = mostrar;
+document.getElementById("girar").onchange = e => controls.autoRotate = e.target.checked;
+
+function tamano() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", tamano);
+tamano(); elegir(PRIMERO);
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>

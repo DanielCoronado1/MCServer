@@ -17,7 +17,14 @@ from tools.skins.integrate_existing import (
 
 def _rz_ry_rx(x: float, y: float, z: float) -> list[list[float]]:
     """Minecraft part rotation matrix (ModelPart: Rz * Ry * Rx)."""
-    cx, sx, cy, sy, cz, sz = math.cos(x), math.sin(x), math.cos(y), math.sin(y), math.cos(z), math.sin(z)
+    cx, sx, cy, sy, cz, sz = (
+        math.cos(x),
+        math.sin(x),
+        math.cos(y),
+        math.sin(y),
+        math.cos(z),
+        math.sin(z),
+    )
     rx = [[1, 0, 0], [0, cx, -sx], [0, sx, cx]]
     ry = [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]]
     rz = [[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]]
@@ -41,17 +48,24 @@ class SkinIntegrationTests(unittest.TestCase):
         for rot in ((20, 0, 0), (0, 0, -35), (0, 40, 0), (25, 30, -15), (-90, 10, 6)):
             with self.subTest(rot=rot):
                 for axis in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
-                    expected = [a * f for a, f in zip(motor.rotar(tuple(a * f for a, f in zip(axis, flip)), rot), flip)]
+                    expected = [
+                        a * f
+                        for a, f in zip(
+                            motor.rotar(tuple(a * f for a, f in zip(axis, flip, strict=True)), rot),
+                            flip,
+                            strict=True,
+                        )
+                    ]
                     m = _rz_ry_rx(*minecraft_rotation(rot))
                     got = [sum(m[i][j] * axis[j] for j in range(3)) for i in range(3)]
-                    for e, g in zip(expected, got):
+                    for e, g in zip(expected, got, strict=True):
                         self.assertAlmostEqual(e, g, places=6)
 
     def test_pieces_ride_on_their_bones(self):
         _, model, _ = motor.construir(_design("minero_zombie"))
         found, owner = bones(model)
         by_role = {}
-        for part, bone in zip(model, owner):
+        for part, bone in zip(model, owner, strict=True):
             by_role.setdefault(part["r"], set()).add(bone)
         head = next(b["nombre"] for b in found if b["tipo"] == "cabeza")
         self.assertEqual(by_role["casco"], {head})
@@ -66,7 +80,7 @@ class SkinIntegrationTests(unittest.TestCase):
         found, owner = bones(model)
         legs = [b for b in found if b["tipo"] == "pierna"]
         self.assertEqual(len(legs), 8)
-        shins = [o for part, o in zip(model, owner) if part["r"] == "canilla"]
+        shins = [o for part, o in zip(model, owner, strict=True) if part["r"] == "canilla"]
         self.assertTrue(all(o and o.startswith("pierna") for o in shins))
 
     def test_every_target_exports_model_texture_relief_and_eyes(self):

@@ -1,8 +1,9 @@
 # ruff: noqa: F403, F405
 """Mimo: aparece donde murio un jugador e imita sus gestos. El maquillaje blanco se le esta cayendo a pedazos y
 debajo hay carne podrida; la sonrisa pintada es demasiado ancha, llora tinta negra y empuja una pared invisible."""
-from motor import *
+
 from _zombies import *
+from motor import *
 
 MOB = dict(clave="mimo_zombie", grupo="Zombies (mod zombies)", nombre="Mimo", escala=1.0, seed=915)
 
@@ -10,30 +11,62 @@ PIEZAS = dict(HUMANOIDE, boina=(9, 2, 9), rabito=(1, 1, 1), dedos=(4, 3, 1))
 
 CABEZA = (0, 0, 14)
 
+
 def partes():
     S = humanoide(brazo_d=(-150, 0, 10), brazo_i=(-140, 0, -14), cabeza=CABEZA)
-    S += [dict(r="boina", caja=(-4.5, 7.5, -4.5, 4.5, 9.5, 4.5), piv=(0, 24, 0), rot=(CABEZA[0], 0, CABEZA[2] - 12)),
-          dict(r="rabito", caja=(-0.5, 9.5, -0.5, 0.5, 10.5, 0.5), piv=(0, 24, 0), rot=(CABEZA[0], 0, CABEZA[2] - 12))]
-    for x, rot in ((-6, (-150, 0, 10)), (6, (-140, 0, -14))):  # manos abiertas contra la pared invisible
-        S.append(dict(r="dedos", caja=(-2, -3, -0.5, 2, 0, 0.5), piv=en((x, 22, 0), rot, (0, -10, 1.5)), rot=(rot[0] + 90, 0, rot[2])))
+    S += [
+        dict(
+            r="boina",
+            caja=(-4.5, 7.5, -4.5, 4.5, 9.5, 4.5),
+            piv=(0, 24, 0),
+            rot=(CABEZA[0], 0, CABEZA[2] - 12),
+        ),
+        dict(
+            r="rabito",
+            caja=(-0.5, 9.5, -0.5, 0.5, 10.5, 0.5),
+            piv=(0, 24, 0),
+            rot=(CABEZA[0], 0, CABEZA[2] - 12),
+        ),
+    ]
+    for x, rot in (
+        (-6, (-150, 0, 10)),
+        (6, (-140, 0, -14)),
+    ):  # manos abiertas contra la pared invisible
+        S.append(
+            dict(
+                r="dedos",
+                caja=(-2, -3, -0.5, 2, 0, 0.5),
+                piv=en((x, 22, 0), rot, (0, -10, 1.5)),
+                rot=(rot[0] + 90, 0, rot[2]),
+            )
+        )
     return S
+
 
 BLANCO = [(120, 116, 118), (170, 166, 166), (210, 206, 202), (234, 230, 226), (250, 248, 244)]
 
+
 def pintar(t, uv, pz):
     cab = t.pintar(uv("cabeza"), pz["cabeza"], BLANCO, base=0.75, var=0.15)
-    t.dibujo(cab["front"], [
-        ". . . . . . . .",
-        ". K . . . . K .",
-        "K K K . . K K K",
-        "K R K . . K R K",
-        ". t . p p . t .",
-        "c . p . . p . c",
-        "c W K K K K W c",
-        ". c c W W c c .",
-    ], dict(CARA, t=(NEGRO, 1), p=(PIEL, 2)))  # sonrisa pintada hasta las orejas; donde se cae el maquillaje, piel
-    t.dibujo(cab["front"], [". . . . . . . ."] * 4 + [". t . . . . t .", ". t . . . . . .", ". . . . . . . ."],
-             {"t": (NEGRO, 1)})  # lagrimas de tinta
+    t.dibujo(
+        cab["front"],
+        [
+            ". . . . . . . .",
+            ". K . . . . K .",
+            "K K K . . K K K",
+            "K R K . . K R K",
+            ". t . p p . t .",
+            "c . p . . p . c",
+            "c W K K K K W c",
+            ". c c W W c c .",
+        ],
+        dict(CARA, t=(NEGRO, 1), p=(PIEL, 2)),
+    )  # sonrisa pintada hasta las orejas; donde se cae el maquillaje, piel
+    t.dibujo(
+        cab["front"],
+        [". . . . . . . ."] * 4 + [". t . . . . t .", ". t . . . . . .", ". . . . . . . ."],
+        {"t": (NEGRO, 1)},
+    )  # lagrimas de tinta
     for cara, cx, cy in (("izq", 3, 3), ("der", 5, 5), ("top", 2, 6)):
         t.mancha(cab[cara], cx, cy, 2, PIEL, 0.45)
     t.pintar(uv("boina"), pz["boina"], CARBON, base=0.5)
@@ -46,7 +79,8 @@ def pintar(t, uv, pz):
                 t.set(x0 + i, y0 + j, CARBON, 1)  # rayas
         if cara in ("front", "back"):
             for j in range(rh):
-                t.set(x0 + 1, y0 + j, TELA_ROJA, 2); t.set(x0 + rw - 2, y0 + j, TELA_ROJA, 2)  # tirantes
+                t.set(x0 + 1, y0 + j, TELA_ROJA, 2)
+                t.set(x0 + rw - 2, y0 + j, TELA_ROJA, 2)  # tirantes
     t.mancha(cue["front"], 4, 6, 1.8, CARNE, 0.35)
     t.sombra(cue["front"], 2, "top", 2)
     for n in ("brazo_d", "brazo_i"):

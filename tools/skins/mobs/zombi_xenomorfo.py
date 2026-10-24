@@ -1,26 +1,65 @@
 # ruff: noqa: F403, F405
 """Zombi xenomorfo (Kepler): un humano infectado a medio convertir. El craneo se le alargo hacia atras,
 la quitina le cubre medio cuerpo, le salen tubos dorsales y una cola; un brazo todavia es humano."""
+
 from motor import *
 
-MOB = dict(clave="zombi_xenomorfo", grupo="Kepler (mod space)", nombre="Zombi xenomorfo", escala=1.0, seed=855)
+MOB = dict(
+    clave="zombi_xenomorfo",
+    grupo="Kepler (mod space)",
+    nombre="Zombi xenomorfo",
+    escala=1.0,
+    seed=855,
+)
 
-PIEZAS = dict({k: v for k, v in HUMANOIDE.items() if k != "brazo_i"}, craneo=(6, 5, 9), brazo_x=(3, 14, 3), tubo=(2, 6, 2), cola=(2, 2, 9), cola2=(1, 1, 9))
+PIEZAS = dict(
+    {k: v for k, v in HUMANOIDE.items() if k != "brazo_i"},
+    craneo=(6, 5, 9),
+    brazo_x=(3, 14, 3),
+    tubo=(2, 6, 2),
+    cola=(2, 2, 9),
+    cola2=(1, 1, 9),
+)
 
 CABEZA = (10, 0, -6)
+
 
 def partes():
     S = humanoide(brazo_d=(-80, 0, 0), brazo_i=(-95, 0, 0), cabeza=CABEZA)
     S = [p for p in S if p["r"] != "brazo_i"]
-    S.append(dict(r="brazo_x", caja=(-1.5, -12, -1.5, 1.5, 2, 1.5), piv=(5.6, 22, 0), rot=(-100, 0, -8)))
-    S.append(dict(r="craneo", caja=(-3, 3, -11, 3, 8, -2), piv=(0, 24, 0), rot=(CABEZA[0] + 18, 0, CABEZA[2])))
+    S.append(
+        dict(r="brazo_x", caja=(-1.5, -12, -1.5, 1.5, 2, 1.5), piv=(5.6, 22, 0), rot=(-100, 0, -8))
+    )
+    S.append(
+        dict(
+            r="craneo",
+            caja=(-3, 3, -11, 3, 8, -2),
+            piv=(0, 24, 0),
+            rot=(CABEZA[0] + 18, 0, CABEZA[2]),
+        )
+    )
     for sx in (-1, 1):
         for k, y in enumerate((22, 18)):
-            S.append(dict(r="tubo", caja=caja_centrada(PIEZAS["tubo"]), piv=(sx * 2.2, y, -2), rot=(-45 - k * 15, 0, sx * -25)))
+            S.append(
+                dict(
+                    r="tubo",
+                    caja=caja_centrada(PIEZAS["tubo"]),
+                    piv=(sx * 2.2, y, -2),
+                    rot=(-45 - k * 15, 0, sx * -25),
+                )
+            )
     r_c = (-58, 0, 0)
     S.append(dict(r="cola", caja=(-1, -1, -9, 1, 1, 0), piv=(0, 13, -2), rot=r_c))
-    S.append(dict(r="cola2", caja=(-0.5, -0.5, -9, 0.5, 0.5, 0), piv=en((0, 13, -2), r_c, (0, 0, -8.6)), rot=(-20, 0, 0)))
+    S.append(
+        dict(
+            r="cola2",
+            caja=(-0.5, -0.5, -9, 0.5, 0.5, 0),
+            piv=en((0, 13, -2), r_c, (0, 0, -8.6)),
+            rot=(-20, 0, 0),
+        )
+    )
     return S
+
 
 def quitina(t, rect, desde_x, hasta_x):
     x0, y0, rw, rh = rect
@@ -29,18 +68,23 @@ def quitina(t, rect, desde_x, hasta_x):
         for i in range(desde_x, min(hasta_x, rw)):
             t.set(x0 + i, y0 + j, QUITINA, 2.5 + (n(i, j) - 0.5) * 2 - (j % 4 == 3))
 
+
 def pintar(t, uv, pz):
     cab = t.pintar(uv("cabeza"), pz["cabeza"], QUITINA, base=0.45)
-    t.dibujo(cab["front"], [
-        ". . . . . . . .",
-        ". . . . . . . .",
-        "s s . . . . . .",
-        "P K . . . . . .",
-        "P R s . . . . .",
-        "P s . W W W W .",
-        ". W K K K K K W",
-        ". . W K W W K .",
-    ], {"P": (PIEL, 3), "s": (PIEL, 2), "K": (NEGRO, 0), "R": (OJO, 2), "W": (HUESO, 4)})
+    t.dibujo(
+        cab["front"],
+        [
+            ". . . . . . . .",
+            ". . . . . . . .",
+            "s s . . . . . .",
+            "P K . . . . . .",
+            "P R s . . . . .",
+            "P s . W W W W .",
+            ". W K K K K K W",
+            ". . W K W W K .",
+        ],
+        {"P": (PIEL, 3), "s": (PIEL, 2), "K": (NEGRO, 0), "R": (OJO, 2), "W": (HUESO, 4)},
+    )
     cr = t.pintar(uv("craneo"), pz["craneo"], QUITINA, base=0.55, grad=0.45)
     for cara in ("der", "izq", "top"):
         x0, y0, rw, rh = cr[cara]

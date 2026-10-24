@@ -13,7 +13,9 @@ del jugador) con su propia textura, en el mismo UV que la base. Lo transparente 
 Coordenadas del modelo: 16 px = 1 bloque, y hacia arriba, +z es el frente del mob (hacia quien lo mira),
 +x es la izquierda del mob. Las rotaciones son en grados y se aplican en orden x, z, y alrededor de piv.
 """
+
 import math
+
 from PIL import Image, ImageDraw, ImageFont
 
 # ---------------------------------------------------------------- rampas (oscuro -> claro, sombras frias y luces calidas)
@@ -37,7 +39,14 @@ NARANJA = [(78, 28, 12), (138, 56, 18), (198, 94, 32), (234, 136, 54), (252, 184
 ORO = [(70, 46, 12), (130, 92, 24), (190, 146, 48), (232, 196, 92), (252, 236, 170)]
 CARBON = [(10, 8, 10), (24, 20, 22), (40, 32, 32), (60, 48, 44), (84, 68, 58)]
 MAGMA = [(90, 14, 8), (160, 40, 10), (220, 90, 20), (250, 150, 40), (255, 214, 110)]
-HIELO = [(40, 60, 96), (70, 104, 146), (112, 152, 190), (160, 196, 224), (214, 236, 250), (244, 252, 255)]
+HIELO = [
+    (40, 60, 96),
+    (70, 104, 146),
+    (112, 152, 190),
+    (160, 196, 224),
+    (214, 236, 250),
+    (244, 252, 255),
+]
 LIMA = [(26, 46, 30), (44, 78, 32), (76, 116, 36), (116, 154, 44), (160, 190, 70), (206, 222, 120)]
 TEAL = [(14, 40, 48), (22, 66, 70), (34, 98, 92), (54, 132, 114), (90, 170, 140), (140, 206, 172)]
 PURPURA = [(26, 14, 38), (44, 22, 62), (66, 34, 86), (92, 52, 110), (124, 78, 138), (160, 110, 166)]
@@ -45,21 +54,33 @@ TOXICO = [(30, 60, 14), (60, 110, 20), (110, 170, 30), (170, 220, 60), (220, 250
 QUITINA = [(10, 10, 22), (22, 20, 40), (38, 32, 62), (58, 48, 86), (84, 70, 112), (120, 104, 146)]
 ACIDO = [(30, 50, 10), (70, 100, 14), (130, 160, 20), (190, 214, 50), (236, 248, 130)]
 CIAN = [(16, 48, 70), (24, 90, 120), (40, 140, 170), (90, 196, 214), (170, 236, 244)]
-REGOLITO = [(38, 34, 36), (62, 56, 54), (92, 84, 76), (124, 114, 100), (160, 150, 130), (196, 186, 164)]
+REGOLITO = [
+    (38, 34, 36),
+    (62, 56, 54),
+    (92, 84, 76),
+    (124, 114, 100),
+    (160, 150, 130),
+    (196, 186, 164),
+]
 TELA_ROJA = [(40, 8, 14), (76, 14, 22), (116, 22, 30), (156, 40, 40), (190, 72, 62)]
 PALIDO = [(70, 58, 70), (112, 94, 104), (154, 134, 136), (194, 176, 168), (226, 212, 196)]
 ALGA = [(14, 34, 26), (22, 56, 34), (36, 82, 42), (58, 110, 52), (90, 140, 70)]
 PAJA = [(80, 60, 20), (130, 100, 36), (180, 146, 60), (214, 186, 96), (240, 222, 150)]
 CUERO = [(28, 16, 12), (52, 30, 20), (82, 50, 30), (114, 74, 44), (146, 102, 64)]
 
+
 # ---------------------------------------------------------------- geometria
 def regiones(u, v, w, h, d):
     """Caras de una caja en el layout estandar de Minecraft: (x, y, ancho, alto)."""
     return {
-        "top": (u + d, v, w, d), "bottom": (u + d + w, v, w, d),
-        "der": (u, v + d, d, h), "front": (u + d, v + d, w, h),
-        "izq": (u + d + w, v + d, d, h), "back": (u + d + w + d, v + d, w, h),
+        "top": (u + d, v, w, d),
+        "bottom": (u + d + w, v, w, d),
+        "der": (u, v + d, d, h),
+        "front": (u + d, v + d, w, h),
+        "izq": (u + d + w, v + d, d, h),
+        "back": (u + d + w + d, v + d, w, h),
     }
+
 
 def rotar(p, rot):
     x, y, z = p
@@ -69,16 +90,22 @@ def rotar(p, rot):
     x, z = x * math.cos(ay) + z * math.sin(ay), -x * math.sin(ay) + z * math.cos(ay)
     return (x, y, z)
 
+
 def en(piv, rot, local):
     """Punto local de una pieza rotada, en coordenadas del modelo (para encadenar codo, rodilla, etc.)."""
-    return tuple(a + b for a, b in zip(piv, rotar(local, rot)))
+    return tuple(a + b for a, b in zip(piv, rotar(local, rot), strict=True))
+
 
 def caja_centrada(tam, y0=0):
     """Caja centrada en x/z que crece hacia arriba desde y0 (util para puas y cristales)."""
     w, h, d = tam
     return (-w / 2, y0, -d / 2, w / 2, y0 + h, d / 2)
 
-HUMANOIDE = dict(cabeza=(8, 8, 8), cuerpo=(8, 12, 4), brazo_d=(4, 12, 4), brazo_i=(4, 12, 4), pierna=(4, 12, 4))
+
+HUMANOIDE = dict(
+    cabeza=(8, 8, 8), cuerpo=(8, 12, 4), brazo_d=(4, 12, 4), brazo_i=(4, 12, 4), pierna=(4, 12, 4)
+)
+
 
 def humanoide(brazo_d=(-90, 0, 0), brazo_i=(-90, 0, 0), cabeza=(0, 0, 0), pierna_i="pierna"):
     """Esqueleto de zombie vanilla (piernas, cuerpo, cabeza, brazos al frente). Los hijos de la cabeza
@@ -92,18 +119,36 @@ def humanoide(brazo_d=(-90, 0, 0), brazo_i=(-90, 0, 0), cabeza=(0, 0, 0), pierna
         dict(r="brazo_i", caja=(-2, -10, -2, 2, 2, 2), piv=(6, 22, 0), rot=brazo_i),
     ]
 
+
 CREEPER = dict(cabeza=(8, 8, 8), cuerpo=(8, 12, 4), pata=(4, 6, 4))
+
 
 def creeper(cabeza=(0, 0, 0), cuerpo=(0, 0, 0)):
     """Esqueleto de creeper vanilla: 4 patas cortas, cuerpo y cabeza. Los hijos de la cabeza van con
     piv=(0, 18, 0) y la misma rot que la cabeza; los del cuerpo con piv=(0, 6, 0) y la rot del cuerpo."""
-    S = [dict(r="pata", caja=(-2, -6, -2, 2, 0, 2), piv=(x, 6, z)) for x in (-2, 2) for z in (-4, 4)]
+    S = [
+        dict(r="pata", caja=(-2, -6, -2, 2, 0, 2), piv=(x, 6, z)) for x in (-2, 2) for z in (-4, 4)
+    ]
     S.append(dict(r="cuerpo", caja=(-4, 0, -2, 4, 12, 2), piv=(0, 6, 0), rot=cuerpo))
-    S.append(dict(r="cabeza", caja=(-4, 0, -4, 4, 8, 4), piv=en((0, 6, 0), cuerpo, (0, 12, 0)), rot=cabeza))
+    S.append(
+        dict(
+            r="cabeza", caja=(-4, 0, -4, 4, 8, 4), piv=en((0, 6, 0), cuerpo, (0, 12, 0)), rot=cabeza
+        )
+    )
     return S
 
-CARA_CREEPER = {"K": (NEGRO, 0), "k": -2, "s": -1, "R": (OJO, 2), "r": (OJO, 1), "W": (HUESO, 3), "c": (CARNE, 1),
-                "B": (HUESO, 4)}
+
+CARA_CREEPER = {
+    "K": (NEGRO, 0),
+    "k": -2,
+    "s": -1,
+    "R": (OJO, 2),
+    "r": (OJO, 1),
+    "W": (HUESO, 3),
+    "c": (CARNE, 1),
+    "B": (HUESO, 4),
+}
+
 
 def empacar(piezas, ancho=128):
     """Acomoda las regiones en la textura; devuelve {region: (u, v)} y el alto de la textura."""
@@ -119,13 +164,16 @@ def empacar(piezas, ancho=128):
     alto = y + fila
     return uvs, (64 if alto <= 64 else 128)
 
+
 # ---------------------------------------------------------------- pintura
 def ruido(seed, esc):
     """Ruido de valor suave (bilineal + smoothstep), determinista."""
+
     def g(ix, iy):
         h = (ix * 374761393 + iy * 668265263 + seed * 2147483647) & 0xFFFFFFFF
         h = ((h ^ (h >> 13)) * 1274126177) & 0xFFFFFFFF
         return (h & 0xFFFF) / 0xFFFF
+
     def f(x, y):
         x, y = x / esc, y / esc
         ix, iy = math.floor(x), math.floor(y)
@@ -134,7 +182,9 @@ def ruido(seed, esc):
         a = g(ix, iy) + (g(ix + 1, iy) - g(ix, iy)) * fx
         b = g(ix, iy + 1) + (g(ix + 1, iy + 1) - g(ix, iy + 1)) * fx
         return a + (b - a) * fy
+
     return f
+
 
 class Lienzo:
     def __init__(self, w, h, seed):
@@ -195,8 +245,10 @@ class Lienzo:
                     else:
                         t = j / max(1, rh - 1)
                         v = base + var * n - grad * (t - 0.35)
-                        if j == 0: v += 0.12
-                        if i in (0, rw - 1): v -= 0.05
+                        if j == 0:
+                            v += 0.12
+                        if i in (0, rw - 1):
+                            v -= 0.05
                     self.set(x0 + i, y0 + j, rampa, v * (len(rampa) - 1), detalle=False)
         return reg
 
@@ -234,7 +286,12 @@ class Lienzo:
                 d = math.hypot(i + 0.5 - cx, j + 0.5 - cy) + (n(i, j) - 0.5) * 2.2
                 if d < radio:
                     v = base + (n(i * 2, j * 2) - 0.5) * 0.4 - (j + 0.5 - cy) / max(radio, 1) * 0.15
-                    self.set(x0 + i, y0 + j, rampa, v * (len(rampa) - 1) + (borde if d > radio - 1 else 0))
+                    self.set(
+                        x0 + i,
+                        y0 + j,
+                        rampa,
+                        v * (len(rampa) - 1) + (borde if d > radio - 1 else 0),
+                    )
 
     def sombra(self, rect, filas, desde="top", fuerza=2):
         """Oclusion: oscurece las filas pegadas a otra pieza (cuello, cadera, axila)."""
@@ -248,15 +305,22 @@ class Lienzo:
         """Costillas con volumen: hueso iluminado arriba, carne en sombra entre medio."""
         for k in range(filas):
             for i in range(ancho):
-                self.set(rect[0] + x + i, rect[1] + y + k * 2, HUESO, 3 + (i in (1, 2)) - (i == ancho - 1))
+                self.set(
+                    rect[0] + x + i,
+                    rect[1] + y + k * 2,
+                    HUESO,
+                    3 + (i in (1, 2)) - (i == ancho - 1),
+                )
                 self.set(rect[0] + x + i, rect[1] + y + k * 2 + 1, CARNE, 1 + (i % 3 == 0))
 
     def columna(self, rect, x, hasta=None):
         """Vertebras expuestas de 2 px de ancho en la cara indicada."""
         x0, y0, rw, rh = rect
         for j in range(0, (hasta or rh) - 1, 2):
-            self.set(x0 + x, y0 + j, HUESO, 3); self.set(x0 + x + 1, y0 + j, HUESO, 2)
-            self.set(x0 + x, y0 + j + 1, HUESO, 1); self.set(x0 + x + 1, y0 + j + 1, HUESO, 1)
+            self.set(x0 + x, y0 + j, HUESO, 3)
+            self.set(x0 + x + 1, y0 + j, HUESO, 2)
+            self.set(x0 + x, y0 + j + 1, HUESO, 1)
+            self.set(x0 + x + 1, y0 + j + 1, HUESO, 1)
 
     def garras(self, rect, filas=1):
         """Ultimas filas de una extremidad: garras/nudillos de hueso alternados con sombra."""
@@ -286,10 +350,12 @@ class Lienzo:
         self.rellenar(reg["top"], rampa, 4)
         self.rellenar(reg["bottom"], rampa, 1)
 
+
 # ---------------------------------------------------------------- capa exterior (relieve)
 # Lo que se hunde en la carne se queda en la base: cuencas, bocas, ojos y heridas abiertas.
 HUNDIDO = (NEGRO, OJO, CARNE)
 UMBRAL_GRUMO = 0.6
+
 
 def inflado(tam):
     """Cuanto sobresale la capa exterior de una caja (px de modelo): 0.5 como el sombrero del jugador, 0.25 en
@@ -297,6 +363,7 @@ def inflado(tam):
     El mod usa la misma regla en sus capas exteriores (CapaExterior.java)."""
     grosor = min(tam)
     return 0.5 if grosor >= 4 else 0.25 if grosor >= 2 else 0.0
+
 
 def relieve_auto(t, uvs, piezas):
     """Capa exterior generada desde la pintura: el detalle que no es hundido sobresale un tono mas claro y el
@@ -324,6 +391,7 @@ def relieve_auto(t, uvs, piezas):
                         if lateral and j + 1 < rh and grumo(x, y + 1) <= UMBRAL_GRUMO:
                             t.ajustar(x, y + 1, -1)
 
+
 def construir(mod):
     """Pinta la textura base y la capa exterior y arma el modelo de un modulo de diseno.
     Devuelve (textura, modelo, exterior); cada parte trae 'inflado', lo que sobresale su caja exterior."""
@@ -333,15 +401,27 @@ def construir(mod):
     relieve_auto(t, uvs, mod.PIEZAS)
     if hasattr(mod, "relieve"):
         mod.relieve(t, lambda n: uvs[n], mod.PIEZAS)
-    modelo = [dict(r=p["r"], uv=uvs[p["r"]], caja=tuple(p["caja"]), piv=tuple(p.get("piv", (0, 0, 0))),
-                   rot=tuple(p.get("rot", (0, 0, 0))), inflado=inflado(mod.PIEZAS[p["r"]])) for p in mod.partes()]
+    modelo = [
+        dict(
+            r=p["r"],
+            uv=uvs[p["r"]],
+            caja=tuple(p["caja"]),
+            piv=tuple(p.get("piv", (0, 0, 0))),
+            rot=tuple(p.get("rot", (0, 0, 0))),
+            inflado=inflado(mod.PIEZAS[p["r"]]),
+        )
+        for p in mod.partes()
+    ]
     for p in modelo:
         x0, y0, z0, x1, y1, z1 = p["caja"]
         esperado = mod.PIEZAS[p["r"]]
         real = (round(x1 - x0), round(y1 - y0), round(z1 - z0))
         if real != tuple(esperado):
-            raise ValueError(f"{mod.MOB['clave']}: la caja de '{p['r']}' mide {real} pero PIEZAS dice {esperado}")
+            raise ValueError(
+                f"{mod.MOB['clave']}: la caja de '{p['r']}' mide {real} pero PIEZAS dice {esperado}"
+            )
     return t.im, modelo, t.exterior
+
 
 # ---------------------------------------------------------------- vista previa (render ortografico con PIL)
 def _caras(parte, g=0.0):
@@ -359,6 +439,7 @@ def _caras(parte, g=0.0):
         (reg["bottom"], (0, -1, 0), lambda s, t: (x0 + s * w, y0, z1 - t * d)),
     ]
 
+
 def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30, exterior=None):
     """Render ortografico; con exterior (textura de la capa exterior) dibuja tambien las cajas infladas."""
     polis = []
@@ -367,7 +448,11 @@ def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30, exterior=None):
         capas += [(parte, exterior, parte["inflado"]) for parte in modelo if parte.get("inflado")]
     for parte, img, g in capas:
         piv, rot = parte["piv"], parte["rot"]
-        mundo = lambda p: rotar(rotar(tuple(a + b for a, b in zip(rotar(p, rot), piv)), (0, yaw, 0)), (pitch, 0, 0))
+
+        def mundo(p, piv=piv, rot=rot):
+            local = tuple(a + b for a, b in zip(rotar(p, rot), piv, strict=True))
+            return rotar(rotar(local, (0, yaw, 0)), (pitch, 0, 0))
+
         for (u, v, w, h), n, f in _caras(parte, g):
             nn = rotar(rotar(rotar(n, rot), (0, yaw, 0)), (pitch, 0, 0))
             if nn[2] <= 1e-6:
@@ -378,12 +463,23 @@ def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30, exterior=None):
                     c = img.getpixel((u + i, v + j))
                     if c[3] == 0:
                         continue
-                    pts = [mundo(f(a / w, b / h)) for a, b in ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))]
-                    polis.append((sum(p[2] for p in pts) / 4, pts, tuple(min(255, int(k * luz)) for k in c[:3])))
+                    pts = [
+                        mundo(f(a / w, b / h))
+                        for a, b in ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))
+                    ]
+                    polis.append(
+                        (
+                            sum(p[2] for p in pts) / 4,
+                            pts,
+                            tuple(min(255, int(k * luz)) for k in c[:3]),
+                        )
+                    )
     polis.sort(key=lambda p: p[0])
     xs = [p[0] for _, pts, _ in polis for p in pts]
     ys = [p[1] for _, pts, _ in polis for p in pts]
-    escala = min((tam[0] - 2 * margen) / (max(xs) - min(xs)), (tam[1] - 2 * margen) / (max(ys) - min(ys)))
+    escala = min(
+        (tam[0] - 2 * margen) / (max(xs) - min(xs)), (tam[1] - 2 * margen) / (max(ys) - min(ys))
+    )
     cx = tam[0] / 2 - (min(xs) + max(xs)) / 2 * escala
     cy = tam[1] / 2 + (min(ys) + max(ys)) / 2 * escala
     im = Image.new("RGBA", tam, (0, 0, 0, 0))
@@ -392,7 +488,9 @@ def render(modelo, tex, yaw, pitch, tam=(520, 560), margen=30, exterior=None):
         dr.polygon([(cx + p[0] * escala, cy - p[1] * escala) for p in pts], fill=col, outline=col)
     return im
 
+
 FONDO = (24, 24, 30, 255)
+
 
 def ampliar(tex, k, fondo=(40, 40, 46, 255)):
     """Textura ampliada k veces con 1 px de rejilla entre pixeles; lo transparente queda del color de fondo."""
@@ -404,15 +502,20 @@ def ampliar(tex, k, fondo=(40, 40, 46, 255)):
                 tg.paste(c[:3] + (255,), (x * k, y * k, x * k + k - 1, y * k + k - 1))
     return tg
 
+
 def lamina(titulo, modelo, tex, archivo, exterior=None):
     """Lamina de revision: frente 3/4, espalda 3/4, la textura ampliada y debajo la de la capa exterior."""
     f1, f2 = ImageFont.load_default(size=30), ImageFont.load_default(size=18)
-    vistas = [(render(modelo, tex, 32, 14, exterior=exterior), "frente 3/4"),
-              (render(modelo, tex, 212, 14, exterior=exterior), "espalda 3/4")]
+    vistas = [
+        (render(modelo, tex, 32, 14, exterior=exterior), "frente 3/4"),
+        (render(modelo, tex, 212, 14, exterior=exterior), "espalda 3/4"),
+    ]
     k = 4 if exterior is not None and tex.size[1] > 64 else 8 if exterior is None else 5
     texturas = [(ampliar(tex, k), f"textura {tex.size[0]}x{tex.size[1]} (ampliada x{k})")]
     if exterior is not None:
-        texturas.append((ampliar(exterior, k, (30, 30, 36, 255)), "capa exterior (lo pintado sobresale)"))
+        texturas.append(
+            (ampliar(exterior, k, (30, 30, 36, 255)), "capa exterior (lo pintado sobresale)")
+        )
     alto_t = sum(tg.size[1] + 40 for tg, _ in texturas)
     ancho_v = sum(v.size[0] for v, _ in vistas) + 20
     ancho_t = max(tg.size[0] for tg, _ in texturas)

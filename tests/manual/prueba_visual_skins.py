@@ -22,12 +22,44 @@ SERVIDOR = RAIZ / "runtime/test-server"
 CLIENTE = banco.CLIENTE
 PUERTO = 25570
 MODS = ("creepers", "zombies", "space")
-CREEPERS = ("fuego", "hielo", "saltarin", "mini", "electrico", "multiplicador", "toxico", "gigante", "rey")
-ZOMBIES = (
-    "minero", "ladron", "bombero", "abismo", "escudero", "hambriento", "griton", "bruja",
-    "granjero", "congelado", "jinete", "bilioso", "enano", "contagiado", "mimo", "explorador",
+CREEPERS = (
+    "fuego",
+    "hielo",
+    "saltarin",
+    "mini",
+    "electrico",
+    "multiplicador",
+    "toxico",
+    "gigante",
+    "rey",
 )
-KEPLER = ("parasito", "acechador", "gusano", "centinela", "zombi_espacial", "esqueleto_espacial", "creeper_espacial")
+ZOMBIES = (
+    "minero",
+    "ladron",
+    "bombero",
+    "abismo",
+    "escudero",
+    "hambriento",
+    "griton",
+    "bruja",
+    "granjero",
+    "congelado",
+    "jinete",
+    "bilioso",
+    "enano",
+    "contagiado",
+    "mimo",
+    "explorador",
+)
+KEPLER = (
+    "parasito",
+    "acechador",
+    "gusano",
+    "centinela",
+    "zombi_espacial",
+    "esqueleto_espacial",
+    "creeper_espacial",
+)
 # (distancia de la cámara, altura del punto que mira) en bloques; el resto usa NORMAL.
 NORMAL = (2.0, 0.95)
 ENCUADRE = {
@@ -58,7 +90,11 @@ def mobs() -> list[str]:
 
 def jar(mod: str) -> Path:
     return max(
-        (p for p in (RAIZ / "mods" / mod / "build/libs").glob("*.jar") if not p.stem.endswith("sources")),
+        (
+            p
+            for p in (RAIZ / "mods" / mod / "build/libs").glob("*.jar")
+            if not p.stem.endswith("sources")
+        ),
         key=lambda p: p.stat().st_mtime,
     )
 
@@ -84,8 +120,25 @@ def lanzar_cliente() -> None:
     javaw = buscar_java().replace("java.exe", "javaw.exe").replace("/bin/java", "/bin/javaw")
     with open(CLIENTE / "lanzador.log", "w", encoding="utf-8") as log:
         subprocess.Popen(
-            [sys.executable, "-m", "portablemc", "--main-dir", str(CLIENTE), "start", "fabric:26.3",
-             "--jvm", javaw, "-u", "Tester", "--resolution", "1280x720", "-s", "127.0.0.1", "-p", str(PUERTO)],
+            [
+                sys.executable,
+                "-m",
+                "portablemc",
+                "--main-dir",
+                str(CLIENTE),
+                "start",
+                "fabric:26.3",
+                "--jvm",
+                javaw,
+                "-u",
+                "Tester",
+                "--resolution",
+                "1280x720",
+                "-s",
+                "127.0.0.1",
+                "-p",
+                str(PUERTO),
+            ],
             stdout=log,
             stderr=subprocess.STDOUT,
             creationflags=banco.SIN_VENTANA,
@@ -119,7 +172,9 @@ def main() -> None:
     carpeta.mkdir(parents=True, exist_ok=True)
     preparar()
 
-    servidor = ServidorFabric(SERVIDOR, memoria="2G", log="prueba_visual.log", timeout_arranque=600.0)
+    servidor = ServidorFabric(
+        SERVIDOR, memoria="2G", log="prueba_visual.log", timeout_arranque=600.0
+    )
     servidor.iniciar()
     print("Servidor listo. Lanzando el cliente con Fabric...")
     lanzar_cliente()
@@ -127,27 +182,39 @@ def main() -> None:
         servidor.esperar("Tester joined the game", timeout=900.0)
     except AssertionError:
         servidor.detener()
-        raise SystemExit("El cliente no se conectó (mira runtime/test-client/lanzador.log)") from None
+        raise SystemExit(
+            "El cliente no se conectó (mira runtime/test-client/lanzador.log)"
+        ) from None
     time.sleep(12)
 
-    reglas = ("advance_time false", "advance_weather false", "mob_griefing false", "spawn_mobs false",
-              "send_command_feedback false", "log_admin_commands false")
+    reglas = (
+        "advance_time false",
+        "advance_weather false",
+        "mob_griefing false",
+        "spawn_mobs false",
+        "send_command_feedback false",
+        "log_admin_commands false",
+    )
     for regla in reglas:
         servidor.comando(f"gamerule {regla}")
     for dimension in {"minecraft:overworld", *DIMENSION.values()}:
         servidor.comando(f"execute in {dimension} run forceload add -48 -16 48 80", 2)
-        servidor.comando(f"execute in {dimension} run fill -48 -61 0 48 -61 72 minecraft:smooth_stone", 1)
+        servidor.comando(
+            f"execute in {dimension} run fill -48 -61 0 48 -61 72 minecraft:smooth_stone", 1
+        )
     servidor.comando("time set 6000")
     servidor.comando("weather clear")
     servidor.comando("gamemode spectator Tester")
 
     for i, mob in enumerate(elegidos):
         x, z = lugar(i)
-        servidor.comando(en(
-            mob,
-            f"summon {mob} {x + 0.5} -60 {z + 0.5} "
-            "{NoAI:1b,NoGravity:1b,Silent:1b,IsBaby:0b,Rotation:[0f,0f],PersistenceRequired:1b}",
-        ))
+        servidor.comando(
+            en(
+                mob,
+                f"summon {mob} {x + 0.5} -60 {z + 0.5} "
+                "{NoAI:1b,NoGravity:1b,Silent:1b,IsBaby:0b,Rotation:[0f,0f],PersistenceRequired:1b}",
+            )
+        )
     time.sleep(3)
     servidor.comando("kill @e[type=minecraft:slime]")
     servidor.comando("clear Tester")

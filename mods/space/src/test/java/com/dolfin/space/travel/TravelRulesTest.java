@@ -67,6 +67,20 @@ class TravelRulesTest {
     }
 
     @Test
+    void landingClearanceFitsTheTallestShip() {
+        for (var tier : com.dolfin.space.ships.ShipTier.values())
+            assertTrue(
+                    com.dolfin.space.ships.ShipDesign.of(tier).height() <= SafeLanding.CLEARANCE,
+                    tier + " taller than landing clearance");
+        SafeLanding.Terrain lowCeiling =
+                (x, y, z) ->
+                        y == 0 || y == SafeLanding.CLEARANCE
+                                ? new SafeLanding.Cell(true, false, false, "stone")
+                                : new SafeLanding.Cell(false, true, false, "air");
+        assertFalse(SafeLanding.safe(lowCeiling, 0, 1, 0));
+    }
+
+    @Test
     void landingLoadsWholeFootprintBeforeReadingHeight() {
         assertEquals(
                 net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,

@@ -19,9 +19,8 @@ import re
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
-
 import ship_art
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 DESIGN = "mods/space/src/main/java/com/dolfin/space/ships/ShipDesign.java"
@@ -161,10 +160,7 @@ def viewer(out: Path, before: str | None) -> None:
                 "tw": textures[tier].width,
                 "th": textures[tier].height,
                 "partes": [[p.x, p.y, p.z, p.w, p.h, p.d, p.u, p.v] for p in designs[tier]],
-                "toberas": [
-                    [float(n) for n in m]
-                    for m in re.findall(NOZZLE_PATTERN, section)
-                ],
+                "toberas": [[float(n) for n in m] for m in re.findall(NOZZLE_PATTERN, section)],
             }
     template = (Path(__file__).parent / "ship_viewer.html").read_text(encoding="utf-8")
     out.parent.mkdir(parents=True, exist_ok=True)

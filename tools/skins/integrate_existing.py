@@ -38,7 +38,16 @@ class Mod:
     namespace: str
 
     def assets(self) -> Path:
-        return ROOT / "mods" / self.folder / "src" / self.source_set / "resources" / "assets" / self.namespace
+        return (
+            ROOT
+            / "mods"
+            / self.folder
+            / "src"
+            / self.source_set
+            / "resources"
+            / "assets"
+            / self.namespace
+        )
 
     def textures(self) -> Path:
         return self.assets() / "textures" / "entity"
@@ -103,7 +112,18 @@ HEADS = ("cabeza", "ojo")
 LEGS = ("pierna", "pierna_i", "hueso_pierna", "pata", "muslo", "pata_del", "anca", "dedo")
 ARMS = ("brazo", "brazo_d", "brazo_i", "brazo_largo", "brazo_x", "hueso_brazo")
 DANGLING = ("tentaculo", "tentaculo_corto", "cola", "alga", "alga_corta", "capa")
-TRUNK = ("cuerpo", "panza", "pecho", "torax", "abdomen", "anillo1", "anillo2", "anillo3", "anillo4", "anillo5")
+TRUNK = (
+    "cuerpo",
+    "panza",
+    "pecho",
+    "torax",
+    "abdomen",
+    "anillo1",
+    "anillo2",
+    "anillo3",
+    "anillo4",
+    "anillo5",
+)
 BODY = "__cuerpo__"
 
 
@@ -153,7 +173,7 @@ def minecraft_rotation(rot: tuple[float, float, float]) -> tuple[float, float, f
 
 def _local(part: dict, point: tuple[float, float, float]) -> tuple[float, float, float]:
     """Point in model coordinates expressed in the part's own (unrotated) coordinates."""
-    d = tuple(a - b for a, b in zip(point, part["piv"]))
+    d = tuple(a - b for a, b in zip(point, part["piv"], strict=True))
     m = _matrix(part["rot"])
     return tuple(sum(m[r][c] * d[r] for r in range(3)) for c in range(3))
 
@@ -199,7 +219,9 @@ def bones(model: list[dict]) -> tuple[list[dict], list[str | None]]:
             continue
         kind = _role_kind(part["r"])
         # a chained piece (second tail segment) joins its parent bone of the same kind instead of starting one
-        if kind is None or any(kinds.get(owner[j]) == kind and _holds(model[j], part["piv"], 0.3) for j in range(i)):
+        if kind is None or any(
+            kinds.get(owner[j]) == kind and _holds(model[j], part["piv"], 0.3) for j in range(i)
+        ):
             continue
         name = f"{kind}_{len(found)}"
         found.append(dict(nombre=name, tipo=kind, piv=part["piv"], raiz=i))
@@ -211,19 +233,31 @@ def bones(model: list[dict]) -> tuple[list[dict], list[str | None]]:
         for i, part in enumerate(model):
             if owner[i]:
                 continue
-            if head and part["piv"] == model[head["raiz"]]["piv"] and part["rot"] == model[head["raiz"]]["rot"]:
+            if (
+                head
+                and part["piv"] == model[head["raiz"]]["piv"]
+                and part["rot"] == model[head["raiz"]]["rot"]
+            ):
                 owner[i], changed = head["nombre"], True
                 continue
             anchor = _anchor(part)
-            best = max(((_depth(other, anchor), j) for j, other in enumerate(model) if owner[j] and j != i),
-                       default=None)
+            best = max(
+                (
+                    (_depth(other, anchor), j)
+                    for j, other in enumerate(model)
+                    if owner[j] and j != i
+                ),
+                default=None,
+            )
             if best and best[0] >= -0.6:
                 owner[i], changed = owner[best[1]], True
     owner = [None if o == BODY else o for o in owner]
     for bone in found:
         x, _, z = bone["piv"]
         bone["fase"] = _phase(bone, found)
-        bone["pieza"] = bone.pop("raiz")  # the piece that starts the bone (an arm holds items at its end)
+        bone["pieza"] = bone.pop(
+            "raiz"
+        )  # the piece that starts the bone (an arm holds items at its end)
         bone["lado"] = 1 if x > 0 else -1 if x < 0 else 0
         bone["frente"] = 1 if z > 0.5 else -1 if z < -0.5 else 0
     return found, owner
@@ -234,8 +268,10 @@ def _phase(bone: dict, found: list[dict]) -> float:
     x, _, z = bone["piv"]
     if bone["tipo"] not in ("pierna", "brazo"):
         return 0.0
-    same = sorted((b for b in found if b["tipo"] == bone["tipo"] and (b["piv"][0] > 0) == (x > 0)),
-                  key=lambda b: b["piv"][2])
+    same = sorted(
+        (b for b in found if b["tipo"] == bone["tipo"] and (b["piv"][0] > 0) == (x > 0)),
+        key=lambda b: b["piv"][2],
+    )
     rank = next(k for k, b in enumerate(same) if b is bone)
     left = x > 0
     return math.pi if left ^ (rank % 2 == 1) else 0.0
@@ -251,24 +287,26 @@ def export_model(design, model: list[dict], texture: Image.Image) -> dict:
         return [round(x, 4), round(24 - y, 4), round(-z, 4)]
 
     pieces = []
-    for part, bone in zip(model, owner):
+    for part, bone in zip(model, owner, strict=True):
         x0, y0, z0, x1, y1, z1 = part["caja"]
         piv = part["piv"]
         if bone:
             gx, gy, gz = pivots[bone]
             piv = (piv[0] - gx, piv[1] - gy, piv[2] - gz)
         px, py, pz = piv
-        pieces.append(dict(
-            nombre=part["r"],
-            hueso=bone,
-            uv=list(part["uv"]),
-            origen=[round(x0, 4), round(-y1, 4), round(-z1, 4)],
-            tam=[round(x1 - x0, 4), round(y1 - y0, 4), round(z1 - z0, 4)],
-            # inside a bone the pivot is relative to it; the bone itself sits at its pivot with no rotation
-            piv=[round(px, 4), round(-py, 4) if bone else round(24 - py, 4), round(-pz, 4)],
-            rot=[round(a, 5) for a in minecraft_rotation(part["rot"])],
-            inflado=part["inflado"],
-        ))
+        pieces.append(
+            dict(
+                nombre=part["r"],
+                hueso=bone,
+                uv=list(part["uv"]),
+                origen=[round(x0, 4), round(-y1, 4), round(-z1, 4)],
+                tam=[round(x1 - x0, 4), round(y1 - y0, 4), round(z1 - z0, 4)],
+                # inside a bone the pivot is relative to it; the bone itself sits at its pivot with no rotation
+                piv=[round(px, 4), round(-py, 4) if bone else round(24 - py, 4), round(-pz, 4)],
+                rot=[round(a, 5) for a in minecraft_rotation(part["rot"])],
+                inflado=part["inflado"],
+            )
+        )
     for bone in found:
         bone["piv"] = mc(bone["piv"])
     alto, ancho = extents(model)
@@ -290,9 +328,11 @@ def extents(model: list[dict]) -> tuple[float, float]:
     for part in model:
         x0, y0, z0, x1, y1, z1 = part["caja"]
         for corner in ((a, b, c) for a in (x0, x1) for b in (y0, y1) for c in (z0, z1)):
-            x, y, z = (u + v for u, v in zip(motor.rotar(corner, part["rot"]), part["piv"]))
+            x, y, z = (
+                u + v for u, v in zip(motor.rotar(corner, part["rot"]), part["piv"], strict=True)
+            )
             xs.append(x), ys.append(y), zs.append(z)
-    return max(ys) - min(0, min(ys)), max(max(xs) - min(xs), max(zs) - min(zs))
+    return max(ys) - min(0, *ys), max(max(xs) - min(xs), max(zs) - min(zs))
 
 
 def eyes(texture: Image.Image) -> Image.Image:

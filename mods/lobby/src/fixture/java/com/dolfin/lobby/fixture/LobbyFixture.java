@@ -15,12 +15,14 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.*;
 import net.minecraft.server.network.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.*;
+import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.*;
 import net.minecraft.world.phys.*;
 
@@ -96,6 +98,7 @@ public final class LobbyFixture implements ModInitializer {
                     cases.put("phases", LobbyFixture::phases);
                     cases.put("portals", LobbyFixture::portals);
                     cases.put("dungeon-compat", LobbyFixture::dungeonCompat);
+                    cases.put("third-party", LobbyFixture::thirdParty);
                     cases.put("resume", LobbyFixture::resume);
                     for (var phase : FlightJournal.Phase.values())
                         cases.put(
@@ -751,6 +754,92 @@ public final class LobbyFixture implements ModInitializer {
                 () -> s.lobby(a),
                 () -> s.survival(a),
                 () -> inventory(a, 11));
+    }
+
+    /** Worn Traveler's Backpack and foreign teleports (Waystones) against the escrow. */
+    private static void thirdParty(MinecraftServer server) {
+        var s = DolfinLobby.sessions();
+        var type =
+                net.fabricmc.fabric.impl.attachment.AttachmentRegistryImpl.get(
+                        Identifier.fromNamespaceAndPath("travelersbackpack", "travelers_backpack"));
+        check(type != null, "travelers backpack attachment registered");
+        var ops = server.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        java.util.function.Supplier<String> worn =
+                () -> a.hasAttached(type) ? encode(type, ops, a.getAttached(type)) : "";
+        check(!s.isolated(A), "third-party starts in survival");
+        try {
+            var item =
+                    net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
+                            Identifier.fromNamespaceAndPath("travelersbackpack", "standard"));
+            check(item != Items.AIR, "standard backpack item registered");
+            var attachment =
+                    Class.forName("com.tiviacz.travelersbackpack.attachment.BackpackAttachment")
+                            .getConstructor(ItemStack.class)
+                            .newInstance(new ItemStack(item));
+            setAttached(a, type, attachment);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("backpack fixture", e);
+        }
+        check(worn.get().contains("travelersbackpack:standard"), "survival backpack worn");
+        plan(
+                () -> s.lobby(a),
+                () -> {
+                    check(s.isolated(A), "lobby session isolated");
+                    // Traveler's Backpack recreates an empty attachment on sync; no stack is worn.
+                    check(
+                            !worn.get().contains("travelersbackpack:standard"),
+                            "worn backpack withheld during demo");
+                    var lobby = a.level();
+                    var escaped =
+                            a.teleport(
+                                    new TeleportTransition(
+                                            server.overworld(),
+                                            new Vec3(.5, 100, .5),
+                                            Vec3.ZERO,
+                                            0,
+                                            0,
+                                            TeleportTransition.DO_NOTHING));
+                    check(
+                            escaped == null && a.level() == lobby,
+                            "foreign cross-dimension teleport blocked");
+                    check(
+                            a.teleport(
+                                            new TeleportTransition(
+                                                    (ServerLevel) lobby,
+                                                    new Vec3(.5, 129, 20.5),
+                                                    Vec3.ZERO,
+                                                    0,
+                                                    0,
+                                                    TeleportTransition.DO_NOTHING))
+                                    != null,
+                            "intra-station teleport still allowed");
+                },
+                () -> s.survival(a),
+                () -> {
+                    check(!s.isolated(A), "escrow released");
+                    check(
+                            worn.get().contains("travelersbackpack:standard"),
+                            "worn backpack restored from escrow");
+                    inventory(a, 11);
+                    a.removeAttached(type);
+                });
+    }
+
+    private static <A> String encode(
+            net.fabricmc.fabric.api.attachment.v1.AttachmentType<A> type,
+            com.mojang.serialization.DynamicOps<Tag> ops,
+            Object value) {
+        @SuppressWarnings("unchecked")
+        A typed = (A) value;
+        return type.persistenceCodec().encodeStart(ops, typed).getOrThrow().toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <A> void setAttached(
+            ServerPlayer p,
+            net.fabricmc.fabric.api.attachment.v1.AttachmentType<A> type,
+            Object v) {
+        p.setAttached(type, (A) v);
     }
 
     private static void survivalDeath(MinecraftServer server) {

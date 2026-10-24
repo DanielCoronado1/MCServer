@@ -78,6 +78,7 @@ def main() -> None:
         fixture(s, "setup")
         fixture(s, "checks")
         fixture(s, "portals")
+        fixture(s, "third-party")
         command(s, "tick rate 200")
         fixture(s, "rocket")
         flight(s, "dolfinspace:kepler")

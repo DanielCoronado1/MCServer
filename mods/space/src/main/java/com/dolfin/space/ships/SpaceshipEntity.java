@@ -102,6 +102,15 @@ public final class SpaceshipEntity extends Entity {
         return EntityDimensions.scalable(d.width(), d.height());
     }
 
+    /**
+     * Plain entities snap to every position packet; the scripted flight moves the ship several
+     * blocks per second, so clients glide between updates like boats do.
+     */
+    @Override
+    protected InterpolationHandler createInterpolationHandler() {
+        return LinearInterpolationHandler.create(this, 3);
+    }
+
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);

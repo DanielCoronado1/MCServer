@@ -8,6 +8,8 @@ Cada mod propio es un subproyecto Gradle en `mods/<nombre>/` integrado en el pro
 
 `mods/creepers/` añade creepers de fuego, hielo, eléctricos, saltarines, mini, multiplicadores, tóxicos, gigantes y el Rey Creeper. Compila con `./gradlew build` (o `./gradlew :mods:creepers:build`) desde la raíz. En Windows, `scripts/update_creepers.bat` compila e instala el mod; detén el servidor primero. Despliega mediante el instalador para sincronizar las copias del servidor y de AutoModpack. Actualiza `version` en `mods/creepers/gradle.properties` al publicar cambios.
 
+Los diseños aprobados de `tools/skins/mobs/` llegan a los mods con `python tools/skins/integrate_existing.py`: cada mob (las nueve variantes de creeper, el Rey Zombie, los dieciséis zombies y los siete mobs de Kepler) se dibuja con su propio modelo, leído de `assets/<ns>/dolfin/modelos/<mob>.json`, con su textura, su capa exterior con relieve (`<mob>_exterior.png`) y sus ojos brillantes (`<mob>_ojos.png`). Las hitboxes siguen el tamaño de cada diseño. Para revisarlos en el juego, `python -m tests.manual.prueba_visual_skins` abre un servidor y un cliente de prueba y fotografía cada mob con el ángulo del visor del skill.
+
 Genera las texturas con `python3 tools/generate_creeper_textures.py`. Las texturas y su vista previa viven en el proyecto del mod. Instala `requirements-dev.txt` para usar las herramientas de recursos y comprobación visual.
 
 ### Estructuras abandonadas
@@ -68,4 +70,3 @@ El primer arranque crea `config/dolfinzombies/general.json` y `zombies/<id>.json
 ## Exploración espacial (`mods/space/` — Épica #24)
 
 `mods/space/` (`dolfinspace`) implementa la dimensión `dolfinspace:kepler` con gravedad al 40 % y la Tierra en el cielo (#25), la cadena industrial de acero, compresor, fabricador de circuitos y refinería (#26), ensamblaje de 3 naves, plataforma y cargador (#27), panel de cabina y viaje interdimensional (#28), sistema de oxígeno y compresor (#29), 5 biomas y menas espaciales (#30), fauna hostil del planeta (#31), modelos 3D, sonidos y texturas 32x (#32) e integración con OPAC, PvP, Ledger, LuckPerms y plan de pruebas en `docs/espacio/PRUEBAS.md` (#33). Compila con `JAVA_HOME=<JDK25> ./gradlew :mods:space:build --no-daemon` (o `./gradlew build` para todos).
-

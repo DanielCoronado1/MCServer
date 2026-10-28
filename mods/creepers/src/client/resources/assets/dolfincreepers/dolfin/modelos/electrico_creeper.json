@@ -1,0 +1,398 @@
+{
+ "clave": "creeper_electrico",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 1.0,
+ "alto": 1.95,
+ "ancho": 0.972,
+ "huesos": [
+  {
+   "nombre": "pierna_0",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    18,
+    4
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": -1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_1",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    18,
+    -4
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 1,
+   "lado": -1,
+   "frente": 1
+  },
+  {
+   "nombre": "pierna_2",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    18,
+    4
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 2,
+   "lado": 1,
+   "frente": -1
+  },
+  {
+   "nombre": "pierna_3",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    18,
+    -4
+   ],
+   "fase": 0.0,
+   "pieza": 3,
+   "lado": 1,
+   "frente": 1
+  },
+  {
+   "nombre": "cabeza_4",
+   "tipo": "cabeza",
+   "piv": [
+    0.0,
+    6.0,
+    -0.0
+   ],
+   "fase": 0.0,
+   "pieza": 5,
+   "lado": 0,
+   "frente": 0
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "pata",
+   "hueso": "pierna_0",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_1",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_2",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "pata",
+   "hueso": "pierna_3",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -2,
+    0,
+    -2
+   ],
+   "tam": [
+    4,
+    6,
+    4
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cuerpo",
+   "hueso": null,
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -4,
+    -12,
+    -2
+   ],
+   "tam": [
+    8,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    18,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cabeza",
+   "hueso": "cabeza_4",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0.0,
+    -0.0,
+    -0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.06981
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "varilla",
+   "hueso": "cabeza_4",
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -0.5,
+    -9,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    9,
+    1.0
+   ],
+   "piv": [
+    -1.5,
+    -5.0,
+    1.0
+   ],
+   "rot": [
+    -0.2618,
+    0.0,
+    -0.43633
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "varilla_corta",
+   "hueso": "cabeza_4",
+   "uv": [
+    76,
+    0
+   ],
+   "origen": [
+    -0.5,
+    -6,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    6,
+    1.0
+   ],
+   "piv": [
+    2.0,
+    -6.0,
+    -1.5
+   ],
+   "rot": [
+    0.17453,
+    0.0,
+    0.34907
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "varilla",
+   "hueso": null,
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -0.5,
+    -9,
+    -0.5
+   ],
+   "tam": [
+    1.0,
+    9,
+    1.0
+   ],
+   "piv": [
+    1,
+    15,
+    1.5
+   ],
+   "rot": [
+    -1.0472,
+    0.0,
+    0.2618
+   ],
+   "inflado": 0.0
+  },
+  {
+   "nombre": "perno",
+   "hueso": "cabeza_4",
+   "uv": [
+    80,
+    0
+   ],
+   "origen": [
+    -1,
+    -1,
+    -1
+   ],
+   "tam": [
+    2,
+    2,
+    2
+   ],
+   "piv": [
+    -4.4,
+    -1.0,
+    -0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "perno",
+   "hueso": "cabeza_4",
+   "uv": [
+    80,
+    0
+   ],
+   "origen": [
+    -1,
+    -1,
+    -1
+   ],
+   "tam": [
+    2,
+    2,
+    2
+   ],
+   "piv": [
+    4.4,
+    -1.0,
+    -0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.25
+  }
+ ]
+}

@@ -48,6 +48,9 @@ public final class TravelClientModule {
                                                 c.client()
                                                         .gui
                                                         .setScreen(new StarTransitionScreen());
+                                            else if (c.client().gui.screen()
+                                                    instanceof StarTransitionScreen)
+                                                c.client().gui.setScreen(null);
                                             if (p.phase() < 0) intensity = 0;
                                         }));
         ClientPlayConnectionEvents.DISCONNECT.register(

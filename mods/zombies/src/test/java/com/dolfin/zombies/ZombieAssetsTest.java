@@ -38,12 +38,12 @@ class ZombieAssetsTest {
     }
 
     @Test
-    void allSixteenHaveDistinct64PixelSkins() throws Exception {
+    void allSixteenHaveDistinct128x64Skins() throws Exception {
         assertEquals(16, ZombieKind.values().length);
         Set<String> hashes = new HashSet<>();
         for (var kind : ZombieKind.values()) {
             String path = "textures/entity/" + kind.id() + ".png";
-            image(path, 64, 64);
+            image(path, 128, 64);
             assertTrue(
                     hashes.add(
                             HexFormat.of()

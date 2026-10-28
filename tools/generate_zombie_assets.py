@@ -99,16 +99,19 @@ def main():
     write_preview()
     write_sounds()
     print(
-        "Generated 16 skins, 16 accessory atlases, 6 glow atlases, 16 eggs, 4 mono cues, "
+        "Generated 16 accessory atlases, 6 glow atlases, 16 eggs, 4 mono cues, "
         "4 locales and preview."
     )
 
 
 def write_kind_textures(textures, name, style, seed):
-    """Skin, prop atlas and the emissive layers the renderer requests for this kind."""
-    skin, glow = paint_skin(name, style, seed)
+    """Legacy prop atlas and emissive layers for this kind.
+
+    The skin itself (``<name>_zombie.png``) now comes from the kind's design model and is written by
+    ``tools/skins/integrate_existing.py``; writing the old 64x64 skin here would break that model.
+    """
+    _, glow = paint_skin(name, style, seed)
     props, props_glow = paint_props(name, seed)
-    skin.save(textures / f"{name}_zombie.png")
     props.save(textures / f"{name}_zombie_accessories.png")
     if style.glow:
         glow.save(textures / f"{name}_zombie_eyes.png")

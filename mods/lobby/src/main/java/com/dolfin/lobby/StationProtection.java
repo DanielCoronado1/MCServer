@@ -10,6 +10,21 @@ import net.minecraft.world.level.Level;
 /** Server-thread protection; mutation scope is entered only by repeatable construction tooling. */
 public final class StationProtection {
     private static int editing;
+    private static int routing;
+
+    /** Marks a teleport performed by the station router itself. */
+    public static void route(Runnable action) {
+        routing++;
+        try {
+            action.run();
+        } finally {
+            routing--;
+        }
+    }
+
+    public static boolean routing() {
+        return routing > 0;
+    }
 
     public static void edit(Runnable action) {
         editing++;

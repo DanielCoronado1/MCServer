@@ -99,8 +99,11 @@ class SpaceAssetsAuditTest {
 
     @Test
     void everyEntityRendererHasTextureOrExplicitParticleItemRenderer() throws Exception {
-        for (var mob : FaunaRules.MOBS)
+        for (var mob : FaunaRules.MOBS) {
             assertTrue(Files.exists(A.resolve("textures/entity/" + mob + ".png")), mob);
+            assertTrue(Files.exists(A.resolve("textures/entity/" + mob + "_exterior.png")), mob);
+            assertTrue(Files.exists(A.resolve("dolfin/modelos/" + mob + ".json")), mob);
+        }
         for (var tier : ShipTier.values())
             assertTrue(Files.exists(A.resolve("textures/entity/" + tier.itemId() + ".png")));
         assertTrue(Files.exists(A.resolve("textures/entity/flecha_cristal.png")));

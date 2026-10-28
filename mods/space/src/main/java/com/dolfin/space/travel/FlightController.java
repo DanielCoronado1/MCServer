@@ -31,6 +31,9 @@ public final class FlightController {
             demoLanding = (ship, world) -> null;
     private static final Set<String> additionalLaunchWorlds = new HashSet<>();
 
+    /** Chunk radius generated around the landing spot before the ship arrives. */
+    private static final int PRELOAD_RADIUS = 3;
+
     public static void allowLaunchWorld(String id) {
         Identifier.parse(id);
         additionalLaunchWorlds.add(id);
@@ -299,6 +302,8 @@ public final class FlightController {
                                     ship.blockPosition().getX() >> 4,
                                     ship.blockPosition().getZ() >> 4),
                             2);
+        if (ship.tickCount % 20 == 0 && j.phase() != FlightJournal.Phase.DESCENT)
+            preload(world.getServer(), j);
         switch (j.phase()) {
             case COUNTDOWN -> {
                 var pilot = ship.getFirstPassenger() instanceof ServerPlayer p ? p : null;
@@ -343,7 +348,7 @@ public final class FlightController {
                         Math.min(
                                 world.getMaxY() - 5,
                                 j.startY() + FlightProfile.ascentOffset(altitude, j.ticks()));
-                ship.setPos(ship.getX(), y, ship.getZ());
+                move(ship, ship.getX(), y, ship.getZ());
                 if (j.ticks() % 4 == 0) {
                     particles(world, ship, ParticleTypes.LARGE_SMOKE);
                     particles(world, ship, ParticleTypes.FLAME);
@@ -354,23 +359,29 @@ public final class FlightController {
                                             * (FlightProfile.ASCENT_TICKS - j.ticks())
                                             / FlightProfile.ASCENT_TICKS);
                 }
-                if (j.action(true) == FlightJournal.Action.STARS)
+                if (j.action(true) == FlightJournal.Action.STARS) {
+                    ship.setDeltaMovement(Vec3.ZERO);
                     save(
                             ship,
                             j.phase(
                                     FlightJournal.Phase.TRANSITION,
                                     FlightProfile.TRANSITION_TICKS));
-                else save(ship, j.step());
+                } else save(ship, j.step());
             }
             case TRANSITION -> {
                 if (j.ticks() % 4 == 0) particles(world, ship, ParticleTypes.END_ROD);
-                if (j.action(true) == FlightJournal.Action.TRANSFER) transfer(ship, j);
-                else save(ship, j.step());
+                if (j.action(true) != FlightJournal.Action.TRANSFER) save(ship, j.step());
+                // Ticks run negative while the landing chunks finish generating, so the star
+                // transit hides the wait instead of the arrival freezing on a synchronous load.
+                else if (!destinationReady(world.getServer(), j)
+                        && j.ticks() > 1 - FlightProfile.TRANSIT_WAIT_TICKS)
+                    save(ship, j.phase(FlightJournal.Phase.TRANSITION, j.ticks() - 1));
+                else transfer(ship, j);
             }
             case DESCENT -> {
                 var target = BlockPos.of(j.target());
                 double y = target.getY() + FlightProfile.descentOffset(j.ticks());
-                ship.setPos(target.getX() + .5, y, target.getZ() + .5);
+                move(ship, target.getX() + .5, y, target.getZ() + .5);
                 if (j.ticks() % 8 == 0) particles(world, ship, ParticleTypes.CLOUD);
                 if (j.ticks() % 5 == 0)
                     shake(
@@ -405,6 +416,43 @@ public final class FlightController {
                 } else save(ship, j.step());
             }
         }
+    }
+
+    private static ServerLevel destinationWorld(MinecraftServer server, FlightJournal j) {
+        return server.getLevel(
+                ResourceKey.create(Registries.DIMENSION, Identifier.parse(j.destination())));
+    }
+
+    /**
+     * Starts generating the landing area from the countdown on, so the dimension change finds it
+     * ready. Portal tickets expire on their own, so this is renewed every second until descent.
+     */
+    private static void preload(MinecraftServer server, FlightJournal j) {
+        var target = destinationWorld(server, j);
+        if (target == null) return;
+        var landing = BlockPos.of(j.target());
+        target.getChunkSource()
+                .addTicketWithRadius(
+                        TicketType.PORTAL,
+                        new ChunkPos(landing.getX() >> 4, landing.getZ() >> 4),
+                        PRELOAD_RADIUS);
+    }
+
+    private static boolean destinationReady(MinecraftServer server, FlightJournal j) {
+        var target = destinationWorld(server, j);
+        if (target == null) return true;
+        var landing = BlockPos.of(j.target());
+        int cx = landing.getX() >> 4, cz = landing.getZ() >> 4;
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++)
+                if (!target.getChunkSource().hasChunk(cx + dx, cz + dz)) return false;
+        return true;
+    }
+
+    /** Scripted step that also publishes the per-tick velocity, so clients see real motion. */
+    private static void move(SpaceshipEntity ship, double x, double y, double z) {
+        ship.setDeltaMovement(x - ship.getX(), y - ship.getY(), z - ship.getZ());
+        ship.setPos(x, y, z);
     }
 
     /** Engine roar and a smoke ring on the pad at the moment of liftoff. */
@@ -458,10 +506,7 @@ public final class FlightController {
 
     private static void transfer(SpaceshipEntity ship, FlightJournal j) {
         var server = ((ServerLevel) ship.level()).getServer();
-        var target =
-                server.getLevel(
-                        ResourceKey.create(
-                                Registries.DIMENSION, Identifier.parse(j.destination())));
+        var target = destinationWorld(server, j);
         if (target == null) {
             DolfinSpace.LOGGER.warn(
                     "event=ship_transition_wait ship={} reason=dimension_missing", ship.getUUID());

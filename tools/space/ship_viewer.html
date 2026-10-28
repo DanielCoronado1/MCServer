@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visor de naves</title>
+<style>
+  :root { --bg: #18181e; --panel: #24242c; --txt: #e8e8ee; --sub: #9a9aa8; --acc: #c79a3e; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--txt); font: 14px system-ui, sans-serif; overflow: hidden; }
+  #ui { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; z-index: 2; }
+  button { background: var(--panel); color: var(--txt); border: 1px solid #3a3a46; border-radius: 8px; padding: 8px 12px; cursor: pointer; font: inherit; }
+  button.on { border-color: var(--acc); color: #fff; background: #3a3020; }
+  .sep { width: 1px; height: 24px; background: #3a3a46; margin: 0 4px; }
+  label { display: flex; gap: 6px; align-items: center; color: var(--sub); margin-left: 8px; }
+  #ayuda { position: absolute; bottom: 14px; left: 16px; right: 16px; color: var(--sub); font-size: 12px; z-index: 2; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <span id="naves" style="display:contents"></span>
+  <span class="sep"></span>
+  <span id="versiones" style="display:contents"></span>
+  <label><input type="checkbox" id="piloto" checked> Piloto sentado</label>
+  <label><input type="checkbox" id="jugador" checked> Jugador de referencia</label>
+  <label><input type="checkbox" id="llamas"> Motores encendidos</label>
+  <label><input type="checkbox" id="girar" checked> Girar solo</label>
+</div>
+<div id="ayuda">Arrastra para girar · rueda para zoom · clic derecho para mover. La cuadrícula es de 1 bloque; el jugador mide 1,8.</div>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// { version: { tier: { nombre, tex, tw, th, partes: [[x,y,z,w,h,d,u,v]], toberas: [[x,z,tam]] } } }
+const DATOS = __DATOS__;
+const VERSIONES = Object.keys(DATOS);
+const NAVES = Object.keys(DATOS[VERSIONES[VERSIONES.length - 1]]);
+const PX = 1 / 16;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x18181e);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 200);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1.2;
+scene.add(new THREE.GridHelper(12, 12, 0x3a3a46, 0x2a2a32));
+
+// Same box-UV faces as ShipDesign / ship_art.py: Y up, canopy on -Z, world-named faces.
+function caja([x0, y0, z0, w, h, d, u, v], tw, th) {
+  const x1 = x0 + w, y1 = y0 + h, z1 = z0 + d;
+  const caras = [
+    [[u + d, v + d, w, h], 0.92, (s, t) => [x1 - s * w, y1 - t * h, z0]],          // north
+    [[u + 2 * d + w, v + d, w, h], 0.92, (s, t) => [x0 + s * w, y1 - t * h, z1]],  // south
+    [[u, v + d, d, h], 0.75, (s, t) => [x1, y1 - t * h, z1 - s * d]],              // east
+    [[u + d + w, v + d, d, h], 0.75, (s, t) => [x0, y1 - t * h, z0 + s * d]],      // west
+    [[u + d, v, w, d], 1.0, (s, t) => [x0 + s * w, y1, z0 + t * d]],               // up
+    [[u + d + w, v, w, d], 0.55, (s, t) => [x0 + s * w, y0, z1 - t * d]],          // down
+  ];
+  const pos = [], uv = [], col = [];
+  const esq = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  for (const [[fu, fv, rw, rh], luz, f] of caras) {
+    for (const i of [0, 3, 1, 1, 3, 2]) {
+      const [s, t] = esq[i];
+      pos.push(...f(s, t));
+      uv.push((fu + s * rw) / tw, (fv + t * rh) / th);
+      col.push(luz, luz, luz);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+  return g;
+}
+
+// Seated player in vanilla's riding pose, in model pixels: feet 0.6 blocks below the 1.2 seat,
+// legs swung forward (toward the canopy, -Z), arms reaching ahead. The head sweeps its extremes.
+// A faint ghost shows the pilot through the hull; anything that pokes out is drawn solid red.
+const fantasmaMat = new THREE.MeshBasicMaterial({ color: 0x4a8fd8, transparent: true, opacity: 0.3, depthTest: false });
+const fueraMat = new THREE.MeshBasicMaterial({ color: 0xff3030 });
+const cabezas = [];
+function bloque(w, h, d, y) {
+  const g = new THREE.Group();
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const fantasma = new THREE.Mesh(geo, fantasmaMat);
+  fantasma.renderOrder = 2;
+  g.add(fantasma, new THREE.Mesh(geo, fueraMat));
+  g.position.y = y;
+  return g;
+}
+function pieza(w, h, d, x, y, z, rx = 0) {
+  const pivote = new THREE.Group();
+  pivote.position.set(x, y, z);
+  pivote.rotation.x = rx;
+  pivote.add(bloque(w, h, d, -h / 2));
+  return pivote;
+}
+function piloto(x) {
+  const g = new THREE.Group();
+  g.add(pieza(8, 12, 4, 0, 24, 0));                 // torso, hips at 12
+  g.add(pieza(4, 12, 4, -2, 12, 0, 1.41));          // legs forward
+  g.add(pieza(4, 12, 4, 2, 12, 0, 1.41));
+  g.add(pieza(4, 12, 4, -6, 22, 0, 0.63));          // arms
+  g.add(pieza(4, 12, 4, 6, 22, 0, 0.63));
+  const cabeza = new THREE.Group();
+  cabeza.position.y = 24;
+  cabeza.add(bloque(8, 8, 8, 4));
+  g.add(cabeza);
+  cabezas.push(cabeza);
+  g.scale.setScalar(0.9375);
+  g.position.set(x * 16, (1.2 - 0.6) * 16, 0);
+  g.userData.piloto = true;
+  return g;
+}
+
+const llamaMat =new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.75 });
+const nucleoMat = new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.9 });
+const llamas = [];
+const modelos = {};
+for (const version of VERSIONES) {
+  for (const [tier, m] of Object.entries(DATOS[version])) {
+    const tex = new THREE.TextureLoader().load(m.tex);
+    tex.magFilter = tex.minFilter = THREE.NearestFilter;
+    tex.flipY = false;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide });
+    const raiz = new THREE.Group();
+    for (const p of m.partes) raiz.add(new THREE.Mesh(caja(p, m.tw, m.th), mat));
+    for (const x of m.asientos) raiz.add(piloto(x));
+    for (const [x, z, tam] of m.toberas) {
+      for (const [mt, ancho, largo] of [[llamaMat, tam, tam * 2.2], [nucleoMat, tam * 0.5, tam * 1.4]]) {
+        const cono = new THREE.Mesh(new THREE.ConeGeometry(ancho / 2, largo, 12), mt);
+        cono.rotation.x = Math.PI;
+        cono.position.set(x, -largo / 2, z);
+        cono.userData.largo = largo;
+        raiz.add(cono);
+        llamas.push(cono);
+      }
+    }
+    raiz.scale.setScalar(PX);
+    raiz.visible = false;
+    scene.add(raiz);
+    modelos[version + "/" + tier] = { raiz, alto: Math.max(...m.partes.map(p => p[1] + p[4])) * PX };
+  }
+}
+
+const jugador = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.8, 0.6),
+  new THREE.MeshBasicMaterial({ color: 0x4a8fd8, transparent: true, opacity: 0.45 }));
+
+let nave = NAVES[0], version = VERSIONES[VERSIONES.length - 1];
+function botones(contenedor, valores, nombre, alElegir) {
+  for (const valor of valores) {
+    const b = document.createElement("button");
+    b.textContent = nombre(valor);
+    b.onclick = () => {
+      contenedor.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+      alElegir(valor);
+    };
+    contenedor.appendChild(b);
+  }
+  contenedor.querySelector("button").classList.add("on");
+}
+botones(document.getElementById("naves"), NAVES, t => DATOS[VERSIONES[VERSIONES.length - 1]][t].nombre, t => { nave = t; mostrar(true); });
+if (VERSIONES.length > 1) {
+  const cont = document.getElementById("versiones");
+  botones(cont, [...VERSIONES].reverse(), v => v, v => { version = v; mostrar(false); });
+}
+
+function mostrar(encuadrar) {
+  for (const [k, m] of Object.entries(modelos)) m.raiz.visible = k === version + "/" + nave;
+  const m = modelos[version + "/" + nave];
+  const ancho = DATOS[version][nave].ancho;
+  jugador.position.set(-(ancho / 2 + 0.8), 0.9, 0);
+  if (document.getElementById("jugador").checked) scene.add(jugador); else scene.remove(jugador);
+  m.raiz.position.y = llamasOn() ? 1.2 : 0;
+  if (encuadrar) {
+    const alto = m.alto;
+    controls.target.set(0, alto * 0.5, 0);
+    const dist = Math.max(alto, ancho) * 2.2 + 2;
+    camera.position.set(-dist * 0.55, alto * 0.6 + dist * 0.3, -dist * 0.8);
+  }
+}
+const llamasOn = () => document.getElementById("llamas").checked;
+document.getElementById("jugador").onchange = () => mostrar(false);
+document.getElementById("piloto").onchange = e => scene.traverse(o => { if (o.userData.piloto) o.visible = e.target.checked; });
+document.getElementById("llamas").onchange = () => mostrar(false);
+document.getElementById("girar").onchange = e => controls.autoRotate = e.target.checked;
+
+function tamano() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", tamano);
+tamano(); mostrar(true);
+renderer.setAnimationLoop(time => {
+  // Head turns up to 105 degrees each way (body faces the canopy) and looks fully up and down.
+  for (const c of cabezas) {
+    c.rotation.y = THREE.MathUtils.degToRad(105) * Math.sin(time / 1300);
+    c.rotation.x = THREE.MathUtils.degToRad(90) * Math.sin(time / 830);
+  }
+  const on = llamasOn();
+  for (const [i, c] of llamas.entries()) {
+    c.visible = on;
+    const f = 1 + 0.14 * Math.sin(time / 60 + i * 7.3) + 0.07 * Math.sin(time / 21 + i);
+    c.scale.y = f;
+    c.position.y = -c.userData.largo * f / 2;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

@@ -19,15 +19,16 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.function.Supplier;
 
+/** Collision boxes follow each mob's design model (tools/skins/mobs), drawn by MobsClient. */
 public final class MobsModule {
     public static final EntityType<Parasite> PARASITE =
-            mob("parasito", Parasite::new, Spider::createAttributes, .5F, .5F, false);
+            mob("parasito", Parasite::new, Spider::createAttributes, .9F, .6F, false);
     public static final EntityType<Stalker> STALKER =
-            mob("acechador", Stalker::new, Spider::createAttributes, 1.2F, .8F, true);
+            mob("acechador", Stalker::new, Spider::createAttributes, 1.6F, 1.2F, true);
     public static final EntityType<Worm> WORM =
-            mob("gusano", Worm::new, Silverfish::createAttributes, .9F, .5F, false);
+            mob("gusano", Worm::new, Silverfish::createAttributes, 1.0F, .8F, false);
     public static final EntityType<Sentinel> SENTINEL =
-            mob("centinela", Sentinel::new, Ghast::createAttributes, 1.0F, 1.0F, false);
+            mob("centinela", Sentinel::new, Ghast::createAttributes, 1.1F, 1.3F, false);
     public static final EntityType<SpaceZombie> ZOMBIE =
             mob("zombi_espacial", SpaceZombie::new, Zombie::createAttributes, .6F, 1.95F, false);
     public static final EntityType<SpaceSkeleton> SKELETON =
@@ -39,7 +40,7 @@ public final class MobsModule {
                     1.99F,
                     false);
     public static final EntityType<SpaceCreeper> CREEPER =
-            mob("creeper_espacial", SpaceCreeper::new, Creeper::createAttributes, .6F, 1.7F, false);
+            mob("creeper_espacial", SpaceCreeper::new, Creeper::createAttributes, .8F, 1.7F, false);
     public static final EntityType<EnergyProjectile> PROJECTILE =
             entity(
                     "proyectil_energia",

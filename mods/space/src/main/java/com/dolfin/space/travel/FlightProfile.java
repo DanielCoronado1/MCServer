@@ -6,7 +6,11 @@ package com.dolfin.space.travel;
  */
 public final class FlightProfile {
     public static final int ASCENT_TICKS = 200;
-    public static final int TRANSITION_TICKS = 20;
+    public static final int TRANSITION_TICKS = 80;
+
+    /** Extra star-transit ticks allowed while the landing chunks are still generating. */
+    public static final int TRANSIT_WAIT_TICKS = 200;
+
     public static final int DESCENT_TICKS = 80;
 
     /** Height above the landing pad where the ship appears after the star transit. */

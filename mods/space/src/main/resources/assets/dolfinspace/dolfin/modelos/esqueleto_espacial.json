@@ -1,0 +1,427 @@
+{
+ "clave": "esqueleto_cristalino",
+ "textura": [
+  128,
+  64
+ ],
+ "escala": 1.0,
+ "alto": 2.054,
+ "ancho": 1.296,
+ "huesos": [
+  {
+   "nombre": "pierna_0",
+   "tipo": "pierna",
+   "piv": [
+    -2,
+    12,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 0,
+   "lado": -1,
+   "frente": 0
+  },
+  {
+   "nombre": "pierna_1",
+   "tipo": "pierna",
+   "piv": [
+    2,
+    12,
+    0
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 1,
+   "lado": 1,
+   "frente": 0
+  },
+  {
+   "nombre": "cabeza_2",
+   "tipo": "cabeza",
+   "piv": [
+    0,
+    0,
+    -0.5
+   ],
+   "fase": 0.0,
+   "pieza": 3,
+   "lado": 0,
+   "frente": 0
+  },
+  {
+   "nombre": "brazo_3",
+   "tipo": "brazo",
+   "piv": [
+    -5,
+    2,
+    0
+   ],
+   "fase": 0.0,
+   "pieza": 4,
+   "lado": -1,
+   "frente": 0
+  },
+  {
+   "nombre": "brazo_4",
+   "tipo": "brazo",
+   "piv": [
+    5,
+    2,
+    0
+   ],
+   "fase": 3.141592653589793,
+   "pieza": 5,
+   "lado": 1,
+   "frente": 0
+  }
+ ],
+ "piezas": [
+  {
+   "nombre": "hueso_pierna",
+   "hueso": "pierna_0",
+   "uv": [
+    64,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    12,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.03491
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "hueso_pierna",
+   "hueso": "pierna_1",
+   "uv": [
+    64,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    12,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.03491
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cuerpo",
+   "hueso": null,
+   "uv": [
+    32,
+    0
+   ],
+   "origen": [
+    -4,
+    -12,
+    -2
+   ],
+   "tam": [
+    8,
+    12,
+    4
+   ],
+   "piv": [
+    0,
+    12,
+    0
+   ],
+   "rot": [
+    0.08727,
+    0.0,
+    -0.0
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "cabeza",
+   "hueso": "cabeza_2",
+   "uv": [
+    0,
+    0
+   ],
+   "origen": [
+    -4,
+    -8,
+    -4
+   ],
+   "tam": [
+    8,
+    8,
+    8
+   ],
+   "piv": [
+    0,
+    0,
+    -0.0
+   ],
+   "rot": [
+    -0.06981,
+    0.0,
+    -0.17453
+   ],
+   "inflado": 0.5
+  },
+  {
+   "nombre": "hueso_brazo",
+   "hueso": "brazo_3",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    12,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    -1.5708,
+    0.0,
+    -0.10472
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "hueso_brazo",
+   "hueso": "brazo_4",
+   "uv": [
+    56,
+    0
+   ],
+   "origen": [
+    -1,
+    0,
+    -1
+   ],
+   "tam": [
+    2,
+    12,
+    2
+   ],
+   "piv": [
+    0,
+    0,
+    0
+   ],
+   "rot": [
+    -1.48353,
+    0.0,
+    0.38397
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal",
+   "hueso": "brazo_3",
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -1.5,
+    -8,
+    -1.5
+   ],
+   "tam": [
+    3.0,
+    8,
+    3.0
+   ],
+   "piv": [
+    -0.5,
+    -1.5,
+    0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    -0.5236
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": null,
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -5,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    5,
+    2.0
+   ],
+   "piv": [
+    -4,
+    0.5,
+    -1.5
+   ],
+   "rot": [
+    0.43633,
+    0.0,
+    -0.95993
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal",
+   "hueso": null,
+   "uv": [
+    72,
+    0
+   ],
+   "origen": [
+    -1.5,
+    -8,
+    -1.5
+   ],
+   "tam": [
+    3.0,
+    8,
+    3.0
+   ],
+   "piv": [
+    0.5,
+    6,
+    1.6
+   ],
+   "rot": [
+    -0.87266,
+    0.0,
+    0.17453
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": null,
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -5,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    5,
+    2.0
+   ],
+   "piv": [
+    -1,
+    10.5,
+    1.6
+   ],
+   "rot": [
+    -1.13446,
+    0.0,
+    -0.34907
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": "cabeza_2",
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -5,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    5,
+    2.0
+   ],
+   "piv": [
+    1.6,
+    -4.5,
+    -3.7
+   ],
+   "rot": [
+    1.0472,
+    0.0,
+    0.5236
+   ],
+   "inflado": 0.25
+  },
+  {
+   "nombre": "cristal_chico",
+   "hueso": "brazo_4",
+   "uv": [
+    84,
+    0
+   ],
+   "origen": [
+    -1.0,
+    -5,
+    -1.0
+   ],
+   "tam": [
+    2.0,
+    5,
+    2.0
+   ],
+   "piv": [
+    0.5132,
+    0.8654,
+    -6.9734
+   ],
+   "rot": [
+    -0.69813,
+    0.0,
+    1.0472
+   ],
+   "inflado": 0.25
+  }
+ ]
+}

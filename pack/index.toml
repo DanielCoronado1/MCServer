@@ -20,6 +20,11 @@ hash = "5cb5ad8462a314ebdbeaaae1dcfcccf14ee8862462da7712c7b44a6f7dc35d36"
 metafile = true
 
 [[files]]
+file = "mods/balm.pw.toml"
+hash = "3f529d5fd5e99dbcba1364cfc68eefc9235e6956dcd05f4c6554116f89d9c9c9"
+metafile = true
+
+[[files]]
 file = "mods/c2me-fabric.pw.toml"
 hash = "2bf4a1e86d983fff239bfa88ecd60b4a4e68135d7b72f0cc14b7e39fb4065507"
 metafile = true
@@ -56,7 +61,7 @@ metafile = true
 
 [[files]]
 file = "mods/forge-config-api-port.pw.toml"
-hash = "677e9275e617e51c121481757f0d3a001027e65df35c436dbc0886d6568047a7"
+hash = "3eb12471fce0aadbda432f7fd5ba4e2120e0e0ebbb3663eea756a17ec0254407"
 metafile = true
 
 [[files]]
@@ -95,6 +100,16 @@ hash = "6a4ced28580363e2e7aa6ce4116d1a9de80a170af54f23912216de8d8cd7247c"
 metafile = true
 
 [[files]]
+file = "mods/moogs-structure-lib.pw.toml"
+hash = "2e9da4427e0ea58ccf9d3e8a792373ef607e692c785e219124dbdc9a292c029b"
+metafile = true
+
+[[files]]
+file = "mods/moogs-voyager-structures.pw.toml"
+hash = "8f1f7a8fad5f76d13cc8fdd8fd3c9b721a461fe72f009c23a247ffab76154586"
+metafile = true
+
+[[files]]
 file = "mods/multiworld.pw.toml"
 hash = "0774f6934338ad0e0c0fbb49020fed69bd6ac6a6c7beee4b97f583d6a3fc4f5f"
 metafile = true
@@ -125,6 +140,11 @@ hash = "07e3c8dc0d6b3717b01c91597e6d1a597333a1883731891df3c535164f96f5da"
 metafile = true
 
 [[files]]
+file = "mods/shogi.pw.toml"
+hash = "7dce4255d013864163503866db2a902f7071d64ef184c3d40189c1ac9641a7f2"
+metafile = true
+
+[[files]]
 file = "mods/sodium.pw.toml"
 hash = "0bf314c578473659bd89915114cac8e60994988f405218726a48d35b06e9316c"
 metafile = true
@@ -145,6 +165,11 @@ hash = "efb304acc0316ae0460a0d38031bd555f8ffdaa2aa484e66599c085471cc7524"
 metafile = true
 
 [[files]]
+file = "mods/travelers-backpack.pw.toml"
+hash = "e352d420835c1a74eefcf18649804d470049aded176d759167bb9b3e15323fd8"
+metafile = true
+
+[[files]]
 file = "mods/villagerstradingplus.pw.toml"
 hash = "9e5ee6b4241b52764a7d785790dfbaf4d7ce4a28f251bf2fe6015fce0b837e8c"
 metafile = true
@@ -152,4 +177,9 @@ metafile = true
 [[files]]
 file = "mods/vmp-fabric.pw.toml"
 hash = "5e4f565b61e14d9db3c9aee3a2bd329b9e9d6dced068e5e079f02077e9fc3670"
+metafile = true
+
+[[files]]
+file = "mods/waystones.pw.toml"
+hash = "85e00f97c2d58db3167bb6608558aa956654f5b0570e0abac082a1d0d4e3c19d"
 metafile = true

@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.*;
 import net.minecraft.client.renderer.entity.layers.*;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -18,7 +19,10 @@ import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.*;
 
-/** Player geometry, skin layers, held items and armor; no fake client player or world mutation. */
+/**
+ * Player geometry, skin layers, held items and armor once a player was copied; until then the
+ * kind's own design. No fake client player or world mutation.
+ */
 public final class PlayerLikeZombieRenderer
         extends HumanoidMobRenderer<ConfiguredZombie, AvatarRenderState, PlayerModel> {
     static final class State extends AvatarRenderState {
@@ -28,10 +32,15 @@ public final class PlayerLikeZombieRenderer
 
     private final ZombieKind kind;
     private final PlayerModel wide, slim;
+    // Until it copies a player, the zombie shows its own design instead of the player body.
+    private final DesignModel<AvatarRenderState> design, designExterior;
 
     public PlayerLikeZombieRenderer(EntityRendererProvider.Context context, ZombieKind kind) {
         super(context, new PlayerModel(context.bakeLayer(ModelLayers.PLAYER), false), .5f);
         this.kind = kind;
+        var data = DesignModel.load(DolfinZombies.MOD_ID, kind.id());
+        design = new DesignModel<>(data, DesignModel.Layer.BASE);
+        designExterior = new DesignModel<>(data, DesignModel.Layer.EXTERIOR);
         wide = model;
         slim = new PlayerModel(context.bakeLayer(ModelLayers.PLAYER_SLIM), true);
         addArmor(context, false);
@@ -48,6 +57,10 @@ public final class PlayerLikeZombieRenderer
                             float x) {
                         if (state.isInvisible) return;
                         var s = (State) state;
+                        if (!s.copied) {
+                            submitDesign(pose, collector, light, state);
+                            return;
+                        }
                         if (s.infected) {
                             collector
                                     .order(1)
@@ -136,6 +149,54 @@ public final class PlayerLikeZombieRenderer
         return ((State) state).copied
                 ? state.skin.body().texturePath()
                 : KindZombieRenderer.texture(kind, "");
+    }
+
+    /** The kind's own design, relief and (contagiado) pulsing eyes, while no player is copied. */
+    private void submitDesign(
+            PoseStack pose, SubmitNodeCollector collector, int light, AvatarRenderState state) {
+        int overlay = LivingEntityRenderer.getOverlayCoords(state, 0);
+        collector
+                .order(0)
+                .submitModel(
+                        design,
+                        state,
+                        pose,
+                        RenderTypes.entityCutout(KindZombieRenderer.texture(kind, "")),
+                        light,
+                        overlay,
+                        0);
+        collector
+                .order(1)
+                .submitModel(
+                        designExterior,
+                        state,
+                        pose,
+                        RenderTypes.entityCutout(KindZombieRenderer.texture(kind, "_exterior")),
+                        light,
+                        overlay,
+                        0);
+        if (((State) state).infected)
+            collector
+                    .order(2)
+                    .submitModel(
+                            design,
+                            state,
+                            pose,
+                            RenderTypes.eyes(KindZombieRenderer.texture(kind, "_ojos")),
+                            15728880,
+                            OverlayTexture.NO_OVERLAY,
+                            KindZombieRenderer.pulse(state.ageInTicks),
+                            null,
+                            0);
+    }
+
+    @Override
+    protected RenderType getRenderType(
+            AvatarRenderState state, boolean visible, boolean translucent, boolean glowing) {
+        // The player body only shows once a player was copied; until then the design layer draws.
+        return ((State) state).copied
+                ? super.getRenderType(state, visible, translucent, glowing)
+                : null;
     }
 
     @Override

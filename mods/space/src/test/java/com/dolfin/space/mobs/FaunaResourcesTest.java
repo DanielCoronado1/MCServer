@@ -67,11 +67,21 @@ class FaunaResourcesTest {
                     Files.readAllBytes(
                             ROOT.resolve("assets/dolfinspace/textures/entity/" + name + ".png"));
             assertEquals((byte) 0x89, texture[0]);
-            assertTrue(renderer.contains("texture(\"" + name + "\")"));
+            assertTrue(renderer.contains("\"" + name + "\""), name);
+            assertTrue(
+                    Files.exists(
+                            ROOT.resolve("assets/dolfinspace/dolfin/modelos/" + name + ".json")),
+                    name);
+            assertTrue(
+                    Files.exists(
+                            ROOT.resolve(
+                                    "assets/dolfinspace/textures/entity/"
+                                            + name
+                                            + "_exterior.png")),
+                    name);
         }
-        assertTrue(renderer.contains("SpiderRenderer"));
-        assertTrue(renderer.contains("SilverfishRenderer"));
-        assertTrue(renderer.contains("GhastRenderer"));
+        assertTrue(renderer.contains("DesignRenderer"));
+        assertTrue(renderer.contains("CreeperDesignRenderer"));
     }
 
     @Test

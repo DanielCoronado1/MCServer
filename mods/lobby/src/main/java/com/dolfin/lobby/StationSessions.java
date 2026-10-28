@@ -176,9 +176,19 @@ public final class StationSessions {
         if (!isolated(p.getUUID())) return;
         var saved = store.get(p.getUUID());
         try {
-            var world =
-                    server.getLevel(
-                            LobbyConfig.key(saved.getStringOr("dimension", "minecraft:overworld")));
+            String dimension = saved.getStringOr("dimension", "minecraft:overworld");
+            // A capture taken inside the station has no survival position; use the world spawn.
+            boolean stranded =
+                    dimension.equals(config.lobby()) || dimension.equals(config.showcase());
+            var spawn = server.getRespawnData();
+            var world = server.getLevel(stranded ? spawn.dimension() : LobbyConfig.key(dimension));
+            var destination =
+                    stranded
+                            ? Vec3.atBottomCenterOf(spawn.pos())
+                            : new Vec3(
+                                    saved.getDoubleOr("x", .5),
+                                    saved.getDoubleOr("y", 80),
+                                    saved.getDoubleOr("z", .5));
             if (world == null)
                 throw new IOException(
                         "El mundo de origen no está cargado; tu inventario sigue a salvo.");
@@ -197,16 +207,7 @@ public final class StationSessions {
                                         ProblemReporter.DISCARDING, p.registryAccess(), survival));
                 IsolatedAttachments.restore(p, survival);
                 com.dolfin.space.SpaceTravelAccess.runAuthorized(
-                        p,
-                        "lobby_survival_restore",
-                        () ->
-                                teleport(
-                                        p,
-                                        world,
-                                        new Vec3(
-                                                saved.getDoubleOr("x", .5),
-                                                saved.getDoubleOr("y", 80),
-                                                saved.getDoubleOr("z", .5))));
+                        p, "lobby_survival_restore", () -> teleport(p, world, destination));
                 ((PlayerStateAccess) p).dolfinlobby$left(left);
                 ((PlayerStateAccess) p).dolfinlobby$right(right);
                 p.setRemainingFireTicks(survival.getIntOr("Fire", 0));

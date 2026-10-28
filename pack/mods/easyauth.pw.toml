@@ -1,0 +1,13 @@
+name = "EasyAuth"
+filename = "easyauth-mc26.3-3.4.4.jar"
+side = "server"
+
+[download]
+url = "https://cdn.modrinth.com/data/aZj58GfX/versions/Qd0CWVQP/easyauth-mc26.3-3.4.4.jar"
+hash-format = "sha512"
+hash = "849a3be86dbde46427b10053f474bd53b2ae6f7d69af3221b3cf73884876acf7fa5c7cde1089c86e16dbf0ff1b0dc8d5bcb96efbc71968bb01ed9fa50830beab"
+
+[update]
+[update.modrinth]
+mod-id = "aZj58GfX"
+version = "Qd0CWVQP"

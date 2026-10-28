@@ -40,6 +40,11 @@ hash = "165260951223ace207900087868f0984767caaf4aaadfaf9cbe74304cbc745f7"
 metafile = true
 
 [[files]]
+file = "mods/easyauth.pw.toml"
+hash = "d98eb3bf18b3d218b73c8f15db6a21d320c250db2e9e48f277f476ea4a9d1c64"
+metafile = true
+
+[[files]]
 file = "mods/essential-commands.pw.toml"
 hash = "4e014b9ce702025777a0e980d3936c2933b1489e5df4379020e5fc71b364387f"
 metafile = true
@@ -157,6 +162,11 @@ metafile = true
 [[files]]
 file = "mods/structure-layout-optimizer.pw.toml"
 hash = "7efac3a63be507bb2d2fdf2e3a57b238487aacd0057831fadaf4b635994361df"
+metafile = true
+
+[[files]]
+file = "mods/styled-chat.pw.toml"
+hash = "615a542e44d97352ccd6a6df7ff730ffdec78b8004f464458dd0f27302430bfb"
 metafile = true
 
 [[files]]

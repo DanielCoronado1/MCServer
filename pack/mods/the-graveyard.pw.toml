@@ -1,0 +1,13 @@
+name = "The Graveyard (Fabric/Neoforge)"
+filename = "graveyard-FABRIC-4.0.0+mc26.3.jar"
+side = "both"
+
+[download]
+url = "https://cdn.modrinth.com/data/QivVPB8W/versions/yeFv1Dnk/graveyard-FABRIC-4.0.0%2Bmc26.3.jar"
+hash-format = "sha512"
+hash = "2dd4fdf0111843803d5ce78e2f175e596fffcafc2196297062cce60f6f5cf366b6ad70e8ed94c0927f71d7659bffcd58dae9988cb9e48311c9e88b8dcf43d489"
+
+[update]
+[update.modrinth]
+mod-id = "QivVPB8W"
+version = "yeFv1Dnk"

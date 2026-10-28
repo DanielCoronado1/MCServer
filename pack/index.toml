@@ -5,6 +5,16 @@ file = "custom-mods.toml"
 hash = "45ab0f31f22db417285cdbfd08266aa2959acae36aeaf41da5a3e225ee2b2481"
 
 [[files]]
+file = "mods/almanac.pw.toml"
+hash = "c5a1f9697e5ddd8a8575f1c590d5164474a04720d0a99908c48435de58f09237"
+metafile = true
+
+[[files]]
+file = "mods/alternate-current.pw.toml"
+hash = "d3f2bc4d5d77f02ae3810f17429f1d2df1258ff415101c9e35650a57eacbc45d"
+metafile = true
+
+[[files]]
 file = "mods/automodpack.pw.toml"
 hash = "5cb5ad8462a314ebdbeaaae1dcfcccf14ee8862462da7712c7b44a6f7dc35d36"
 metafile = true
@@ -22,6 +32,11 @@ metafile = true
 [[files]]
 file = "mods/chunky.pw.toml"
 hash = "c3e4fe1c4469a4cbad5fc201fe7083166b6bf3cab7edb23398a317b4c29bd727"
+metafile = true
+
+[[files]]
+file = "mods/clumps.pw.toml"
+hash = "165260951223ace207900087868f0984767caaf4aaadfaf9cbe74304cbc745f7"
 metafile = true
 
 [[files]]
@@ -50,6 +65,16 @@ hash = "3eb12471fce0aadbda432f7fd5ba4e2120e0e0ebbb3663eea756a17ec0254407"
 metafile = true
 
 [[files]]
+file = "mods/geckolib.pw.toml"
+hash = "96e6f76c367bf89cc570c0e95a16979806e4c3e24f135878b272e3ef43e00b37"
+metafile = true
+
+[[files]]
+file = "mods/krypton.pw.toml"
+hash = "d2270d83f52a100881039af3773e996e130f443d16686b1813d24c7d05df26f2"
+metafile = true
+
+[[files]]
 file = "mods/ledger.pw.toml"
 hash = "264b4030e5717d50ebd215bffeb2e5fa138dc255ed57cbd47f99fd0a69595af3"
 metafile = true
@@ -57,6 +82,11 @@ metafile = true
 [[files]]
 file = "mods/lithium.pw.toml"
 hash = "a39389e4c813b70b984a0c8aed769825b32c321ee0b9aed1151d92cb38f77357"
+metafile = true
+
+[[files]]
+file = "mods/lmd.pw.toml"
+hash = "90f075ad39a874b59c83046a7b19924359002e846f9ded4b001833d1f6c75037"
 metafile = true
 
 [[files]]
@@ -90,8 +120,23 @@ hash = "74bdac9fc9cc613e8b1cf5552bde371853c38f0950296393fddd775a6b532fd1"
 metafile = true
 
 [[files]]
+file = "mods/packet-fixer.pw.toml"
+hash = "5eb3a810b1e1d1f2c41836a02e3b6df1cc27f2bbd1e06595042a014cc9abc47d"
+metafile = true
+
+[[files]]
+file = "mods/resourceful-config.pw.toml"
+hash = "119ac28485574efa6de6dc199d4985ec3079898331b355e258608a86f2305614"
+metafile = true
+
+[[files]]
 file = "mods/scalablelux.pw.toml"
 hash = "2eaee6b3f8b09717c82b54b1678b57b4934172626e71e3924a16f39e41a72e93"
+metafile = true
+
+[[files]]
+file = "mods/servercore.pw.toml"
+hash = "07e3c8dc0d6b3717b01c91597e6d1a597333a1883731891df3c535164f96f5da"
 metafile = true
 
 [[files]]
@@ -110,8 +155,23 @@ hash = "43bdce478a1b421f2fe0718b2b5aea0624833340970c9621ff56ed00b0fc44c0"
 metafile = true
 
 [[files]]
+file = "mods/structure-layout-optimizer.pw.toml"
+hash = "7efac3a63be507bb2d2fdf2e3a57b238487aacd0057831fadaf4b635994361df"
+metafile = true
+
+[[files]]
+file = "mods/the-graveyard.pw.toml"
+hash = "efb304acc0316ae0460a0d38031bd555f8ffdaa2aa484e66599c085471cc7524"
+metafile = true
+
+[[files]]
 file = "mods/travelers-backpack.pw.toml"
 hash = "e352d420835c1a74eefcf18649804d470049aded176d759167bb9b3e15323fd8"
+metafile = true
+
+[[files]]
+file = "mods/villagerstradingplus.pw.toml"
+hash = "9e5ee6b4241b52764a7d785790dfbaf4d7ce4a28f251bf2fe6015fce0b837e8c"
 metafile = true
 
 [[files]]

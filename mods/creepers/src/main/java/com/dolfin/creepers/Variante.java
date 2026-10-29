@@ -10,14 +10,14 @@ package com.dolfin.creepers;
  */
 public enum Variante {
     //                vida   escala vel   mecha radio rompe  peso grupo
-    FUEGO(24, 1.0, 1.0, 30, 3, true, 12, 1, 1),
-    HIELO(24, 1.0, 1.0, 30, 3, false, 18, 1, 2),
-    SALTARIN(16, 0.75, 1.35, 20, 2, true, 10, 1, 2),
-    MINI(6, 0.45, 1.3, 20, 1, false, 10, 2, 4),
-    ELECTRICO(20, 1.0, 1.0, 30, 3, true, 6, 1, 1),
-    MULTIPLICADOR(20, 1.0, 1.0, 30, 2, true, 8, 1, 1),
-    GIGANTE(60, 2.0, 0.8, 50, 5, true, 4, 1, 1),
-    TOXICO(20, 1.0, 1.0, 30, 2, false, 8, 1, 1),
+    FUEGO(24, 1.0, 1.0, 30, 3, true, 24, 1, 1),
+    HIELO(24, 1.0, 1.0, 30, 3, false, 36, 1, 2),
+    SALTARIN(16, 0.75, 1.35, 20, 2, true, 20, 1, 2),
+    MINI(6, 0.45, 1.3, 20, 1, false, 20, 2, 4),
+    ELECTRICO(20, 1.0, 1.0, 30, 3, true, 12, 1, 1),
+    MULTIPLICADOR(20, 1.0, 1.0, 30, 2, true, 16, 1, 1),
+    GIGANTE(60, 2.0, 0.8, 50, 5, true, 8, 1, 1),
+    TOXICO(20, 1.0, 1.0, 30, 2, false, 16, 1, 1),
     REY(300, 3.0, 0.9, 40, 4, false, 0, 1, 1);
 
     public final double vida;

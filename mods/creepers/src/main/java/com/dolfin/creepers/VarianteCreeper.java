@@ -270,7 +270,12 @@ public class VarianteCreeper extends Creeper {
 
     @Override
     public void tick() {
-        if (isRemoved() || !isAlive()) {
+        if (isRemoved()) {
+            return;
+        }
+        if (!isAlive()) {
+            // El tick vanilla corre la animación de muerte y retira la entidad.
+            super.tick();
             return;
         }
         LivingEntity objetivo = getTarget();

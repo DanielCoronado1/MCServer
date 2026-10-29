@@ -86,7 +86,11 @@ public class ReyCreeper extends VarianteCreeper {
 
     @Override
     public void tick() {
-        if (isRemoved() || !isAlive()) {
+        if (isRemoved()) {
+            return;
+        }
+        if (!isAlive()) {
+            super.tick();
             return;
         }
         if (level() instanceof ServerLevel mundo && mundo.players().isEmpty()) {
